@@ -976,76 +976,46 @@ class BackendTester:
         else:
             self.log_test_result("🎯 КРИТИЧЕСКИЙ ТЕСТ: Только tesseract_ocr и direct_pdf методы", False, f"Error getting OCR status: {error}", data)
     
-    async def test_analyze_file_ocr_integration(self):
-        """Test that analyze-file endpoint integrates with improved OCR service"""
-        logger.info("=== Testing Analyze File OCR Integration ===")
+    async def test_fast_image_processing_functionality(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Быстрая обработка изображений без долгих задержек"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Быстрая обработка изображений ===")
         
-        # Test that analyze-file endpoint exists and handles different file types
+        # Test that analyze-file endpoint exists and handles different image formats quickly
         test_image_data = self.create_test_image()
         
-        # Test with JPEG image
-        form_data = aiohttp.FormData()
-        form_data.add_field('file', test_image_data, filename='test_image.jpg', content_type='image/jpeg')
-        form_data.add_field('language', 'de')
+        # Test different image formats for fast processing
+        image_formats = [
+            ('test_image.jpg', 'image/jpeg'),
+            ('test_image.png', 'image/png'),
+            ('test_image.webp', 'image/webp'),
+            ('test_image.gif', 'image/gif')
+        ]
         
-        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
+        all_formats_handled = True
         
-        # Should fail with authentication required (not file format error)
-        handles_jpeg = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
-        
-        self.log_test_result(
-            "POST /api/analyze-file - JPEG image handling",
-            handles_jpeg,
-            f"Correctly handles JPEG images and requires auth" if handles_jpeg else f"JPEG handling issue: {error}",
-            data
-        )
-        
-        # Test with PNG image
-        form_data = aiohttp.FormData()
-        form_data.add_field('file', test_image_data, filename='test_image.png', content_type='image/png')
-        form_data.add_field('language', 'en')
-        
-        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
-        
-        handles_png = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
-        
-        self.log_test_result(
-            "POST /api/analyze-file - PNG image handling",
-            handles_png,
-            f"Correctly handles PNG images and requires auth" if handles_png else f"PNG handling issue: {error}",
-            data
-        )
-        
-        # Test with WebP image
-        form_data = aiohttp.FormData()
-        form_data.add_field('file', test_image_data, filename='test_image.webp', content_type='image/webp')
-        form_data.add_field('language', 'ru')
-        
-        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
-        
-        handles_webp = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        for filename, content_type in image_formats:
+            form_data = aiohttp.FormData()
+            form_data.add_field('file', test_image_data, filename=filename, content_type=content_type)
+            form_data.add_field('language', 'ru')
+            
+            # Measure response time to ensure it's fast (not hanging)
+            start_time = time.time()
+            success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
+            response_time = time.time() - start_time
+            
+            # Should fail with authentication required (not timeout or processing error)
+            is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+            is_fast_response = response_time < 5.0  # Should respond within 5 seconds (not hang)
+            
+            if not (is_auth_required and is_fast_response):
+                all_formats_handled = False
+                logger.warning(f"Format {filename} issue: auth_required={is_auth_required}, fast_response={is_fast_response}, time={response_time:.2f}s")
         
         self.log_test_result(
-            "POST /api/analyze-file - WebP image handling",
-            handles_webp,
-            f"Correctly handles WebP images and requires auth" if handles_webp else f"WebP handling issue: {error}",
-            data
-        )
-        
-        # Test with GIF image
-        form_data = aiohttp.FormData()
-        form_data.add_field('file', test_image_data, filename='test_image.gif', content_type='image/gif')
-        form_data.add_field('language', 'de')
-        
-        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
-        
-        handles_gif = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
-        
-        self.log_test_result(
-            "POST /api/analyze-file - GIF image handling",
-            handles_gif,
-            f"Correctly handles GIF images and requires auth" if handles_gif else f"GIF handling issue: {error}",
-            data
+            "🎯 КРИТИЧЕСКИЙ ТЕСТ: Быстрая обработка изображений",
+            all_formats_handled,
+            f"All image formats handled quickly without hanging" if all_formats_handled else f"Some formats had issues",
+            {"tested_formats": [f[0] for f in image_formats]}
         )
     
     async def test_ocr_service_tesseract_dependency(self):
