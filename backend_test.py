@@ -1945,7 +1945,7 @@ class BackendTester:
             await self.test_no_skip_auth_functionality()
             
             # NEW: Telegram authentication tests (PRIORITY)
-            await self.test_telegram_authentication_endpoint()
+            await self.test_telegram_authentication_comprehensive()
             await self.test_telegram_bot_token_configuration()
             await self.test_telegram_user_creation_and_updates()
             await self.test_telegram_auth_response_format()
