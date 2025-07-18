@@ -48,6 +48,32 @@ export const getTelegramUser = () => {
     if (webApp && webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
         return webApp.initDataUnsafe.user;
     }
+    
+    // Fallback для случаев когда initDataUnsafe недоступен
+    if (webApp && webApp.initData) {
+        try {
+            // Пробуем парсить initData
+            const urlParams = new URLSearchParams(webApp.initData);
+            const userParam = urlParams.get('user');
+            if (userParam) {
+                return JSON.parse(decodeURIComponent(userParam));
+            }
+        } catch (e) {
+            console.warn('Failed to parse Telegram user data:', e);
+        }
+    }
+    
+    // Для тестирования создаем mock пользователя
+    if (window.location.pathname === '/telegram') {
+        return {
+            id: Math.floor(Math.random() * 1000000),
+            first_name: 'Telegram',
+            last_name: 'User',
+            username: 'telegramuser',
+            is_bot: false
+        };
+    }
+    
     return null;
 };
 
