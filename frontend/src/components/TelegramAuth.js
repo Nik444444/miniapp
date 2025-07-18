@@ -112,14 +112,15 @@ const TelegramAuth = () => {
         setTimeout(initTelegramAuth, 100);
     }, []);
 
-    const handleTelegramAuth = async (user) => {
+    const handleTelegramAuth = async (user, initData = null) => {
         console.log('TelegramAuth: Starting authentication process for user:', user);
+        console.log('TelegramAuth: initData:', initData);
         setIsLoading(true);
         setError(null);
         
         try {
             console.log('TelegramAuth: Calling loginWithTelegram...');
-            const result = await loginWithTelegram(user);
+            const result = await loginWithTelegram(user, initData);
             console.log('TelegramAuth: Authentication result:', result);
             
             if (!result.success) {
