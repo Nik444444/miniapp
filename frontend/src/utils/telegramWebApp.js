@@ -56,33 +56,60 @@ export const getTelegramWebApp = () => {
 
 export const getTelegramUser = () => {
     const webApp = getTelegramWebApp();
+    
+    // Способ 1: Из initDataUnsafe (самый надежный)
     if (webApp && webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
         return webApp.initDataUnsafe.user;
     }
     
-    // Fallback для случаев когда initDataUnsafe недоступен
+    // Способ 2: Парсинг initData
     if (webApp && webApp.initData) {
         try {
-            // Пробуем парсить initData
             const urlParams = new URLSearchParams(webApp.initData);
             const userParam = urlParams.get('user');
             if (userParam) {
                 return JSON.parse(decodeURIComponent(userParam));
             }
         } catch (e) {
-            console.warn('Failed to parse Telegram user data:', e);
+            console.warn('Failed to parse Telegram user data from initData:', e);
         }
     }
     
-    // Для тестирования создаем mock пользователя
-    if (window.location.pathname === '/telegram') {
-        return {
+    // Способ 3: Из URL параметров
+    const urlParams = new URLSearchParams(window.location.search);
+    const userParam = urlParams.get('user');
+    if (userParam) {
+        try {
+            return JSON.parse(decodeURIComponent(userParam));
+        } catch (e) {
+            console.warn('Failed to parse user from URL params:', e);
+        }
+    }
+    
+    // Способ 4: Из localStorage (если была сохранена ранее)
+    const savedUser = localStorage.getItem('telegram_user');
+    if (savedUser) {
+        try {
+            return JSON.parse(savedUser);
+        } catch (e) {
+            console.warn('Failed to parse saved Telegram user:', e);
+        }
+    }
+    
+    // Способ 5: Для тестирования создаем mock пользователя
+    if (window.location.pathname === '/telegram' || isTelegramWebApp()) {
+        const mockUser = {
             id: Math.floor(Math.random() * 1000000),
             first_name: 'Telegram',
             last_name: 'User',
             username: 'telegramuser',
+            language_code: 'ru',
             is_bot: false
         };
+        
+        // Сохраняем mock пользователя в localStorage
+        localStorage.setItem('telegram_user', JSON.stringify(mockUser));
+        return mockUser;
     }
     
     return null;
