@@ -1763,54 +1763,118 @@ class BackendTester:
 
     async def run_all_tests(self):
         """Run all backend tests"""
-        logger.info("🚀 Starting comprehensive backend API tests...")
+        logger.info("🚀 Starting Comprehensive Backend API Testing for German Letter AI Assistant")
+        logger.info("=" * 80)
         
         try:
-            # PRIORITY TESTS FOR RENDER DEPLOYMENT FIX
-            await self.test_render_deployment_tesseract_fix()    # Test Tesseract as PRIMARY method
-            await self.test_tesseract_system_availability()      # Test Tesseract system availability
-            await self.test_tesseract_language_packages()        # Test language packages (deu, eng, rus, ukr)
-            await self.test_render_deployment_dependencies()     # Test all dependencies installed correctly
-            await self.test_system_not_in_fallback_mode()        # Test system NOT in fallback mode
-            await self.test_basic_functionality_after_render_fix() # Test basic functionality
-            
+            # Basic health tests
             await self.test_basic_health_endpoints()
             await self.test_api_health_endpoints()
-            await self.test_llm_status_endpoint()
-            await self.test_modern_llm_status_endpoint()  # New test for modern LLM status
-            await self.test_legacy_status_endpoints()
+            
+            # Authentication and security tests
             await self.test_authentication_required_endpoints()
             await self.test_google_oauth_endpoint()
-            await self.test_quick_gemini_setup_endpoint()  # New test for quick Gemini setup
-            await self.test_database_functionality()
             await self.test_no_skip_auth_functionality()
             
-            # CRITICAL TESTS FOR IMAGE RECOGNITION
-            await self.test_image_recognition_functionality()  # Test image recognition fix
-            await self.test_modern_llm_manager_integration()   # Test modern LLM manager integration
-            await self.test_emergentintegrations_support()     # Test emergentintegrations support
+            # NEW: Telegram authentication tests (PRIORITY)
+            await self.test_telegram_authentication_endpoint()
+            await self.test_telegram_bot_token_configuration()
+            await self.test_telegram_user_creation_and_updates()
+            await self.test_telegram_auth_response_format()
+            await self.test_telegram_auth_service_validation()
+            await self.test_no_duplicate_telegram_endpoints()
             
-            # NEW TESTS FOR TELEGRAM NEWS AND TEXT FORMATTING
-            await self.test_telegram_news_endpoint()           # Test new Telegram news endpoint
-            await self.test_text_formatting_improvements()     # Test text formatting improvements
-            await self.test_improved_analysis_prompt()         # Test improved analysis prompt
+            # Database tests
+            await self.test_database_functionality()
+            await self.test_legacy_status_endpoints()
             
-            # NEW TESTS FOR AUTO-GENERATE GEMINI API KEY FUNCTIONALITY
-            await self.test_auto_generate_gemini_key_endpoint()  # Test new auto-generate endpoint
-            await self.test_google_api_key_service_integration() # Test Google API Key Service integration
-            await self.test_api_key_update_new_field_names()     # Test API key update with new field names
-            await self.test_dependencies_installation()          # Test required dependencies
+            # LLM and modern features tests
+            await self.test_llm_status_endpoint()
+            await self.test_modern_llm_status_endpoint()
+            await self.test_modern_llm_manager_integration()
+            await self.test_emergentintegrations_support()
             
-            # NEW TESTS FOR IMPROVED OCR SERVICE
-            await self.test_improved_ocr_service_status()        # Test new OCR status endpoint
-            await self.test_ocr_methods_availability()           # Test OCR methods availability
-            await self.test_analyze_file_ocr_integration()       # Test analyze-file OCR integration
-            await self.test_ocr_service_tesseract_dependency()   # Test WITH tesseract dependency (PRIMARY method)
-            await self.test_ocr_logging_and_fallback()           # Test OCR logging and fallback
+            # API key management tests
+            await self.test_quick_gemini_setup_endpoint()
+            await self.test_auto_generate_gemini_key_endpoint()
+            await self.test_google_api_key_service_integration()
+            await self.test_api_key_update_new_field_names()
+            
+            # OCR and image processing tests
+            await self.test_improved_ocr_service_status()
+            await self.test_ocr_methods_availability()
+            await self.test_analyze_file_ocr_integration()
+            await self.test_image_recognition_functionality()
+            await self.test_ocr_service_tesseract_dependency()
+            await self.test_ocr_logging_and_fallback()
+            
+            # New features tests
+            await self.test_telegram_news_endpoint()
+            await self.test_text_formatting_improvements()
+            await self.test_improved_analysis_prompt()
+            
+            # Dependencies and deployment tests
+            await self.test_dependencies_installation()
+            await self.test_render_deployment_dependencies()
+            await self.test_render_deployment_tesseract_fix()
+            await self.test_tesseract_system_availability()
+            await self.test_tesseract_language_packages()
+            await self.test_system_not_in_fallback_mode()
+            await self.test_basic_functionality_after_render_fix()
             
         except Exception as e:
             logger.error(f"Test execution error: {e}")
             self.log_test_result("Test execution", False, f"Critical error: {e}")
+        
+        # Generate summary
+        self.generate_test_summary()
+    
+    def generate_test_summary(self):
+        """Generate and display test summary"""
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        logger.info("=" * 80)
+        logger.info("🎯 TELEGRAM MINI APP AUTHENTICATION TESTING COMPLETE")
+        logger.info("=" * 80)
+        logger.info(f"📊 RESULTS: {success_rate:.1f}% success ({passed_tests}/{total_tests} tests)")
+        logger.info(f"✅ PASSED: {passed_tests}")
+        logger.info(f"❌ FAILED: {failed_tests}")
+        logger.info("=" * 80)
+        
+        # Show failed tests
+        if failed_tests > 0:
+            logger.info("❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    logger.info(f"   • {result['test']}: {result['details']}")
+            logger.info("=" * 80)
+        
+        # Show key Telegram authentication results
+        telegram_tests = [r for r in self.test_results if "telegram" in r["test"].lower()]
+        if telegram_tests:
+            telegram_passed = sum(1 for r in telegram_tests if r["success"])
+            telegram_total = len(telegram_tests)
+            logger.info(f"🔐 TELEGRAM AUTHENTICATION: {telegram_passed}/{telegram_total} tests passed")
+            
+            for result in telegram_tests:
+                status = "✅" if result["success"] else "❌"
+                logger.info(f"   {status} {result['test']}")
+            logger.info("=" * 80)
+        
+        # Show critical deployment status
+        critical_tests = [
+            r for r in self.test_results 
+            if any(keyword in r["test"].lower() for keyword in ["health", "modern-llm", "ocr-status", "dependencies"])
+        ]
+        
+        if critical_tests:
+            critical_passed = sum(1 for r in critical_tests if r["success"])
+            critical_total = len(critical_tests)
+            logger.info(f"🚀 CRITICAL DEPLOYMENT STATUS: {critical_passed}/{critical_total} tests passed")
+            logger.info("=" * 80)
     
     def print_summary(self):
         """Print test summary"""
