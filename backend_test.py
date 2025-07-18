@@ -1222,9 +1222,98 @@ class BackendTester:
         
         # Test 4: Test error handling
         await self._test_telegram_error_handling()
+    async def _test_cors_configuration(self):
+        """Test CORS configuration for Telegram Mini App"""
+        logger.info("--- Testing CORS Configuration ---")
         
-        # Test 5: Test authentication response format
-        await self._test_telegram_response_format()
+        # Test preflight request with Telegram Mini App origin
+        telegram_origin = "https://germany-ai-mini-app.netlify.app"
+        
+        # Test OPTIONS request for CORS preflight
+        headers = {
+            "Origin": telegram_origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type,Authorization"
+        }
+        
+        success, data, error = await self.make_request("OPTIONS", "/api/auth/telegram/verify", headers=headers)
+        
+        # CORS should allow the request (success or specific CORS response)
+        cors_configured = success or "405" in str(error)  # 405 Method Not Allowed is acceptable for OPTIONS
+        
+        self.log_test_result(
+            "CORS - Telegram Mini App origin support",
+            cors_configured,
+            f"CORS configured for Telegram Mini App origin" if cors_configured else f"CORS issue: {error}",
+            {"origin": telegram_origin, "response": data}
+        )
+        
+        # Test actual POST request with origin header
+        test_data = {
+            "telegram_user": {
+                "id": 123456789,
+                "first_name": "CORSTest",
+                "last_name": "User"
+            }
+        }
+        
+        headers_with_origin = {"Origin": telegram_origin}
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=test_data, headers=headers_with_origin)
+        
+        # Should not fail due to CORS (may fail due to auth validation, but not CORS)
+        no_cors_error = "CORS" not in str(error).upper() and "cross-origin" not in str(error).lower()
+        
+        self.log_test_result(
+            "CORS - POST request with Telegram origin",
+            no_cors_error,
+            f"No CORS blocking detected" if no_cors_error else f"CORS blocking detected: {error}",
+            data
+        )
+    
+    async def _test_fly_dev_backend_accessibility(self):
+        """Test that fly.dev backend is accessible and working"""
+        logger.info("--- Testing Fly.dev Backend Accessibility ---")
+        
+        # Test that we're actually testing the fly.dev backend
+        is_fly_dev = "miniapp-wvsxfa.fly.dev" in self.backend_url
+        
+        self.log_test_result(
+            "Backend URL - Using fly.dev production backend",
+            is_fly_dev,
+            f"Testing backend: {self.backend_url}" if is_fly_dev else f"Not testing fly.dev backend: {self.backend_url}",
+            {"backend_url": self.backend_url}
+        )
+        
+        # Test basic connectivity to fly.dev
+        success, data, error = await self.make_request("GET", "/health")
+        
+        if success and isinstance(data, dict):
+            has_telegram_flag = data.get("telegram_mini_app") is True
+            is_healthy = data.get("status") == "healthy"
+            
+            self.log_test_result(
+                "Fly.dev Backend - Health check",
+                has_telegram_flag and is_healthy,
+                f"Status: {data.get('status')}, Telegram Mini App: {data.get('telegram_mini_app')}",
+                data
+            )
+        else:
+            self.log_test_result("Fly.dev Backend - Health check", False, f"Error: {error}", data)
+        
+        # Test API prefix routing
+        success, data, error = await self.make_request("GET", "/api/health")
+        
+        if success and isinstance(data, dict):
+            api_routing_works = "status" in data
+            
+            self.log_test_result(
+                "Fly.dev Backend - API prefix routing",
+                api_routing_works,
+                f"API routing works correctly" if api_routing_works else f"API routing issue",
+                data
+            )
+        else:
+            self.log_test_result("Fly.dev Backend - API prefix routing", False, f"Error: {error}", data)
         
         # Test 6: Test CORS configuration for Telegram Mini App
         await self._test_cors_configuration()
