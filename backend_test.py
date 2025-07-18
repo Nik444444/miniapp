@@ -1203,30 +1203,65 @@ class BackendTester:
         else:
             self.log_test_result("Tesseract Language Packages - Multi-language support", False, f"Error: {error}", data)
     
-    async def test_telegram_authentication_endpoint(self):
-        """Test Telegram Mini App authentication endpoint"""
-        logger.info("=== Testing Telegram Authentication Endpoint ===")
+    async def test_telegram_authentication_comprehensive(self):
+        """🎯 COMPREHENSIVE TELEGRAM MINI APP AUTHENTICATION TESTING"""
+        logger.info("=== 🎯 COMPREHENSIVE TELEGRAM MINI APP AUTHENTICATION TESTING ===")
         
-        # Test 1: Endpoint exists and handles requests
-        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json={})
+        # Test 1: Verify Bot Token Configuration
+        await self._test_bot_token_configuration()
         
-        # Should fail with validation error or bad request (not 404)
-        endpoint_exists = not success and ("400" in str(error) or "422" in str(error) or isinstance(data, dict))
+        # Test 2: Test /api/auth/telegram/verify endpoint with different data formats
+        await self._test_telegram_verify_endpoint_formats()
+        
+        # Test 3: Test user creation and ID format
+        await self._test_telegram_user_creation()
+        
+        # Test 4: Test error handling
+        await self._test_telegram_error_handling()
+        
+        # Test 5: Test authentication response format
+        await self._test_telegram_response_format()
+    
+    async def _test_bot_token_configuration(self):
+        """Test that Bot Token 8003539432:AAFJkAYdEhM6i77va_JFo5Z_OlCiDJX3BC4 is properly configured"""
+        logger.info("--- Testing Bot Token Configuration ---")
+        
+        # Test with valid telegram_user data to see if bot token error occurs
+        test_data = {
+            "telegram_user": {
+                "id": 123456789,
+                "first_name": "BotTokenTest",
+                "last_name": "User"
+            }
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=test_data)
+        
+        # Check if we get "Bot token not configured" error
+        bot_token_configured = True
+        if not success and isinstance(data, dict):
+            error_detail = data.get("detail", "")
+            if "Bot token not configured" in error_detail:
+                bot_token_configured = False
         
         self.log_test_result(
-            "POST /api/auth/telegram/verify - Endpoint availability",
-            endpoint_exists,
-            f"Endpoint exists and handles requests" if endpoint_exists else f"Endpoint not found: {error}",
+            "Bot Token Configuration - Token 8003539432:AAFJkAYdEhM6i77va_JFo5Z_OlCiDJX3BC4",
+            bot_token_configured,
+            f"Bot token properly configured" if bot_token_configured else f"Bot token not configured error: {data}",
             data
         )
+    
+    async def _test_telegram_verify_endpoint_formats(self):
+        """Test /api/auth/telegram/verify with different data formats"""
+        logger.info("--- Testing Different Authentication Data Formats ---")
         
-        # Test 2: Test with telegram_user data
+        # Test Format 1: telegram_user
         telegram_user_data = {
             "telegram_user": {
                 "id": 123456789,
-                "first_name": "Test",
-                "last_name": "User",
-                "username": "testuser",
+                "first_name": "TestUser",
+                "last_name": "Telegram",
+                "username": "testuser_tg",
                 "language_code": "en"
             }
         }
@@ -1234,37 +1269,32 @@ class BackendTester:
         success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=telegram_user_data)
         
         if success and isinstance(data, dict):
-            has_access_token = "access_token" in data
-            has_token_type = data.get("token_type") == "bearer"
-            has_user_data = "user" in data and isinstance(data["user"], dict)
-            
-            # Check user data structure
+            has_token = "access_token" in data and "token_type" in data
+            has_user = "user" in data and isinstance(data["user"], dict)
             user_data = data.get("user", {})
-            has_telegram_id = user_data.get("id", "").startswith("telegram_")
-            has_telegram_email = "@telegram.local" in user_data.get("email", "")
-            has_oauth_provider = user_data.get("oauth_provider") == "Telegram"
+            correct_id_format = user_data.get("id", "").startswith("telegram_123456789")
             
             self.log_test_result(
-                "POST /api/auth/telegram/verify - telegram_user authentication",
-                has_access_token and has_token_type and has_user_data and has_telegram_id and has_telegram_email and has_oauth_provider,
-                f"Token: {has_access_token}, User ID: {user_data.get('id')}, Provider: {user_data.get('oauth_provider')}",
+                "Telegram Auth - telegram_user format",
+                has_token and has_user and correct_id_format,
+                f"Success: Token={bool(has_token)}, User ID={user_data.get('id')}, Email={user_data.get('email')}",
                 data
             )
         else:
             self.log_test_result(
-                "POST /api/auth/telegram/verify - telegram_user authentication",
+                "Telegram Auth - telegram_user format",
                 False,
-                f"Authentication failed: {error}",
+                f"Failed: {error} - {data}",
                 data
             )
         
-        # Test 3: Test with user data (alternative format)
+        # Test Format 2: user
         user_data_format = {
             "user": {
                 "id": 987654321,
-                "first_name": "Another",
-                "last_name": "User",
-                "username": "anotheruser",
+                "first_name": "UserFormat",
+                "last_name": "Test",
+                "username": "userformat_test",
                 "language_code": "ru"
             }
         }
@@ -1272,61 +1302,199 @@ class BackendTester:
         success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=user_data_format)
         
         if success and isinstance(data, dict):
-            has_access_token = "access_token" in data
-            has_user_data = "user" in data
-            user_info = data.get("user", {})
-            correct_telegram_id = user_info.get("id") == "telegram_987654321"
+            has_token = "access_token" in data and "token_type" in data
+            has_user = "user" in data and isinstance(data["user"], dict)
+            user_data = data.get("user", {})
+            correct_id_format = user_data.get("id", "").startswith("telegram_987654321")
             
             self.log_test_result(
-                "POST /api/auth/telegram/verify - user format authentication",
-                has_access_token and has_user_data and correct_telegram_id,
-                f"Token: {has_access_token}, User ID: {user_info.get('id')}",
+                "Telegram Auth - user format",
+                has_token and has_user and correct_id_format,
+                f"Success: Token={bool(has_token)}, User ID={user_data.get('id')}, Email={user_data.get('email')}",
                 data
             )
         else:
             self.log_test_result(
-                "POST /api/auth/telegram/verify - user format authentication",
+                "Telegram Auth - user format",
                 False,
-                f"Authentication failed: {error}",
+                f"Failed: {error} - {data}",
                 data
             )
         
-        # Test 4: Test with initData format
+        # Test Format 3: initData (URL-encoded)
         init_data_format = {
-            "initData": "user=%7B%22id%22%3A111222333%2C%22first_name%22%3A%22Init%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22inituser%22%2C%22language_code%22%3A%22de%22%7D&auth_date=1234567890&hash=test_hash"
+            "initData": "user=%7B%22id%22%3A555666777%2C%22first_name%22%3A%22InitData%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22inituser%22%2C%22language_code%22%3A%22de%22%7D&auth_date=1234567890&hash=test_hash_value"
         }
         
         success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=init_data_format)
         
-        # This might fail due to hash validation, but should not fail due to format issues
-        handles_init_data = success or ("hash" in str(error).lower() or "validation" in str(error).lower() or isinstance(data, dict))
+        if success and isinstance(data, dict):
+            has_token = "access_token" in data and "token_type" in data
+            has_user = "user" in data and isinstance(data["user"], dict)
+            user_data = data.get("user", {})
+            correct_id_format = user_data.get("id", "").startswith("telegram_555666777")
+            
+            self.log_test_result(
+                "Telegram Auth - initData format",
+                has_token and has_user and correct_id_format,
+                f"Success: Token={bool(has_token)}, User ID={user_data.get('id')}, Email={user_data.get('email')}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "Telegram Auth - initData format",
+                False,
+                f"Failed: {error} - {data}",
+                data
+            )
+    
+    async def _test_telegram_user_creation(self):
+        """Test user creation and updates with telegram_* ID format"""
+        logger.info("--- Testing User Creation and Updates ---")
         
-        self.log_test_result(
-            "POST /api/auth/telegram/verify - initData format handling",
-            handles_init_data,
-            f"Handles initData format correctly" if handles_init_data else f"InitData format issue: {error}",
-            data
-        )
-        
-        # Test 5: Test with invalid data
-        invalid_data = {
+        # Test creating new user
+        new_user_data = {
             "telegram_user": {
-                "invalid_field": "test"
-                # Missing required fields like id, first_name
+                "id": 111222333,
+                "first_name": "NewUser",
+                "last_name": "Creation",
+                "username": "newuser_create",
+                "language_code": "de"
             }
         }
         
-        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=invalid_data)
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=new_user_data)
         
-        # Should fail with validation error
-        correctly_rejects_invalid = not success and (isinstance(data, dict) and ("required" in str(data).lower() or "invalid" in str(data).lower()))
+        if success and isinstance(data, dict):
+            user_data = data.get("user", {})
+            correct_id = user_data.get("id") == "telegram_111222333"
+            correct_email = user_data.get("email") == "telegram_111222333@telegram.local"
+            correct_provider = user_data.get("oauth_provider") == "Telegram"
+            has_api_key_flags = all(key in user_data for key in ["has_gemini_api_key", "has_openai_api_key", "has_anthropic_api_key"])
+            
+            self.log_test_result(
+                "User Creation - New telegram user",
+                correct_id and correct_email and correct_provider and has_api_key_flags,
+                f"ID: {user_data.get('id')}, Email: {user_data.get('email')}, Provider: {user_data.get('oauth_provider')}",
+                user_data
+            )
+        else:
+            self.log_test_result(
+                "User Creation - New telegram user",
+                False,
+                f"Failed to create user: {error}",
+                data
+            )
         
-        self.log_test_result(
-            "POST /api/auth/telegram/verify - Invalid data rejection",
-            correctly_rejects_invalid,
-            f"Correctly rejects invalid data" if correctly_rejects_invalid else f"Validation issue: {error}",
-            data
-        )
+        # Test updating existing user (same ID)
+        updated_user_data = {
+            "telegram_user": {
+                "id": 111222333,
+                "first_name": "UpdatedUser",
+                "last_name": "Modified",
+                "username": "updated_user",
+                "language_code": "ru"
+            }
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=updated_user_data)
+        
+        if success and isinstance(data, dict):
+            user_data = data.get("user", {})
+            same_id = user_data.get("id") == "telegram_111222333"
+            updated_name = "UpdatedUser" in user_data.get("name", "")
+            
+            self.log_test_result(
+                "User Update - Existing telegram user",
+                same_id and updated_name,
+                f"ID preserved: {same_id}, Name updated: {updated_name}, Name: {user_data.get('name')}",
+                user_data
+            )
+        else:
+            self.log_test_result(
+                "User Update - Existing telegram user",
+                False,
+                f"Failed to update user: {error}",
+                data
+            )
+    
+    async def _test_telegram_error_handling(self):
+        """Test error handling with invalid data"""
+        logger.info("--- Testing Error Handling ---")
+        
+        error_test_cases = [
+            ({}, "Empty request body"),
+            ({"telegram_user": {}}, "Empty telegram_user object"),
+            ({"telegram_user": {"first_name": "Test"}}, "Missing user ID"),
+            ({"telegram_user": {"id": "invalid_id", "first_name": "Test"}}, "Invalid ID type"),
+            ({"telegram_user": {"id": 123456}}, "Missing first_name"),
+            ({"user": {"first_name": "Test"}}, "Missing ID in user object"),
+            ({"initData": "invalid_data"}, "Invalid initData format"),
+        ]
+        
+        for test_data, description in error_test_cases:
+            success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=test_data)
+            
+            # Should fail with appropriate error message
+            handles_error_correctly = not success and isinstance(data, dict) and "detail" in data
+            
+            error_detail = data.get("detail", "") if isinstance(data, dict) else str(data)
+            
+            self.log_test_result(
+                f"Error Handling - {description}",
+                handles_error_correctly,
+                f"Correctly handled invalid data: {error_detail}" if handles_error_correctly else f"Unexpected response: {error}",
+                data
+            )
+    
+    async def _test_telegram_response_format(self):
+        """Test that response format is correct"""
+        logger.info("--- Testing Response Format ---")
+        
+        test_data = {
+            "telegram_user": {
+                "id": 444555666,
+                "first_name": "ResponseTest",
+                "last_name": "User",
+                "username": "response_test",
+                "language_code": "en"
+            }
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=test_data)
+        
+        if success and isinstance(data, dict):
+            # Check main response structure
+            has_access_token = "access_token" in data and isinstance(data["access_token"], str)
+            has_token_type = data.get("token_type") == "bearer"
+            has_user = "user" in data and isinstance(data["user"], dict)
+            
+            # Check user object structure
+            user_data = data.get("user", {})
+            required_user_fields = ["id", "email", "name", "oauth_provider"]
+            has_required_fields = all(field in user_data for field in required_user_fields)
+            
+            # Check API key preview fields
+            api_key_fields = ["has_gemini_api_key", "has_openai_api_key", "has_anthropic_api_key"]
+            has_api_key_fields = all(field in user_data for field in api_key_fields)
+            
+            # Check preview fields
+            preview_fields = ["gemini_key_preview", "openai_key_preview", "anthropic_key_preview"]
+            has_preview_fields = all(field in user_data for field in preview_fields)
+            
+            self.log_test_result(
+                "Response Format - Complete structure",
+                has_access_token and has_token_type and has_user and has_required_fields and has_api_key_fields and has_preview_fields,
+                f"Token: {bool(has_access_token)}, User fields: {has_required_fields}, API fields: {has_api_key_fields}, Preview fields: {has_preview_fields}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "Response Format - Complete structure",
+                False,
+                f"Failed to get proper response: {error}",
+                data
+            )
     
     async def test_telegram_bot_token_configuration(self):
         """Test that Telegram bot token is properly configured"""
