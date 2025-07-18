@@ -683,7 +683,7 @@ async def change_language(
 async def get_ocr_status():
     """Получение статуса OCR сервиса"""
     try:
-        status = improved_ocr_service.get_service_status()
+        status = simple_tesseract_ocr.get_service_status()
         return {
             "status": "success",
             "ocr_service": status,
@@ -764,7 +764,7 @@ async def analyze_file_authenticated(
         try:
             # Используем улучшенный OCR сервис как основной метод
             try:
-                extracted_text, processing_method = await improved_ocr_service.process_document(
+                extracted_text, processing_method = await simple_tesseract_ocr.process_document(
                     temp_file_path, 
                     file.content_type or "",
                     user_providers
