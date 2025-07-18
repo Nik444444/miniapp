@@ -762,7 +762,7 @@ async def analyze_file_authenticated(
             temp_file_path = temp_file.name
 
         try:
-            # Используем улучшенный OCR сервис как основной метод
+            # Используем простой Tesseract OCR сервис как основной метод
             try:
                 extracted_text, processing_method = await simple_tesseract_ocr.process_document(
                     temp_file_path, 
