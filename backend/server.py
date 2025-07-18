@@ -125,7 +125,9 @@ class GoogleAuthRequest(BaseModel):
     credential: str
 
 class TelegramAuthRequest(BaseModel):
-    telegram_user: Dict[str, Any]
+    telegram_user: Optional[Dict[str, Any]] = None
+    initData: Optional[str] = None
+    user: Optional[Dict[str, Any]] = None
 
 class DocumentAnalysis(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
