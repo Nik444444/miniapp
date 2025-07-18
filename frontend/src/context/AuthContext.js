@@ -56,6 +56,8 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await axios.post(`${BACKEND_URL}/api/auth/telegram/verify`, {
                 telegram_user: telegramUser
+            }, {
+                timeout: 10000  // 10 секунд таймаут
             });
 
             console.log('AuthContext: Telegram login response:', response.data);
@@ -72,9 +74,23 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error('AuthContext: Telegram login failed:', error);
             console.error('AuthContext: Error response:', error.response?.data);
+            
+            // Более подробная обработка ошибок
+            let errorMessage = 'Не удалось войти через Telegram';
+            
+            if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                errorMessage = 'Превышено время ожидания. Проверьте подключение к интернету.';
+            } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+                errorMessage = 'Сервер недоступен. Попробуйте позже.';
+            } else if (error.response?.status === 400) {
+                errorMessage = error.response.data?.detail || 'Неверные данные авторизации';
+            } else if (error.response?.status === 500) {
+                errorMessage = 'Ошибка сервера. Попробуйте позже.';
+            }
+            
             return {
                 success: false,
-                error: error.response?.data?.detail || 'Не удалось войти через Telegram'
+                error: errorMessage
             };
         }
     };
