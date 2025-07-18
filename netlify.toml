@@ -6,6 +6,8 @@
 [build.environment]
   NODE_VERSION = "20"
   YARN_VERSION = "1.22.22"
+  REACT_APP_BACKEND_URL = "https://miniapp-wvsxfa.fly.dev"
+  REACT_APP_GOOGLE_CLIENT_ID = "364877380148-nhlcauaonsvm5j0feh5fltn3qsa6tffm.apps.googleusercontent.com"
 
 [[redirects]]
   from = "/*"
