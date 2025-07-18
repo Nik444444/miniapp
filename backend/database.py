@@ -128,6 +128,12 @@ class SQLiteDatabase:
         conn.close()
         logger.info(f"Database initialized at {self.db_path}")
 
+    async def create_tables(self):
+        """Асинхронное создание таблиц (для совместимости с release_command)"""
+        # Таблицы уже созданы в init_database(), это просто для совместимости
+        logger.info("Tables already created during initialization")
+        return True
+
     @asynccontextmanager
     async def get_connection(self):
         """Получение асинхронного соединения с базой данных"""
