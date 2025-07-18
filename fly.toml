@@ -2,15 +2,10 @@
 # Run: flyctl deploy
 
 app = "miniapp-wvsxfa"
-primary_region = "fra"  # Frankfurt - близко к Европе для немецких пользователей
+primary_region = "fra"
 
 [experimental]
   auto_rollback = true
-
-# Volume для базы данных (закомментировано для первого запуска)
-# [[mounts]]
-#   source = "german_ai_data"
-#   destination = "/app/data"
 
 [http_service]
   internal_port = 8001
