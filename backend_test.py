@@ -1225,6 +1225,12 @@ class BackendTester:
         
         # Test 5: Test authentication response format
         await self._test_telegram_response_format()
+        
+        # Test 6: Test CORS configuration for Telegram Mini App
+        await self._test_cors_configuration()
+        
+        # Test 7: Test fly.dev backend accessibility
+        await self._test_fly_dev_backend_accessibility()
     
     async def _test_bot_token_configuration(self):
         """Test that Bot Token 8003539432:AAFJkAYdEhM6i77va_JFo5Z_OlCiDJX3BC4 is properly configured"""
