@@ -49,11 +49,19 @@ const AppContent = () => {
         hasWindow: typeof window !== 'undefined',
         hasTelegramAPI: !!(window.Telegram && window.Telegram.WebApp),
         userAgent: navigator.userAgent,
-        isLanguageSelected
+        isLanguageSelected,
+        currentPath: window.location.pathname
     });
 
-    // Если язык не выбран, показываем экран выбора языка
-    if (!isLanguageSelected) {
+    // Если это Telegram среда, пропускаем выбор языка
+    if (isTelegram && !isLanguageSelected) {
+        console.log('Telegram environment detected, skipping language selection');
+        changeLanguage('ru'); // Устанавливаем русский язык по умолчанию для Telegram
+        return null; // Возвращаем null, чтобы дождаться установки языка
+    }
+
+    // Если язык не выбран и это не Telegram, показываем экран выбора языка
+    if (!isLanguageSelected && !isTelegram) {
         return <LanguageSelector onLanguageSelect={changeLanguage} />;
     }
 
@@ -94,7 +102,7 @@ const AppContent = () => {
                     isAuthenticated() ? <SuperMainApp /> : <Auth />
                 } />
                 
-                {/* Telegram-specific route */}
+                {/* Telegram-specific route - принудительно показывает Telegram версию */}
                 <Route path="/telegram" element={
                     isAuthenticated() ? <TelegramMainApp /> : <TelegramAuth />
                 } />
