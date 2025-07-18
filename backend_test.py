@@ -935,9 +935,9 @@ class BackendTester:
         else:
             self.log_test_result("🎯 КРИТИЧЕСКИЙ ТЕСТ: Simple Tesseract OCR Service Status", False, f"Error: {error}", data)
     
-    async def test_ocr_methods_availability(self):
-        """Test availability of different OCR methods"""
-        logger.info("=== Testing OCR Methods Availability ===")
+    async def test_simple_tesseract_ocr_methods_only(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверка что остались только tesseract_ocr и direct_pdf методы"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Только tesseract_ocr и direct_pdf методы ===")
         
         success, data, error = await self.make_request("GET", "/api/ocr-status")
         
@@ -945,69 +945,36 @@ class BackendTester:
             ocr_service = data["ocr_service"]
             methods = ocr_service.get("methods", {})
             
-            # Check for expected OCR methods
-            expected_methods = ["llm_vision", "ocr_space", "azure_vision", "direct_pdf"]
-            methods_found = []
-            methods_available = []
+            # Check that ONLY tesseract_ocr and direct_pdf methods exist
+            expected_methods = {"tesseract_ocr", "direct_pdf"}
+            actual_methods = set(methods.keys())
             
-            for method in expected_methods:
-                if method in methods:
-                    methods_found.append(method)
-                    if methods[method].get("available"):
-                        methods_available.append(method)
+            # Check that forbidden methods are NOT present
+            forbidden_methods = {"llm_vision", "ocr_space", "azure_vision"}
+            forbidden_found = forbidden_methods.intersection(actual_methods)
             
-            # At least direct_pdf should always be available
-            direct_pdf_available = methods.get("direct_pdf", {}).get("available") is True
+            # Check that only expected methods are present
+            only_expected_methods = actual_methods == expected_methods
+            no_forbidden_methods = len(forbidden_found) == 0
             
-            # Check primary method
-            primary_method = ocr_service.get("primary_method")
-            primary_method_valid = primary_method in methods_found
+            # Check tesseract_ocr method details
+            tesseract_method = methods.get("tesseract_ocr", {})
+            tesseract_available = tesseract_method.get("available") is True
+            tesseract_description = tesseract_method.get("description", "")
+            tesseract_is_only_method = "единственный метод" in tesseract_description
             
-            self.log_test_result(
-                "OCR Methods - Availability check",
-                len(methods_found) == len(expected_methods) and direct_pdf_available and primary_method_valid,
-                f"Methods found: {methods_found}, Available: {methods_available}, Primary: {primary_method}, Direct PDF: {direct_pdf_available}",
-                {"methods_found": methods_found, "methods_available": methods_available, "primary_method": primary_method}
-            )
-            
-            # Check LLM Vision method specifically
-            llm_vision = methods.get("llm_vision", {})
-            llm_vision_configured = "available" in llm_vision and "description" in llm_vision
-            llm_vision_desc_correct = "LLM Vision" in str(llm_vision.get("description", ""))
+            # Check direct_pdf method details
+            direct_pdf_method = methods.get("direct_pdf", {})
+            direct_pdf_available = direct_pdf_method.get("available") is True
             
             self.log_test_result(
-                "OCR Methods - LLM Vision configuration",
-                llm_vision_configured and llm_vision_desc_correct,
-                f"LLM Vision available: {llm_vision.get('available')}, Description: {llm_vision.get('description')}",
-                llm_vision
+                "🎯 КРИТИЧЕСКИЙ ТЕСТ: Только tesseract_ocr и direct_pdf методы",
+                only_expected_methods and no_forbidden_methods and tesseract_available and direct_pdf_available,
+                f"Expected: {expected_methods}, Actual: {actual_methods}, Forbidden found: {forbidden_found}, Tesseract only: {tesseract_is_only_method}",
+                {"expected_methods": list(expected_methods), "actual_methods": list(actual_methods), "forbidden_found": list(forbidden_found)}
             )
-            
-            # Check OCR.space method
-            ocr_space = methods.get("ocr_space", {})
-            ocr_space_configured = "available" in ocr_space and "description" in ocr_space
-            ocr_space_desc_correct = "OCR.space" in str(ocr_space.get("description", ""))
-            
-            self.log_test_result(
-                "OCR Methods - OCR.space configuration",
-                ocr_space_configured and ocr_space_desc_correct,
-                f"OCR.space available: {ocr_space.get('available')}, Description: {ocr_space.get('description')}",
-                ocr_space
-            )
-            
-            # Check Azure Vision method
-            azure_vision = methods.get("azure_vision", {})
-            azure_vision_configured = "available" in azure_vision and "description" in azure_vision
-            azure_vision_desc_correct = "Azure" in str(azure_vision.get("description", ""))
-            
-            self.log_test_result(
-                "OCR Methods - Azure Vision configuration",
-                azure_vision_configured and azure_vision_desc_correct,
-                f"Azure Vision available: {azure_vision.get('available')}, Description: {azure_vision.get('description')}",
-                azure_vision
-            )
-            
         else:
-            self.log_test_result("OCR Methods - Availability check", False, f"Error getting OCR status: {error}", data)
+            self.log_test_result("🎯 КРИТИЧЕСКИЙ ТЕСТ: Только tesseract_ocr и direct_pdf методы", False, f"Error getting OCR status: {error}", data)
     
     async def test_analyze_file_ocr_integration(self):
         """Test that analyze-file endpoint integrates with improved OCR service"""
