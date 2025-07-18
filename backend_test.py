@@ -1081,36 +1081,118 @@ class BackendTester:
         else:
             self.log_test_result("🎯 OCR Service - Telegram photo processing readiness", False, f"Error: {error}", data)
     
-    async def test_ocr_logging_and_fallback(self):
-        """Test OCR service logging and fallback mechanisms"""
-        logger.info("=== Testing OCR Service Logging and Fallback ===")
+    async def test_eternal_loading_fix_comprehensive(self):
+        """🎯 ГЛАВНЫЙ ТЕСТ: Исправление вечной загрузки в Telegram Mini App OCR сервисе"""
+        logger.info("=== 🎯 ГЛАВНЫЙ ТЕСТ: Исправление вечной загрузки в Telegram Mini App OCR сервисе ===")
         
-        # Test that the OCR status endpoint shows proper fallback configuration
+        # ОСНОВНЫЕ ПРОВЕРКИ согласно требованиям
         success, data, error = await self.make_request("GET", "/api/ocr-status")
         
         if success and isinstance(data, dict):
             ocr_service = data.get("ocr_service", {})
+            
+            # 1. Endpoint /api/ocr-status возвращает новый Simple Tesseract OCR Service
+            service_name = ocr_service.get("service_name", "")
+            is_simple_tesseract = service_name == "Simple Tesseract OCR Service"
+            
+            # 2. Tesseract версия 5.3.0 доступна
+            tesseract_version = ocr_service.get("tesseract_version", "")
+            has_version_5_3_0 = tesseract_version == "5.3.0"
+            
+            # 3. primary_method: "tesseract_ocr"
+            primary_method = ocr_service.get("primary_method", "")
+            primary_is_tesseract = primary_method == "tesseract_ocr"
+            
+            # 4. optimized_for_speed: true
+            optimized_for_speed = ocr_service.get("optimized_for_speed") is True
+            
+            # 5. Убраны все методы кроме tesseract_ocr и direct_pdf
             methods = ocr_service.get("methods", {})
+            expected_methods = {"tesseract_ocr", "direct_pdf"}
+            actual_methods = set(methods.keys())
+            only_expected_methods = actual_methods == expected_methods
             
-            # Check that multiple methods are configured for fallback
-            available_methods = [method for method, config in methods.items() if config.get("available")]
-            has_multiple_methods = len(available_methods) >= 2  # At least 2 methods for fallback
+            # Проверяем что запрещенные методы отсутствуют
+            forbidden_methods = {"llm_vision", "ocr_space", "azure_vision"}
+            no_forbidden_methods = len(forbidden_methods.intersection(actual_methods)) == 0
             
-            # Check that direct_pdf is always available as final fallback
-            direct_pdf_available = methods.get("direct_pdf", {}).get("available") is True
+            # Проверяем что tesseract_ocr доступен
+            tesseract_method = methods.get("tesseract_ocr", {})
+            tesseract_available = tesseract_method.get("available") is True
             
-            # Check primary method configuration
-            primary_method = ocr_service.get("primary_method")
-            primary_method_exists = primary_method in methods
+            # Проверяем что direct_pdf доступен
+            direct_pdf_method = methods.get("direct_pdf", {})
+            direct_pdf_available = direct_pdf_method.get("available") is True
+            
+            # Общая проверка исправления
+            eternal_loading_fixed = all([
+                is_simple_tesseract,
+                has_version_5_3_0,
+                primary_is_tesseract,
+                optimized_for_speed,
+                only_expected_methods,
+                no_forbidden_methods,
+                tesseract_available,
+                direct_pdf_available
+            ])
             
             self.log_test_result(
-                "OCR Service - Fallback configuration",
-                has_multiple_methods and direct_pdf_available and primary_method_exists,
-                f"Available methods: {available_methods}, Direct PDF: {direct_pdf_available}, Primary: {primary_method}",
-                {"available_methods": available_methods, "primary_method": primary_method}
+                "🎯 ГЛАВНЫЙ ТЕСТ: Исправление вечной загрузки - ПОЛНАЯ ПРОВЕРКА",
+                eternal_loading_fixed,
+                f"Service: {is_simple_tesseract}, Version: {has_version_5_3_0}, Primary: {primary_is_tesseract}, Speed: {optimized_for_speed}, Methods: {only_expected_methods}, No forbidden: {no_forbidden_methods}",
+                {
+                    "service_name": service_name,
+                    "tesseract_version": tesseract_version,
+                    "primary_method": primary_method,
+                    "optimized_for_speed": optimized_for_speed,
+                    "expected_methods": list(expected_methods),
+                    "actual_methods": list(actual_methods),
+                    "forbidden_methods_found": list(forbidden_methods.intersection(actual_methods))
+                }
             )
+            
+            # Дополнительные детальные проверки
+            self.log_test_result(
+                "🎯 Проверка 1: Simple Tesseract OCR Service",
+                is_simple_tesseract,
+                f"Service name: '{service_name}' == 'Simple Tesseract OCR Service'",
+                {"service_name": service_name}
+            )
+            
+            self.log_test_result(
+                "🎯 Проверка 2: Tesseract версия 5.3.0",
+                has_version_5_3_0,
+                f"Version: '{tesseract_version}' == '5.3.0'",
+                {"tesseract_version": tesseract_version}
+            )
+            
+            self.log_test_result(
+                "🎯 Проверка 3: primary_method tesseract_ocr",
+                primary_is_tesseract,
+                f"Primary method: '{primary_method}' == 'tesseract_ocr'",
+                {"primary_method": primary_method}
+            )
+            
+            self.log_test_result(
+                "🎯 Проверка 4: optimized_for_speed true",
+                optimized_for_speed,
+                f"Optimized for speed: {optimized_for_speed}",
+                {"optimized_for_speed": optimized_for_speed}
+            )
+            
+            self.log_test_result(
+                "🎯 Проверка 5: Только tesseract_ocr и direct_pdf методы",
+                only_expected_methods and no_forbidden_methods,
+                f"Expected: {expected_methods}, Actual: {actual_methods}, Forbidden found: {forbidden_methods.intersection(actual_methods)}",
+                {
+                    "expected": list(expected_methods),
+                    "actual": list(actual_methods),
+                    "forbidden_found": list(forbidden_methods.intersection(actual_methods))
+                }
+            )
+            
         else:
-            self.log_test_result("OCR Service - Fallback configuration", False, f"Error: {error}", data)
+            self.log_test_result("🎯 ГЛАВНЫЙ ТЕСТ: Исправление вечной загрузки - ПОЛНАЯ ПРОВЕРКА", False, f"Error getting OCR status: {error}", data)
     
     async def test_render_deployment_tesseract_fix(self):
         """Test Render deployment fix - Tesseract as PRIMARY OCR method"""
