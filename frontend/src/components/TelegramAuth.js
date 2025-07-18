@@ -37,6 +37,11 @@ const TelegramAuth = () => {
     useEffect(() => {
         setMounted(true);
         
+        console.log('TelegramAuth: Component mounted');
+        console.log('TelegramAuth: Window location:', window.location);
+        console.log('TelegramAuth: Navigator userAgent:', navigator.userAgent);
+        console.log('TelegramAuth: Telegram WebApp API:', window.Telegram?.WebApp);
+        
         // Упрощенная логика для получения пользователя Telegram
         const initTelegramAuth = async () => {
             let user = null;
@@ -45,48 +50,60 @@ const TelegramAuth = () => {
             if (window.Telegram && window.Telegram.WebApp) {
                 const webApp = window.Telegram.WebApp;
                 
+                console.log('TelegramAuth: WebApp found:', webApp);
+                console.log('TelegramAuth: WebApp version:', webApp.version);
+                console.log('TelegramAuth: WebApp initData:', webApp.initData);
+                console.log('TelegramAuth: WebApp initDataUnsafe:', webApp.initDataUnsafe);
+                
                 // Настраиваем Telegram Web App
                 try {
                     webApp.expand();
                     webApp.setHeaderColor('bg_color');
                     webApp.setBackgroundColor('#1a1a2e');
                     webApp.ready();
+                    console.log('TelegramAuth: WebApp configured successfully');
                 } catch (e) {
-                    console.warn('Failed to setup Telegram WebApp:', e);
+                    console.warn('TelegramAuth: Failed to setup Telegram WebApp:', e);
                 }
                 
                 // Получаем пользователя разными способами
                 if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
                     user = webApp.initDataUnsafe.user;
+                    console.log('TelegramAuth: User from initDataUnsafe:', user);
                 } else if (webApp.initData) {
                     try {
                         const urlParams = new URLSearchParams(webApp.initData);
                         const userParam = urlParams.get('user');
                         if (userParam) {
                             user = JSON.parse(decodeURIComponent(userParam));
+                            console.log('TelegramAuth: User from initData parsing:', user);
                         }
                     } catch (e) {
-                        console.warn('Failed to parse user data:', e);
+                        console.warn('TelegramAuth: Failed to parse user data:', e);
                     }
                 }
             }
             
             // Fallback для тестирования
-            if (!user && window.location.pathname === '/telegram') {
+            if (!user && (window.location.pathname === '/telegram' || window.location.pathname === '/')) {
                 user = {
                     id: Math.floor(Math.random() * 1000000),
                     first_name: 'Telegram',
                     last_name: 'User',
                     username: 'telegramuser',
+                    language_code: 'ru',
                     is_bot: false
                 };
+                console.log('TelegramAuth: Using fallback user:', user);
             }
             
             if (user) {
                 setTelegramUser(user);
+                console.log('TelegramAuth: Starting authentication for user:', user);
                 // Автоматически авторизуем пользователя
                 await handleTelegramAuth(user);
             } else {
+                console.error('TelegramAuth: Failed to get user data');
                 setError('Не удалось получить данные пользователя Telegram');
             }
         };
