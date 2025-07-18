@@ -25,16 +25,13 @@ primary_region = "fra"
   TESSERACT_VERSION = "5.3.0"
   PATH = "/usr/bin:/usr/local/bin:$PATH"
 
-[processes]
-  app = "uvicorn server:app --host 0.0.0.0 --port 8001"
-
-[http_service.http_checks]
+[[http_service.http_checks]]
   interval = "10s"
-  grace_period = "5s"
+  grace_period = "10s"  
   method = "get"
   path = "/health"
   protocol = "http"
-  timeout = "2s"
+  timeout = "5s"
   tls_skip_verify = false
 
 [[mounts]]
