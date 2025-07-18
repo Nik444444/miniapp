@@ -105,6 +105,19 @@
 user_problem_statement: "посмотри мини апп телеграм в репозитории ,при беплое бекенда на рендере ошибка: tesseract not found in PATH, emergentintegrations not available, система работает в fallback режиме. Нужно исправить render.yaml для правильной установки tesseract на этапе сборки, а не runtime."
 
 backend:
+  - task: "Тестирование исправленной конфигурации Fly.io деплоя для German Letter AI Backend"
+    implemented: true
+    working: false
+    file: "fly.toml, Dockerfile, backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🎯 ТЕСТИРОВАНИЕ FLY.IO DEPLOYMENT FIXES ЗАВЕРШЕНО (86.7% успех, 52/60 тестов): ✅ ОСНОВНЫЕ ИСПРАВЛЕНИЯ РАБОТАЮТ: 1) ✅ BACKEND ЗАПУЩЕН НА ПОРТУ 8001: Сервер корректно слушает на 0.0.0.0:8001, процесс uvicorn работает правильно, все health endpoints отвечают 2) ✅ EMERGENTINTEGRATIONS ДОСТУПЕН: Библиотека установлена и работает, /api/modern-llm-status показывает modern:true для всех провайдеров (gemini, openai, anthropic), современные модели настроены (gemini-2.0-flash, gpt-4o, claude-3-5-sonnet) 3) ✅ GOOGLE OAUTH РАБОТАЕТ: Endpoints /api/auth/google/verify корректно обрабатывают токены, все защищенные endpoints требуют аутентификацию 4) ✅ SQLITE DATABASE ИНИЦИАЛИЗИРОВАНА: База данных подключена, CRUD операции работают, users_count: 1, analyses_count: 2 5) ✅ ВСЕ API ENDPOINTS РАБОТАЮТ: /api/health (healthy), /api/modern-llm-status (modern:true), /api/telegram-news (success). ❌ КРИТИЧЕСКАЯ ПРОБЛЕМА - TESSERACT НЕ УСТАНОВЛЕН: 1) ❌ Tesseract не найден в системе (tesseract --version: command not found) 2) ❌ OCR primary_method: llm_vision (НЕ tesseract_ocr как ожидалось) 3) ❌ tesseract_version: 'not_installed' 4) ❌ Система работает в OCR fallback режиме. ЗАКЛЮЧЕНИЕ: Backend работает корректно на порту 8001, emergentintegrations доступен, но TESSERACT НЕ УСТАНОВЛЕН в текущей среде. Для полного соответствия Fly.io deployment требованиям необходимо установить tesseract-ocr пакеты в Dockerfile или fly.toml buildCommand."
+
+backend:
   - task: "Исправление проблемы деплоя на Render - установка Tesseract на этапе сборки"
     implemented: true
     working: true
