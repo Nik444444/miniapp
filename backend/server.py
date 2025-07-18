@@ -32,6 +32,7 @@ from database import db
 from llm_manager import llm_manager
 from modern_llm_manager import modern_llm_manager
 from telegram_service import telegram_service
+from telegram_auth_service import telegram_auth_service
 from text_formatter import format_analysis_text, create_super_wow_analysis_prompt
 from document_processor import document_processor
 from alternative_ocr_service import alternative_ocr_service
