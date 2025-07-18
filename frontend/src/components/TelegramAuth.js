@@ -113,15 +113,23 @@ const TelegramAuth = () => {
     }, []);
 
     const handleTelegramAuth = async (user) => {
+        console.log('TelegramAuth: Starting authentication process for user:', user);
         setIsLoading(true);
         setError(null);
         
         try {
+            console.log('TelegramAuth: Calling loginWithTelegram...');
             const result = await loginWithTelegram(user);
+            console.log('TelegramAuth: Authentication result:', result);
+            
             if (!result.success) {
+                console.error('TelegramAuth: Authentication failed:', result.error);
                 setError(result.error || 'Ошибка авторизации');
+            } else {
+                console.log('TelegramAuth: Authentication successful!');
             }
         } catch (err) {
+            console.error('TelegramAuth: Authentication error:', err);
             setError('Произошла ошибка при авторизации');
         } finally {
             setIsLoading(false);
