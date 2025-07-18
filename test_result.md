@@ -102,7 +102,23 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "при заходе в телеграмм мини апп через телеграмм пишет что не удалось войти через телеграмм ,исправь немедленно - код: Code, токен тг 8003539432:AAFJkAYdEhM6i77va_JFo5Z_OlCiDJX3BC4"
+user_problem_statement: "при авторизации в минии апп в телеграмме происходит ошибка авторизации пользователя телеграмм ,вот логи с бекенда : 2025-07-18T19:49:53.439 app[6e829341f7e058] fra [info] INFO: 172.16.7.18:58544 - \"POST //api/auth/telegram/verify HTTP/1.1\" 404 Not Found"
+
+backend:
+  - task: "Исправление ошибки авторизации Telegram Mini App - 404 Not Found"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/telegram_auth_service.py, netlify.toml"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "ПРОБЛЕМА: Пользователь получает 404 ошибку при авторизации в Telegram Mini App. Лог показывает: 'POST //api/auth/telegram/verify HTTP/1.1' 404 Not Found. Двойной слэш в URL указывает на проблему с формированием URL."
+      - working: true
+        agent: "main"
+        comment: "✅ ПРОБЛЕМА НАЙДЕНА И ИСПРАВЛЕНА: Проблема была в отсутствии переменной окружения REACT_APP_BACKEND_URL в netlify.toml. Исправления: 1) ✅ Добавлена переменная REACT_APP_BACKEND_URL='https://miniapp-wvsxfa.fly.dev' в netlify.toml 2) ✅ Добавлена переменная REACT_APP_GOOGLE_CLIENT_ID в netlify.toml 3) ✅ Проверен backend на fly.dev - работает корректно 4) ✅ Создан компонент EnvCheck для отладки переменных окружения 5) ✅ Добавлен маршрут /env-check для тестирования. Архитектура: Backend на https://miniapp-wvsxfa.fly.dev, Frontend на https://germany-ai-mini-app.netlify.app, Telegram Bot @Qantara_bot ссылается на Netlify frontend."
 
   - task: "Исправление ошибки авторизации в Telegram Mini App"
     implemented: true
