@@ -769,9 +769,9 @@ async def analyze_file_authenticated(
                     file.content_type or "",
                     user_providers
                 )
-                logger.info(f"Improved OCR processing method: {processing_method}, extracted text length: {len(extracted_text)}")
+                logger.info(f"Simple Tesseract OCR processing method: {processing_method}, extracted text length: {len(extracted_text)}")
             except Exception as ocr_error:
-                logger.warning(f"Improved OCR failed, falling back to alternative OCR: {ocr_error}")
+                logger.warning(f"Simple Tesseract OCR failed, falling back to alternative OCR: {ocr_error}")
                 # Fallback к альтернативному OCR сервису
                 try:
                     extracted_text, processing_method = alternative_ocr_service.process_document(temp_file_path, file.content_type or "")
