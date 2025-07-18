@@ -4,12 +4,13 @@ export const isTelegramWebApp = () => {
     // Упрощенная и более надёжная проверка Telegram Web App API
     if (typeof window === 'undefined') return false;
     
-    // Проверяем наличие Telegram Web App API
+    // Проверяем наличие Telegram Web App API (самый надежный способ)
     if (window.Telegram && window.Telegram.WebApp) {
         const webApp = window.Telegram.WebApp;
         
         // Более мягкая проверка - достаточно наличия API
         if (webApp.version || webApp.platform || webApp.initData !== undefined) {
+            console.log('Telegram detected: WebApp API found');
             return true;
         }
     }
@@ -19,31 +20,44 @@ export const isTelegramWebApp = () => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     
     // Проверяем наличие Telegram-специфических параметров
-    if (urlParams.has('tgWebAppData') || hashParams.has('tgWebAppData')) {
+    if (urlParams.has('tgWebAppData') || hashParams.has('tgWebAppData') || 
+        urlParams.has('tgWebAppVersion') || hashParams.has('tgWebAppVersion')) {
+        console.log('Telegram detected: URL parameters found');
         return true;
     }
     
     // Проверяем User-Agent на наличие Telegram
     if (navigator.userAgent && navigator.userAgent.includes('Telegram')) {
-        return true;
-    }
-    
-    // Если мы на /telegram роуте, считаем это Telegram средой
-    if (window.location.pathname === '/telegram') {
+        console.log('Telegram detected: User-Agent contains Telegram');
         return true;
     }
     
     // Проверяем наличие tgWebAppVersion в localStorage (может быть установлен Telegram)
     if (localStorage.getItem('tgWebAppVersion')) {
+        console.log('Telegram detected: localStorage has tgWebAppVersion');
         return true;
     }
     
     // Если есть параметры в URL, похожие на Telegram
     const search = window.location.search;
     if (search.includes('tgWebApp') || search.includes('telegram') || search.includes('tg_id')) {
+        console.log('Telegram detected: URL contains Telegram-related parameters');
         return true;
     }
     
+    // Проверяем специфичные для Telegram заголовки или свойства
+    if (window.TelegramWebviewProxy || window.TelegramGameProxy) {
+        console.log('Telegram detected: Telegram proxy found');
+        return true;
+    }
+    
+    // Если мы на /telegram роуте, считаем это Telegram средой (для тестирования)
+    if (window.location.pathname === '/telegram') {
+        console.log('Telegram detected: /telegram route');
+        return true;
+    }
+    
+    console.log('Telegram NOT detected');
     return false;
 };
 
