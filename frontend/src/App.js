@@ -110,6 +110,9 @@ const AppContent = () => {
                 
                 {/* Admin panel */}
                 <Route path="/admin" element={<AdminPanel />} />
+                
+                {/* Environment check for debugging */}
+                <Route path="/env-check" element={<EnvCheck />} />
             </Routes>
         </BrowserRouter>
     );
