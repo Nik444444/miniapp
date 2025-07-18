@@ -7,9 +7,10 @@ primary_region = "fra"  # Frankfurt - близко к Европе для нем
 [experimental]
   auto_rollback = true
 
-[[mounts]]
-  source = "german_ai_data"
-  destination = "/app/data"
+# Volume для базы данных (закомментировано для первого запуска)
+# [[mounts]]
+#   source = "german_ai_data"
+#   destination = "/app/data"
 
 [http_service]
   internal_port = 8001
