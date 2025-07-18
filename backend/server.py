@@ -766,8 +766,7 @@ async def analyze_file_authenticated(
             try:
                 extracted_text, processing_method = await simple_tesseract_ocr.process_document(
                     temp_file_path, 
-                    file.content_type or "",
-                    user_providers
+                    file.content_type or ""
                 )
                 logger.info(f"Simple Tesseract OCR processing method: {processing_method}, extracted text length: {len(extracted_text)}")
             except Exception as ocr_error:
