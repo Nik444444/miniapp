@@ -1,7 +1,7 @@
 # Fly.io configuration for German Letter AI Backend
 # Run: flyctl deploy
 
-app = "german-letter-ai-backend"
+app = "miniapp-wvsxfa"
 primary_region = "fra"  # Frankfurt - близко к Европе для немецких пользователей
 
 [experimental]
