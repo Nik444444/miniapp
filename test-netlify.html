@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Netlify Frontend</title>
+</head>
+<body>
+    <h1>Test Netlify Frontend</h1>
+    <button id="test-btn">Test Telegram Auth</button>
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('test-btn').addEventListener('click', async () => {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('https://miniapp-wvsxfa.fly.dev/api/auth/telegram/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user: {
+                            id: 123456789,
+                            first_name: 'Test'
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
