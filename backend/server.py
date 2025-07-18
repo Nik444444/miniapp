@@ -36,7 +36,7 @@ from telegram_auth_service import telegram_auth_service
 from text_formatter import format_analysis_text, create_super_wow_analysis_prompt
 from document_processor import document_processor
 from alternative_ocr_service import alternative_ocr_service
-from improved_ocr_service import improved_ocr_service
+from simple_tesseract_ocr import simple_tesseract_ocr
 from google_api_key_service import google_api_service
 from super_analysis_engine import super_analysis_engine
 
