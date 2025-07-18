@@ -58,10 +58,10 @@ const TelegramAuth = () => {
                 
                 // Настраиваем Telegram Web App
                 try {
+                    webApp.ready(); // Должно быть первым
                     webApp.expand();
                     webApp.setHeaderColor('bg_color');
                     webApp.setBackgroundColor('#1a1a2e');
-                    webApp.ready();
                     console.log('TelegramAuth: WebApp configured successfully');
                 } catch (e) {
                     console.warn('TelegramAuth: Failed to setup Telegram WebApp:', e);
@@ -91,17 +91,50 @@ const TelegramAuth = () => {
                 }
             }
             
-            // Fallback для тестирования
-            if (!user && (window.location.pathname === '/telegram' || window.location.pathname === '/')) {
+            // Если не удалось получить данные пользователя, используем fallback
+            if (!user) {
+                console.log('TelegramAuth: No user data from WebApp API, trying fallback methods');
+                
+                // Попытка получить данные из URL параметров
+                const urlParams = new URLSearchParams(window.location.search);
+                const userParam = urlParams.get('user');
+                if (userParam) {
+                    try {
+                        user = JSON.parse(decodeURIComponent(userParam));
+                        console.log('TelegramAuth: User from URL params:', user);
+                    } catch (e) {
+                        console.warn('TelegramAuth: Failed to parse user from URL:', e);
+                    }
+                }
+                
+                // Попытка получить данные из localStorage
+                if (!user) {
+                    const savedUser = localStorage.getItem('telegram_user');
+                    if (savedUser) {
+                        try {
+                            user = JSON.parse(savedUser);
+                            console.log('TelegramAuth: User from localStorage:', user);
+                        } catch (e) {
+                            console.warn('TelegramAuth: Failed to parse saved user:', e);
+                        }
+                    }
+                }
+            }
+            
+            // Если все еще нет пользователя, создаем тестового пользователя для разработки
+            if (!user && window.location.pathname === '/telegram') {
                 user = {
-                    id: Math.floor(Math.random() * 1000000),
+                    id: Date.now(), // Используем timestamp для уникальности
                     first_name: 'Telegram',
                     last_name: 'User',
                     username: 'telegramuser',
                     language_code: 'ru',
                     is_bot: false
                 };
-                console.log('TelegramAuth: Using fallback user:', user);
+                console.log('TelegramAuth: Using fallback test user:', user);
+                
+                // Сохраняем тестового пользователя в localStorage
+                localStorage.setItem('telegram_user', JSON.stringify(user));
             }
             
             if (user) {
@@ -111,7 +144,7 @@ const TelegramAuth = () => {
                 await handleTelegramAuth(user, initData);
             } else {
                 console.error('TelegramAuth: Failed to get user data');
-                setError('Не удалось получить данные пользователя Telegram');
+                setError('Не удалось получить данные пользователя Telegram. Попробуйте открыть приложение через Telegram.');
             }
         };
         
