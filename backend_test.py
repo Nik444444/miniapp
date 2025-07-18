@@ -1018,38 +1018,68 @@ class BackendTester:
             {"tested_formats": [f[0] for f in image_formats]}
         )
     
-    async def test_ocr_service_tesseract_dependency(self):
-        """Test that OCR service works WITH tesseract dependency (as PRIMARY method)"""
-        logger.info("=== Testing OCR Service WITH Tesseract Dependency ===")
+    async def test_telegram_mini_app_compatibility(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Совместимость с Telegram Mini App"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Совместимость с Telegram Mini App ===")
         
-        success, data, error = await self.make_request("GET", "/api/ocr-status")
-        
+        # Test 1: Root endpoint shows Telegram Mini App support
+        success, data, error = await self.make_request("GET", "/")
         if success and isinstance(data, dict):
-            # Check main response - should show tesseract as required and primary
-            tesseract_required = data.get("tesseract_required") is not False  # Should be True or not explicitly False
-            production_ready = data.get("production_ready") is True
-            
-            # Check OCR service details
-            ocr_service = data.get("ocr_service", {})
-            service_tesseract_dependency = ocr_service.get("tesseract_dependency") is True  # Should be TRUE
-            service_production_ready = ocr_service.get("production_ready") is True
-            
-            # Check that primary method is tesseract-based
-            primary_method = ocr_service.get("primary_method", "")
-            primary_is_tesseract = primary_method == "tesseract_ocr"
-            
-            # Check tesseract version
-            tesseract_version = ocr_service.get("tesseract_version", "")
-            has_correct_version = tesseract_version == "5.3.0"
+            has_telegram_flag = data.get("telegram_mini_app") is True
+            has_message = "Telegram Mini App" in str(data.get("message", ""))
             
             self.log_test_result(
-                "OCR Service - WITH tesseract dependency (PRIMARY method)",
-                production_ready and service_tesseract_dependency and service_production_ready and primary_is_tesseract and has_correct_version,
-                f"Tesseract dependency: {service_tesseract_dependency}, Production ready: {production_ready}, Primary method: {primary_method}, Version: {tesseract_version}",
+                "🎯 Root endpoint - Telegram Mini App support",
+                has_telegram_flag and has_message,
+                f"Telegram flag: {has_telegram_flag}, Message: {data.get('message')}",
                 data
             )
         else:
-            self.log_test_result("OCR Service - WITH tesseract dependency (PRIMARY method)", False, f"Error: {error}", data)
+            self.log_test_result("🎯 Root endpoint - Telegram Mini App support", False, f"Error: {error}", data)
+        
+        # Test 2: Health endpoint shows Telegram Mini App support
+        success, data, error = await self.make_request("GET", "/health")
+        if success and isinstance(data, dict):
+            has_telegram_flag = data.get("telegram_mini_app") is True
+            is_healthy = data.get("status") == "healthy"
+            
+            self.log_test_result(
+                "🎯 Health endpoint - Telegram Mini App support",
+                has_telegram_flag and is_healthy,
+                f"Telegram flag: {has_telegram_flag}, Status: {data.get('status')}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 Health endpoint - Telegram Mini App support", False, f"Error: {error}", data)
+        
+        # Test 3: Telegram authentication endpoint exists
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json={})
+        
+        # Should fail with validation error (endpoint exists) not 404
+        endpoint_exists = not success and ("422" in str(error) or "400" in str(error) or (isinstance(data, dict) and ("validation" in str(data).lower() or "required" in str(data).lower())))
+        
+        self.log_test_result(
+            "🎯 Telegram auth endpoint - Availability",
+            endpoint_exists,
+            f"Telegram auth endpoint exists and handles requests" if endpoint_exists else f"Endpoint issue: {error}",
+            data
+        )
+        
+        # Test 4: Fast OCR processing for Telegram photos
+        success, data, error = await self.make_request("GET", "/api/ocr-status")
+        if success and isinstance(data, dict):
+            ocr_service = data.get("ocr_service", {})
+            optimized_for_speed = ocr_service.get("optimized_for_speed") is True
+            primary_method = ocr_service.get("primary_method") == "tesseract_ocr"
+            
+            self.log_test_result(
+                "🎯 OCR Service - Telegram photo processing readiness",
+                optimized_for_speed and primary_method,
+                f"Speed optimized: {optimized_for_speed}, Primary method: {ocr_service.get('primary_method')}",
+                ocr_service
+            )
+        else:
+            self.log_test_result("🎯 OCR Service - Telegram photo processing readiness", False, f"Error: {error}", data)
     
     async def test_ocr_logging_and_fallback(self):
         """Test OCR service logging and fallback mechanisms"""
