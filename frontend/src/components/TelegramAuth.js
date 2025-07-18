@@ -148,7 +148,12 @@ const TelegramAuth = () => {
 
     const retryAuth = () => {
         if (telegramUser) {
-            handleTelegramAuth(telegramUser);
+            // Try to get fresh initData if available
+            let initData = null;
+            if (window.Telegram && window.Telegram.WebApp) {
+                initData = window.Telegram.WebApp.initData;
+            }
+            handleTelegramAuth(telegramUser, initData);
         }
     };
 
