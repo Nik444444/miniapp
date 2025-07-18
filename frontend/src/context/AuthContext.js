@@ -50,11 +50,16 @@ export const AuthProvider = ({ children }) => {
 
     // Login with Telegram
     const loginWithTelegram = async (telegramUser) => {
+        console.log('AuthContext: Starting Telegram login for user:', telegramUser);
+        console.log('AuthContext: Backend URL:', BACKEND_URL);
+        
         try {
             const response = await axios.post(`${BACKEND_URL}/api/auth/telegram/verify`, {
                 telegram_user: telegramUser
             });
 
+            console.log('AuthContext: Telegram login response:', response.data);
+            
             const { access_token, user: userData } = response.data;
 
             // Store token and user data
@@ -62,9 +67,11 @@ export const AuthProvider = ({ children }) => {
             setToken(access_token);
             setUser({...userData, token: access_token});
 
+            console.log('AuthContext: Telegram login successful, user data:', userData);
             return { success: true };
         } catch (error) {
-            console.error('Telegram login failed:', error);
+            console.error('AuthContext: Telegram login failed:', error);
+            console.error('AuthContext: Error response:', error.response?.data);
             return {
                 success: false,
                 error: error.response?.data?.detail || 'Не удалось войти через Telegram'
