@@ -342,7 +342,7 @@ async def verify_google_token(auth_request: GoogleAuthRequest):
         logger.error(f"Google OAuth verification failed: {e}")
         raise HTTPException(status_code=400, detail="Google authentication failed")
 
-# Telegram OAuth verification
+# Telegram Mini App authentication verification
 @api_router.post("/auth/telegram/verify")
 async def verify_telegram_user(auth_request: TelegramAuthRequest):
     try:
@@ -351,6 +351,11 @@ async def verify_telegram_user(auth_request: TelegramAuthRequest):
         # Validate required fields
         if not telegram_user.get('id'):
             raise HTTPException(status_code=400, detail="Invalid Telegram user data")
+        
+        # TODO: Add proper Telegram Mini App authentication validation
+        # For now, we'll validate the user data exists
+        if not isinstance(telegram_user.get('id'), int):
+            raise HTTPException(status_code=400, detail="Invalid Telegram user ID")
         
         # Create user ID
         user_id = f"telegram_{telegram_user['id']}"
