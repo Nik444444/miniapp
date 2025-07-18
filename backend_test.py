@@ -876,40 +876,64 @@ class BackendTester:
                 data
             )
     
-    async def test_improved_ocr_service_status(self):
-        """Test new improved OCR service status endpoint"""
-        logger.info("=== Testing Improved OCR Service Status ===")
+    async def test_simple_tesseract_ocr_service_status(self):
+        """🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Simple Tesseract OCR Service для исправления вечной загрузки"""
+        logger.info("=== 🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Simple Tesseract OCR Service ===")
         
         # Test OCR status endpoint
         success, data, error = await self.make_request("GET", "/api/ocr-status")
         
         if success and isinstance(data, dict):
-            # Check required fields
+            # Check required fields according to review requirements
             has_status = data.get("status") == "success"
             has_ocr_service = "ocr_service" in data and isinstance(data["ocr_service"], dict)
             tesseract_not_required = data.get("tesseract_required") is False
             production_ready = data.get("production_ready") is True
             
-            # Check OCR service structure
+            # Check OCR service structure for Simple Tesseract OCR Service
             ocr_service_valid = False
+            service_name_correct = False
+            primary_method_correct = False
+            optimized_for_speed = False
+            tesseract_version_correct = False
+            
             if has_ocr_service:
                 ocr_service = data["ocr_service"]
-                has_service_name = "service_name" in ocr_service
-                has_methods = "methods" in ocr_service and isinstance(ocr_service["methods"], dict)
-                has_primary_method = "primary_method" in ocr_service
-                tesseract_dependency_false = ocr_service.get("tesseract_dependency") is False
+                
+                # 1. Check service name is "Simple Tesseract OCR Service"
+                service_name = ocr_service.get("service_name", "")
+                service_name_correct = service_name == "Simple Tesseract OCR Service"
+                
+                # 2. Check primary_method is "tesseract_ocr"
+                primary_method = ocr_service.get("primary_method")
+                primary_method_correct = primary_method == "tesseract_ocr"
+                
+                # 3. Check optimized_for_speed is true
+                optimized_for_speed = ocr_service.get("optimized_for_speed") is True
+                
+                # 4. Check tesseract_version is "5.3.0"
+                tesseract_version = ocr_service.get("tesseract_version")
+                tesseract_version_correct = tesseract_version == "5.3.0"
+                
+                # 5. Check tesseract_dependency is True (not False as in old service)
+                tesseract_dependency = ocr_service.get("tesseract_dependency") is True
+                
+                # 6. Check production_ready is True
                 service_production_ready = ocr_service.get("production_ready") is True
                 
-                ocr_service_valid = all([has_service_name, has_methods, has_primary_method, tesseract_dependency_false, service_production_ready])
+                ocr_service_valid = all([
+                    service_name_correct, primary_method_correct, optimized_for_speed,
+                    tesseract_version_correct, tesseract_dependency, service_production_ready
+                ])
             
             self.log_test_result(
-                "GET /api/ocr-status - OCR service status",
-                has_status and has_ocr_service and tesseract_not_required and production_ready and ocr_service_valid,
-                f"Status: {data.get('status')}, Tesseract required: {data.get('tesseract_required')}, Production ready: {data.get('production_ready')}, Service valid: {ocr_service_valid}",
+                "🎯 КРИТИЧЕСКИЙ ТЕСТ: Simple Tesseract OCR Service Status",
+                has_status and has_ocr_service and production_ready and ocr_service_valid,
+                f"Service: {service_name_correct}, Primary: {primary_method_correct}, Speed: {optimized_for_speed}, Version: {tesseract_version_correct}",
                 data
             )
         else:
-            self.log_test_result("GET /api/ocr-status - OCR service status", False, f"Error: {error}", data)
+            self.log_test_result("🎯 КРИТИЧЕСКИЙ ТЕСТ: Simple Tesseract OCR Service Status", False, f"Error: {error}", data)
     
     async def test_ocr_methods_availability(self):
         """Test availability of different OCR methods"""
