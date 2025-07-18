@@ -681,7 +681,6 @@ metadata:
 
 test_plan:
   current_focus: 
-    - "Telegram Mini App Document Analysis Testing"
     - "Исправление исправленной конфигурации Fly.io деплоя для German Letter AI Backend"
   stuck_tasks: []
   test_all: false
