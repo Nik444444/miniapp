@@ -127,10 +127,12 @@ const TelegramAuth = () => {
                 setError(result.error || 'Ошибка авторизации');
             } else {
                 console.log('TelegramAuth: Authentication successful!');
+                // Очищаем ошибку при успешной авторизации
+                setError(null);
             }
         } catch (err) {
             console.error('TelegramAuth: Authentication error:', err);
-            setError('Произошла ошибка при авторизации');
+            setError('Произошла неожиданная ошибка при авторизации');
         } finally {
             setIsLoading(false);
         }
