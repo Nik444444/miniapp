@@ -45,6 +45,7 @@ const TelegramAuth = () => {
         // Упрощенная логика для получения пользователя Telegram
         const initTelegramAuth = async () => {
             let user = null;
+            let initData = null;
             
             // Проверяем, доступно ли Telegram Web App API
             if (window.Telegram && window.Telegram.WebApp) {
@@ -64,6 +65,12 @@ const TelegramAuth = () => {
                     console.log('TelegramAuth: WebApp configured successfully');
                 } catch (e) {
                     console.warn('TelegramAuth: Failed to setup Telegram WebApp:', e);
+                }
+                
+                // Получаем initData для валидации
+                if (webApp.initData) {
+                    initData = webApp.initData;
+                    console.log('TelegramAuth: Got initData:', initData);
                 }
                 
                 // Получаем пользователя разными способами
@@ -101,7 +108,7 @@ const TelegramAuth = () => {
                 setTelegramUser(user);
                 console.log('TelegramAuth: Starting authentication for user:', user);
                 // Автоматически авторизуем пользователя
-                await handleTelegramAuth(user);
+                await handleTelegramAuth(user, initData);
             } else {
                 console.error('TelegramAuth: Failed to get user data');
                 setError('Не удалось получить данные пользователя Telegram');
