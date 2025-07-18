@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "посмотри мини апп телеграм в репозитории ,при беплое бекенда на рендере ошибка: tesseract not found in PATH, emergentintegrations not available, система работает в fallback режиме. Нужно исправить render.yaml для правильной установки tesseract на этапе сборки, а не runtime."
+user_problem_statement: "при заходе в телеграмм мини апп через телеграмм пишет что не удалось войти через телеграмм ,исправь немедленно - код: Code, токен тг 8003539432:AAFJkAYdEhM6i77va_JFo5Z_OlCiDJX3BC4"
 
 backend:
   - task: "Telegram Mini App Authentication Testing"
