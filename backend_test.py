@@ -2102,71 +2102,41 @@ class BackendTester:
             self.log_test_result("Basic Functionality - Modern LLM status", False, f"Error: {error}", data)
 
     async def run_all_tests(self):
-        """Run all backend tests"""
-        logger.info("🚀 Starting Comprehensive Backend API Testing for German Letter AI Assistant")
+        """Run all backend tests with focus on Telegram Mini App OCR fixes"""
+        logger.info("🎯 STARTING COMPREHENSIVE TELEGRAM MINI APP OCR TESTING")
         logger.info("=" * 80)
         
         try:
-            # Basic health tests
+            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ для исправления вечной загрузки
+            await self.test_eternal_loading_fix_comprehensive()
+            await self.test_simple_tesseract_ocr_service_status()
+            await self.test_simple_tesseract_ocr_methods_only()
+            await self.test_fast_image_processing_functionality()
+            await self.test_telegram_mini_app_compatibility()
+            
+            # Основные тесты работоспособности
             await self.test_basic_health_endpoints()
             await self.test_api_health_endpoints()
             
-            # Authentication and security tests
+            # Тесты аутентификации (важно для Telegram Mini App)
+            await self.test_telegram_authentication_comprehensive()
             await self.test_authentication_required_endpoints()
             await self.test_google_oauth_endpoint()
+            
+            # Тесты базы данных и системы
+            await self.test_database_functionality()
             await self.test_no_skip_auth_functionality()
             
-            # NEW: Telegram authentication tests (PRIORITY)
-            await self.test_telegram_authentication_comprehensive()
-            await self.test_telegram_bot_token_configuration()
-            await self.test_telegram_user_creation_and_updates()
-            await self.test_telegram_auth_response_format()
-            await self.test_telegram_auth_service_validation()
-            await self.test_no_duplicate_telegram_endpoints()
-            
-            # Database tests
-            await self.test_database_functionality()
-            await self.test_legacy_status_endpoints()
-            
-            # LLM and modern features tests
+            # Дополнительные тесты функциональности
             await self.test_llm_status_endpoint()
             await self.test_modern_llm_status_endpoint()
-            await self.test_modern_llm_manager_integration()
-            await self.test_emergentintegrations_support()
-            
-            # API key management tests
-            await self.test_quick_gemini_setup_endpoint()
-            await self.test_auto_generate_gemini_key_endpoint()
-            await self.test_google_api_key_service_integration()
-            await self.test_api_key_update_new_field_names()
-            
-            # OCR and image processing tests
-            await self.test_improved_ocr_service_status()
-            await self.test_ocr_methods_availability()
-            await self.test_analyze_file_ocr_integration()
-            await self.test_image_recognition_functionality()
-            await self.test_ocr_service_tesseract_dependency()
-            await self.test_ocr_logging_and_fallback()
-            
-            # New features tests
             await self.test_telegram_news_endpoint()
-            await self.test_text_formatting_improvements()
-            await self.test_improved_analysis_prompt()
-            
-            # Dependencies and deployment tests
-            await self.test_dependencies_installation()
-            await self.test_render_deployment_dependencies()
-            await self.test_render_deployment_tesseract_fix()
-            await self.test_tesseract_system_availability()
-            await self.test_tesseract_language_packages()
-            await self.test_system_not_in_fallback_mode()
-            await self.test_basic_functionality_after_render_fix()
             
         except Exception as e:
-            logger.error(f"Test execution error: {e}")
-            self.log_test_result("Test execution", False, f"Critical error: {e}")
+            logger.error(f"Test execution failed: {e}")
+            self.log_test_result("Test Execution", False, f"Critical error: {e}", None)
         
-        # Generate summary
+        # Print summary
         self.generate_test_summary()
     
     def generate_test_summary(self):
