@@ -10,6 +10,7 @@ import SuperMainApp from './components/SuperMainApp';
 import TelegramMainApp from './components/TelegramMainApp';
 import AdminPanel from './components/AdminPanel';
 import LanguageSelector from './components/LanguageSelector';
+import EnvCheck from './components/EnvCheck';
 import { isTelegramWebApp, setupTelegramWebApp } from './utils/telegramWebApp';
 
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '364877380148-nhlcauaonsvm5j0feh5fltn3qsa6tffm.apps.googleusercontent.com';
