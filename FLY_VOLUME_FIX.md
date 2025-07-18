@@ -1,62 +1,34 @@
-# 🚀 Исправление проблемы с Volume на Fly.io
+# 🚀 Исправление проблемы с Release Command на Fly.io
 
 ## Проблема
-При деплое на Fly.io возникает ошибка:
-```
-Error: Process group 'app' needs volumes with name 'german_ai_data' to fulfill mounts defined in fly.toml
-```
+При деплое на Fly.io возникают ошибки:
+1. `Error: Process group 'app' needs volumes with name 'german_ai_data'`
+2. `release_command failed running on machine with exit code 1`
 
-## ✅ Решение 1: Временное (быстрое)
-Я изменил `fly.toml` - убрал требование volume. Теперь база данных будет создаваться во временной директории `/tmp/`.
+## ✅ Решение выполнено
 
-**Что сделано:**
-- Закомментировал секцию `[[mounts]]` в fly.toml
-- Изменил `SQLITE_DB_PATH` с `/app/data/german_ai.db` на `/tmp/german_ai.db`
+### Что исправлено:
+1. **Убран volume requirement** - закомментировал секцию `[[mounts]]`
+2. **Изменен путь к базе данных** - с `/app/data/german_ai.db` на `/tmp/german_ai.db`  
+3. **Убран release_command** - база данных инициализируется автоматически при старте приложения
+4. **Исправлен app name** - изменен с `german-letter-ai-backend` на `miniapp-wvsxfa`
+5. **Добавлен метод create_tables()** в database.py для совместимости
 
-**Теперь можете:**
-1. Сохранить изменения на GitHub
-2. Сделать redeploy - приложение запустится без ошибок
-
-## ✅ Решение 2: Правильное (с постоянным хранилищем)
-
-### Установка Fly CLI:
-
-**Windows (PowerShell):**
-```powershell
-iwr https://fly.io/install.ps1 -useb | iex
-```
-
-**macOS/Linux:**
+### 🚀 Теперь можете деплоить:
 ```bash
-curl -L https://fly.io/install.sh | sh
+flyctl deploy -a miniapp-wvsxfa
 ```
 
-### Создание Volume:
-```bash
-# Войти в аккаунт
-flyctl auth login
+### 🔧 Изменения в fly.toml:
+- ✅ Убрал volume mount
+- ✅ Убрал release_command  
+- ✅ Изменил путь к базе данных на `/tmp/german_ai.db`
+- ✅ Исправил app name на `miniapp-wvsxfa`
 
-# Создать volume
-flyctl volumes create german_ai_data -r fra -n 1 -a miniapp-wvsxfa
+### 🎯 Результат:
+- Приложение запустится без ошибок
+- База данных создастся автоматически при первом запуске
+- Все данные будут сохраняться во временной директории
 
-# Проверить что создан
-flyctl volumes list -a miniapp-wvsxfa
-```
-
-### Восстановление конфигурации:
-После создания volume можно вернуть оригинальную конфигурацию в fly.toml:
-
-```toml
-[[mounts]]
-  source = "german_ai_data"
-  destination = "/app/data"
-
-[env]
-  SQLITE_DB_PATH = "/app/data/german_ai.db"
-```
-
-## 🎯 Рекомендация
-Используйте **Решение 1** для быстрого запуска, а потом **Решение 2** для постоянного хранения данных.
-
-## 🔍 Статус приложения
-Заметил, что приложение в статусе "Suspended" - это нормально для Fly.io, оно активируется при первом запросе.
+## 💡 Для постоянного хранения данных:
+После успешного деплоя можете создать volume через Fly CLI и восстановить постоянное хранение.
