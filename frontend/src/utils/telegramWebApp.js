@@ -1,54 +1,39 @@
 // Utility functions for Telegram Web App detection and handling
 
 export const isTelegramWebApp = () => {
-    // Более надёжная проверка Telegram Web App API
+    // Упрощенная и более надёжная проверка Telegram Web App API
     if (typeof window === 'undefined') return false;
     
-    // Проверяем URL параметры для Telegram (только если они действительно есть)
+    // Проверяем URL параметры для Telegram
     const urlParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     
-    // Проверяем наличие реальных Telegram-специфических параметров
-    if (urlParams.has('tgWebAppData') && urlParams.get('tgWebAppData')) {
+    // Проверяем наличие Telegram-специфических параметров
+    if (urlParams.has('tgWebAppData') || hashParams.has('tgWebAppData')) {
         return true;
     }
     
-    if (hashParams.has('tgWebAppData') && hashParams.get('tgWebAppData')) {
+    // Если мы на /telegram роуте, считаем это Telegram средой
+    if (window.location.pathname === '/telegram') {
         return true;
     }
     
-    // Если мы на /telegram роуте и есть реальный Telegram API, считаем это Telegram средой
-    if (window.location.pathname === '/telegram' && window.Telegram && window.Telegram.WebApp) {
+    // Проверяем наличие Telegram Web App API
+    if (window.Telegram && window.Telegram.WebApp) {
         const webApp = window.Telegram.WebApp;
-        // Проверяем что это не browser automation
-        const hasRealTelegramData = !!(
-            webApp.initData && 
-            webApp.initData.length > 0 && 
-            webApp.version &&
-            webApp.platform &&
-            webApp.platform !== 'unknown' &&
-            !webApp.initData.includes('browser_automation') // исключаем browser automation
-        );
-        return hasRealTelegramData;
+        
+        // Более мягкая проверка - достаточно наличия API
+        if (webApp.version || webApp.platform || webApp.initData !== undefined) {
+            return true;
+        }
     }
     
-    // Проверяем наличие реального Telegram Web App API
-    if (!window.Telegram || !window.Telegram.WebApp) return false;
+    // Проверяем User-Agent на наличие Telegram
+    if (navigator.userAgent && navigator.userAgent.includes('Telegram')) {
+        return true;
+    }
     
-    const webApp = window.Telegram.WebApp;
-    
-    // Проверяем специфические свойства которые есть только в реальном Telegram
-    // и исключаем случаи browser automation
-    const hasRealTelegramData = !!(
-        webApp.initData && 
-        webApp.initData.length > 0 && 
-        webApp.version &&
-        webApp.platform &&
-        webApp.platform !== 'unknown' &&
-        !webApp.initData.includes('browser_automation') // исключаем browser automation
-    );
-    
-    return hasRealTelegramData;
+    return false;
 };
 
 export const getTelegramWebApp = () => {
