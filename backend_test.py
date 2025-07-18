@@ -32,10 +32,14 @@ class BackendTester:
     def __init__(self):
         # Get backend URL from frontend .env file
         frontend_env_path = Path("/app/frontend/.env")
-        self.backend_url = "http://localhost:8001"  # Use localhost for testing new features
+        self.backend_url = "https://miniapp-wvsxfa.fly.dev"  # Production URL from frontend/.env
         
-        # Test locally since production URL is returning 502 errors
-        self.backend_url = "http://localhost:8001"
+        if frontend_env_path.exists():
+            with open(frontend_env_path, 'r') as f:
+                for line in f:
+                    if line.startswith('REACT_APP_BACKEND_URL='):
+                        self.backend_url = line.split('=', 1)[1].strip()
+                        break
             
         logger.info(f"Testing backend at: {self.backend_url}")
         
