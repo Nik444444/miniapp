@@ -49,14 +49,30 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Login with Telegram
-    const loginWithTelegram = async (telegramUser) => {
+    const loginWithTelegram = async (telegramUser, initData = null) => {
         console.log('AuthContext: Starting Telegram login for user:', telegramUser);
+        console.log('AuthContext: initData:', initData);
         console.log('AuthContext: Backend URL:', BACKEND_URL);
         
         try {
-            const response = await axios.post(`${BACKEND_URL}/api/auth/telegram/verify`, {
+            // Prepare authentication data
+            const authData = {
                 telegram_user: telegramUser
-            }, {
+            };
+            
+            // Add initData if available
+            if (initData) {
+                authData.initData = initData;
+            }
+            
+            // Also include user data in case backend needs it
+            if (telegramUser) {
+                authData.user = telegramUser;
+            }
+            
+            console.log('AuthContext: Sending auth data:', authData);
+            
+            const response = await axios.post(`${BACKEND_URL}/api/auth/telegram/verify`, authData, {
                 timeout: 10000  // 10 секунд таймаут
             });
 
