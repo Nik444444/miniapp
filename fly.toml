@@ -31,10 +31,6 @@ primary_region = "fra"  # Frankfurt - близко к Европе для нем
   TESSERACT_VERSION = "5.3.0"
   PATH = "/usr/bin:/usr/local/bin:$PATH"
 
-# База данных инициализируется автоматически при первом запуске
-# [deploy]
-#   release_command = "python -c \"from database import db; import asyncio; asyncio.run(db.create_tables())\""
-
 [processes]
   app = "uvicorn server:app --host 0.0.0.0 --port 8001"
 
