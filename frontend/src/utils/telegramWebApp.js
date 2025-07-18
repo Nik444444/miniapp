@@ -4,20 +4,6 @@ export const isTelegramWebApp = () => {
     // Упрощенная и более надёжная проверка Telegram Web App API
     if (typeof window === 'undefined') return false;
     
-    // Проверяем URL параметры для Telegram
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    // Проверяем наличие Telegram-специфических параметров
-    if (urlParams.has('tgWebAppData') || hashParams.has('tgWebAppData')) {
-        return true;
-    }
-    
-    // Если мы на /telegram роуте, считаем это Telegram средой
-    if (window.location.pathname === '/telegram') {
-        return true;
-    }
-    
     // Проверяем наличие Telegram Web App API
     if (window.Telegram && window.Telegram.WebApp) {
         const webApp = window.Telegram.WebApp;
@@ -28,8 +14,33 @@ export const isTelegramWebApp = () => {
         }
     }
     
+    // Проверяем URL параметры для Telegram
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    // Проверяем наличие Telegram-специфических параметров
+    if (urlParams.has('tgWebAppData') || hashParams.has('tgWebAppData')) {
+        return true;
+    }
+    
     // Проверяем User-Agent на наличие Telegram
     if (navigator.userAgent && navigator.userAgent.includes('Telegram')) {
+        return true;
+    }
+    
+    // Если мы на /telegram роуте, считаем это Telegram средой
+    if (window.location.pathname === '/telegram') {
+        return true;
+    }
+    
+    // Проверяем наличие tgWebAppVersion в localStorage (может быть установлен Telegram)
+    if (localStorage.getItem('tgWebAppVersion')) {
+        return true;
+    }
+    
+    // Если есть параметры в URL, похожие на Telegram
+    const search = window.location.search;
+    if (search.includes('tgWebApp') || search.includes('telegram') || search.includes('tg_id')) {
         return true;
     }
     
