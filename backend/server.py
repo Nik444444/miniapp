@@ -1141,6 +1141,37 @@ async def send_push_notification(
 # Include the router in the main app
 app.include_router(api_router)
 
+# Root handler for Telegram Mini App
+@app.get("/")
+async def root():
+    """Root endpoint for Telegram Mini App"""
+    return {
+        "status": "success",
+        "message": "German Letter AI - Telegram Mini App",
+        "version": "1.0",
+        "telegram_mini_app": True
+    }
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    try:
+        users_count = await db.get_users_count()
+        analyses_count = await db.get_analyses_count()
+        return {
+            "status": "healthy",
+            "telegram_mini_app": True,
+            "users_count": users_count,
+            "analyses_count": analyses_count
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
