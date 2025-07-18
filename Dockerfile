@@ -40,7 +40,7 @@ RUN pip install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cl
     echo "Warning: emergentintegrations installation failed, application will run in fallback mode"
 
 # Создаем директорию для SQLite базы данных
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data && chmod 777 /app/data
 
 # Проверяем установку tesseract и путь
 RUN which tesseract || echo "tesseract not found"
@@ -61,5 +61,5 @@ RUN python -c "import PIL; print('Pillow OK')" || echo "Pillow import failed"
 # Открываем порт 8001
 EXPOSE 8001
 
-# Запускаем приложение напрямую
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
+# Запускаем приложение, используя переменную окружения PORT
+CMD ["sh", "-c", "uvicorn server:app --host 0.0.0.0 --port ${PORT:-8001}"]
