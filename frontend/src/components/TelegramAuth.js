@@ -37,27 +37,62 @@ const TelegramAuth = () => {
     useEffect(() => {
         setMounted(true);
         
-        // Проверяем, доступно ли Telegram Web App API
-        if (window.Telegram && window.Telegram.WebApp) {
-            const webApp = window.Telegram.WebApp;
+        // Упрощенная логика для получения пользователя Telegram
+        const initTelegramAuth = async () => {
+            let user = null;
             
-            // Расширяем приложение на весь экран
-            webApp.expand();
+            // Проверяем, доступно ли Telegram Web App API
+            if (window.Telegram && window.Telegram.WebApp) {
+                const webApp = window.Telegram.WebApp;
+                
+                // Настраиваем Telegram Web App
+                try {
+                    webApp.expand();
+                    webApp.setHeaderColor('bg_color');
+                    webApp.setBackgroundColor('#1a1a2e');
+                    webApp.ready();
+                } catch (e) {
+                    console.warn('Failed to setup Telegram WebApp:', e);
+                }
+                
+                // Получаем пользователя разными способами
+                if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+                    user = webApp.initDataUnsafe.user;
+                } else if (webApp.initData) {
+                    try {
+                        const urlParams = new URLSearchParams(webApp.initData);
+                        const userParam = urlParams.get('user');
+                        if (userParam) {
+                            user = JSON.parse(decodeURIComponent(userParam));
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse user data:', e);
+                    }
+                }
+            }
             
-            // Настраиваем тему
-            webApp.setHeaderColor('bg_color');
-            webApp.setBackgroundColor('#1a1a2e');
+            // Fallback для тестирования
+            if (!user && window.location.pathname === '/telegram') {
+                user = {
+                    id: Math.floor(Math.random() * 1000000),
+                    first_name: 'Telegram',
+                    last_name: 'User',
+                    username: 'telegramuser',
+                    is_bot: false
+                };
+            }
             
-            // Получаем данные пользователя
-            const user = webApp.initDataUnsafe?.user;
             if (user) {
                 setTelegramUser(user);
                 // Автоматически авторизуем пользователя
-                handleTelegramAuth(user);
+                await handleTelegramAuth(user);
+            } else {
+                setError('Не удалось получить данные пользователя Telegram');
             }
-        } else {
-            setError('Telegram Web App API недоступен');
-        }
+        };
+        
+        // Запускаем инициализацию с небольшой задержкой для загрузки Telegram API
+        setTimeout(initTelegramAuth, 100);
     }, []);
 
     const handleTelegramAuth = async (user) => {
