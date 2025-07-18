@@ -349,19 +349,40 @@ async def verify_google_token(auth_request: GoogleAuthRequest):
 @api_router.post("/auth/telegram/verify")
 async def verify_telegram_user(auth_request: TelegramAuthRequest):
     try:
-        telegram_user = auth_request.telegram_user
+        logger.info(f"Telegram auth request received: {auth_request}")
         
-        # Validate required fields
-        if not telegram_user.get('id'):
-            raise HTTPException(status_code=400, detail="Invalid Telegram user data")
+        # Prepare authentication data
+        auth_data = {}
+        if auth_request.telegram_user:
+            auth_data['telegram_user'] = auth_request.telegram_user
+        if auth_request.initData:
+            auth_data['initData'] = auth_request.initData
+        if auth_request.user:
+            auth_data['user'] = auth_request.user
         
-        # TODO: Add proper Telegram Mini App authentication validation
-        # For now, we'll validate the user data exists
-        if not isinstance(telegram_user.get('id'), int):
-            raise HTTPException(status_code=400, detail="Invalid Telegram user ID")
+        # Validate authentication
+        validation_result = telegram_auth_service.validate_telegram_auth(auth_data)
         
-        # Create user ID
-        user_id = f"telegram_{telegram_user['id']}"
+        if not validation_result['valid']:
+            logger.error(f"Telegram auth validation failed: {validation_result['error']}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Telegram authentication failed: {validation_result['error']}"
+            )
+        
+        # Extract user data
+        telegram_user = validation_result.get('user')
+        if not telegram_user:
+            # Try to get user from any of the provided data
+            telegram_user = auth_request.telegram_user or auth_request.user
+            if not telegram_user:
+                raise HTTPException(status_code=400, detail="No user data provided")
+        
+        logger.info(f"Telegram user validated: {telegram_user}")
+        
+        # Create user object
+        user_data = telegram_auth_service.create_user_from_telegram_data(telegram_user)
+        user_id = user_data['id']
         
         # Check if user already exists
         existing_user = await db.get_user(user_id)
@@ -369,28 +390,28 @@ async def verify_telegram_user(auth_request: TelegramAuthRequest):
         if existing_user:
             # Update existing user
             existing_user["last_login"] = datetime.utcnow().isoformat()
+            # Update user data with fresh Telegram info
+            existing_user.update({
+                "name": user_data["name"],
+                "picture": user_data.get("picture"),
+                "telegram_username": user_data.get("telegram_username"),
+                "telegram_first_name": user_data.get("telegram_first_name"),
+                "telegram_last_name": user_data.get("telegram_last_name"),
+                "telegram_language_code": user_data.get("telegram_language_code")
+            })
             await db.save_user(existing_user)
             user = existing_user
         else:
             # Create new user
-            user = {
-                "id": user_id,
-                "email": f"telegram_{telegram_user['id']}@telegram.local",  # Synthetic email
-                "name": f"{telegram_user.get('first_name', '')} {telegram_user.get('last_name', '')}".strip(),
-                "picture": telegram_user.get('photo_url'),
-                "oauth_provider": "Telegram",
-                "telegram_id": telegram_user['id'],
-                "telegram_username": telegram_user.get('username'),
-                "created_at": datetime.utcnow().isoformat(),
-                "last_login": datetime.utcnow().isoformat(),
-                "gemini_api_key": None,
-                "openai_api_key": None,
-                "anthropic_api_key": None
-            }
-            await db.save_user(user)
+            user_data["created_at"] = datetime.utcnow().isoformat()
+            user_data["last_login"] = datetime.utcnow().isoformat()
+            await db.save_user(user_data)
+            user = user_data
         
         # Create access token
         access_token = create_access_token({"sub": user_id, "email": user["email"]})
+        
+        logger.info(f"Telegram authentication successful for user: {user_id}")
         
         return {
             "access_token": access_token,
@@ -409,9 +430,11 @@ async def verify_telegram_user(auth_request: TelegramAuthRequest):
                 "anthropic_key_preview": create_key_preview(user.get("anthropic_api_key"))
             }
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Telegram OAuth verification failed: {e}")
-        raise HTTPException(status_code=400, detail="Telegram authentication failed")
+        logger.error(f"Telegram authentication error: {e}")
+        raise HTTPException(status_code=500, detail="Telegram authentication failed")
 
 # User profile (REQUIRES AUTHENTICATION)
 @api_router.get("/profile", response_model=UserProfile)
