@@ -490,7 +490,7 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                             
                                             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto">
                                                 <div className="flex items-center space-x-4">
-                                                    <div className="flex-shrink-0 text-emerald-300 animate-bounce">
+                                                    <div className="text-green-300">
                                                         {getFileIcon(selectedFile)}
                                                     </div>
                                                     <div className="flex-grow text-left">
