@@ -379,42 +379,15 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
             <div className="relative z-10 px-4 pb-8">
                 <div className="max-w-2xl mx-auto space-y-8">
                     
-                    {/* СУПЕР ЭФФЕКТНАЯ ОБЛАСТЬ ЗАГРУЗКИ */}
-                    <div className={`transform transition-all duration-1000 ${
-                        animateIn ? 'translate-y-0 opacity-100 rotate-0' : 'translate-y-10 opacity-0 rotate-3'
+                    {/* ОБЛАСТЬ ЗАГРУЗКИ */}
+                    <div className={`transform transition-all duration-500 ${
+                        animateIn ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
                     }`}>
-                        <div className={`relative overflow-hidden rounded-3xl border-4 border-dashed transition-all duration-700 shadow-2xl ${
-                            isDragActive || magneticHover
-                                ? 'border-cyan-400 bg-cyan-500/20 shadow-cyan-500/50 transform scale-105 rotate-1' 
-                                : 'border-purple-400/60 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10 hover:border-purple-300 hover:scale-102 hover:-rotate-1'
+                        <div className={`relative rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                            isDragActive
+                                ? 'border-blue-400 bg-blue-50/80' 
+                                : 'border-gray-400 bg-white/20 hover:border-blue-300'
                         }`}>
-                            
-                            {/* Анимированный фон области загрузки */}
-                            <div className="absolute inset-0 opacity-40">
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent transform -skew-x-12 animate-pulse"></div>
-                                <div className="absolute inset-0 bg-gradient-to-l from-purple-200/20 via-transparent to-blue-200/20 transform skew-x-12 animate-pulse delay-500"></div>
-                            </div>
-                            
-                            {/* Орбитальные элементы вокруг области загрузки */}
-                            <div className="absolute inset-0 pointer-events-none">
-                                {[...Array(20)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="absolute animate-pulse opacity-70"
-                                        style={{
-                                            left: `${Math.random() * 100}%`,
-                                            top: `${Math.random() * 100}%`,
-                                            animationDelay: `${Math.random() * 3}s`,
-                                            animationDuration: `${2 + Math.random() * 2}s`
-                                        }}
-                                    >
-                                        {i % 4 === 0 && '✨'}
-                                        {i % 4 === 1 && '⭐'}
-                                        {i % 4 === 2 && '💎'}
-                                        {i % 4 === 3 && '🚀'}
-                                    </div>
-                                ))}
-                            </div>
 
                             <div 
                                 {...getRootProps()}
