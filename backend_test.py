@@ -2338,35 +2338,42 @@ class BackendTester:
         else:
             self.log_test_result("Basic Functionality - Modern LLM status", False, f"Error: {error}", data)
 
+    async def run_performance_focused_tests(self):
+        """🎯 ГЛАВНАЯ ЗАДАЧА: Запуск тестов производительности OCR системы"""
+        logger.info("🎯 НАЧИНАЕМ ТЕСТИРОВАНИЕ ОПТИМИЗИРОВАННОЙ СИСТЕМЫ OCR НА БЫСТРОДЕЙСТВИЕ")
+        logger.info("=" * 80)
+        
+        # Основные тесты производительности согласно требованиям
+        await self.test_ocr_performance_optimization()
+        await self.test_fast_ocr_methods_only()
+        await self.test_no_slow_operations_removed()
+        await self.test_fast_pdf_processing()
+        await self.test_analyze_file_performance_ready()
+        await self.test_system_speed_optimization_summary()
+        
+        # Дополнительные тесты для полноты картины
+        await self.test_basic_health_endpoints()
+        await self.test_api_health_endpoints()
+        await self.test_authentication_required_endpoints()
+        
+        logger.info("=" * 80)
+        logger.info("🎯 ТЕСТИРОВАНИЕ ПРОИЗВОДИТЕЛЬНОСТИ OCR СИСТЕМЫ ЗАВЕРШЕНО")
+
     async def run_all_tests(self):
-        """Run all backend tests with focus on Telegram Mini App OCR fixes"""
-        logger.info("🎯 STARTING COMPREHENSIVE TELEGRAM MINI APP OCR TESTING")
+        """Run all backend tests with focus on performance optimization"""
+        logger.info("🎯 STARTING PERFORMANCE-FOCUSED OCR SYSTEM TESTING")
         logger.info("=" * 80)
         
         try:
-            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ для исправления вечной загрузки
-            await self.test_eternal_loading_fix_comprehensive()
-            await self.test_simple_tesseract_ocr_service_status()
-            await self.test_simple_tesseract_ocr_methods_only()
-            await self.test_fast_image_processing_functionality()
-            await self.test_telegram_mini_app_compatibility()
-            
-            # Основные тесты работоспособности
-            await self.test_basic_health_endpoints()
-            await self.test_api_health_endpoints()
-            
-            # Тесты аутентификации (важно для Telegram Mini App)
-            await self.test_telegram_authentication_comprehensive()
-            await self.test_authentication_required_endpoints()
-            await self.test_google_oauth_endpoint()
-            
-            # Тесты базы данных и системы
-            await self.test_database_functionality()
-            await self.test_no_skip_auth_functionality()
+            # 🎯 ГЛАВНАЯ ЗАДАЧА: Тесты производительности OCR системы
+            await self.run_performance_focused_tests()
             
             # Дополнительные тесты функциональности
             await self.test_llm_status_endpoint()
             await self.test_modern_llm_status_endpoint()
+            await self.test_google_oauth_endpoint()
+            await self.test_database_functionality()
+            await self.test_no_skip_auth_functionality()
             await self.test_telegram_news_endpoint()
             
         except Exception as e:
@@ -2374,22 +2381,41 @@ class BackendTester:
             self.log_test_result("Test Execution", False, f"Critical error: {e}", None)
         
         # Print summary
-        self.generate_test_summary()
+        self.generate_performance_test_summary()
     
-    def generate_test_summary(self):
-        """Generate and display test summary"""
+    def generate_performance_test_summary(self):
+        """Generate and display performance test summary"""
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
         
         logger.info("=" * 80)
-        logger.info("🎯 TELEGRAM MINI APP AUTHENTICATION TESTING COMPLETE")
+        logger.info("🎯 PERFORMANCE OPTIMIZATION TESTING COMPLETE")
         logger.info("=" * 80)
         logger.info(f"📊 RESULTS: {success_rate:.1f}% success ({passed_tests}/{total_tests} tests)")
         logger.info(f"✅ PASSED: {passed_tests}")
         logger.info(f"❌ FAILED: {failed_tests}")
         logger.info("=" * 80)
+        
+        # Show performance-critical test results
+        performance_tests = [
+            r for r in self.test_results 
+            if any(keyword in r["test"].lower() for keyword in [
+                "ocr performance", "fast ocr", "slow operations", "pdf processing", 
+                "analyze-file performance", "speed optimization"
+            ])
+        ]
+        
+        if performance_tests:
+            perf_passed = sum(1 for r in performance_tests if r["success"])
+            perf_total = len(performance_tests)
+            logger.info(f"🚀 PERFORMANCE OPTIMIZATION: {perf_passed}/{perf_total} tests passed")
+            
+            for result in performance_tests:
+                status = "✅" if result["success"] else "❌"
+                logger.info(f"   {status} {result['test']}")
+            logger.info("=" * 80)
         
         # Show failed tests
         if failed_tests > 0:
@@ -2399,29 +2425,14 @@ class BackendTester:
                     logger.info(f"   • {result['test']}: {result['details']}")
             logger.info("=" * 80)
         
-        # Show key Telegram authentication results
-        telegram_tests = [r for r in self.test_results if "telegram" in r["test"].lower()]
-        if telegram_tests:
-            telegram_passed = sum(1 for r in telegram_tests if r["success"])
-            telegram_total = len(telegram_tests)
-            logger.info(f"🔐 TELEGRAM AUTHENTICATION: {telegram_passed}/{telegram_total} tests passed")
-            
-            for result in telegram_tests:
-                status = "✅" if result["success"] else "❌"
-                logger.info(f"   {status} {result['test']}")
-            logger.info("=" * 80)
-        
-        # Show critical deployment status
-        critical_tests = [
-            r for r in self.test_results 
-            if any(keyword in r["test"].lower() for keyword in ["health", "modern-llm", "ocr-status", "dependencies"])
-        ]
-        
-        if critical_tests:
-            critical_passed = sum(1 for r in critical_tests if r["success"])
-            critical_total = len(critical_tests)
-            logger.info(f"🚀 CRITICAL DEPLOYMENT STATUS: {critical_passed}/{critical_total} tests passed")
-            logger.info("=" * 80)
+        return {
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "failed_tests": failed_tests,
+            "success_rate": success_rate,
+            "performance_tests": len(performance_tests),
+            "performance_passed": sum(1 for r in performance_tests if r["success"]) if performance_tests else 0
+        }
     
     def print_summary(self):
         """Print test summary"""
