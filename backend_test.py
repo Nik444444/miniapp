@@ -876,64 +876,276 @@ class BackendTester:
                 data
             )
     
-    async def test_simple_tesseract_ocr_service_status(self):
-        """🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Simple Tesseract OCR Service для исправления вечной загрузки"""
-        logger.info("=== 🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Simple Tesseract OCR Service ===")
+    async def test_ocr_performance_optimization(self):
+        """🎯 ГЛАВНАЯ ЗАДАЧА: Проверить оптимизированную систему OCR на быстродействие"""
+        logger.info("=== 🎯 ГЛАВНАЯ ЗАДАЧА: Тестирование оптимизированной системы OCR на быстродействие ===")
         
-        # Test OCR status endpoint
+        # 1. Проверить endpoint /api/ocr-status - убедиться что он показывает tesseract как primary method
         success, data, error = await self.make_request("GET", "/api/ocr-status")
         
         if success and isinstance(data, dict):
-            # Check required fields according to review requirements
-            has_status = data.get("status") == "success"
-            has_ocr_service = "ocr_service" in data and isinstance(data["ocr_service"], dict)
-            tesseract_not_required = data.get("tesseract_required") is False
-            production_ready = data.get("production_ready") is True
+            ocr_service = data.get("ocr_service", {})
             
-            # Check OCR service structure for Simple Tesseract OCR Service
-            ocr_service_valid = False
-            service_name_correct = False
-            primary_method_correct = False
-            optimized_for_speed = False
-            tesseract_version_correct = False
+            # Проверяем что tesseract является primary method
+            primary_method = ocr_service.get("primary_method")
+            is_tesseract_primary = primary_method == "tesseract_ocr"
             
-            if has_ocr_service:
-                ocr_service = data["ocr_service"]
-                
-                # 1. Check service name is "Simple Tesseract OCR Service"
-                service_name = ocr_service.get("service_name", "")
-                service_name_correct = service_name == "Simple Tesseract OCR Service"
-                
-                # 2. Check primary_method is "tesseract_ocr"
-                primary_method = ocr_service.get("primary_method")
-                primary_method_correct = primary_method == "tesseract_ocr"
-                
-                # 3. Check optimized_for_speed is true
-                optimized_for_speed = ocr_service.get("optimized_for_speed") is True
-                
-                # 4. Check tesseract_version is "5.3.0"
-                tesseract_version = ocr_service.get("tesseract_version")
-                tesseract_version_correct = tesseract_version == "5.3.0"
-                
-                # 5. Check tesseract_dependency is True (not False as in old service)
-                tesseract_dependency = ocr_service.get("tesseract_dependency") is True
-                
-                # 6. Check production_ready is True
-                service_production_ready = ocr_service.get("production_ready") is True
-                
-                ocr_service_valid = all([
-                    service_name_correct, primary_method_correct, optimized_for_speed,
-                    tesseract_version_correct, tesseract_dependency, service_production_ready
-                ])
+            # Проверяем что система оптимизирована для скорости
+            optimized_for_speed = ocr_service.get("optimized_for_speed") is True
+            
+            # Проверяем что система готова к production
+            production_ready = ocr_service.get("production_ready") is True
+            
+            # Проверяем версию tesseract
+            tesseract_version = ocr_service.get("tesseract_version")
+            has_correct_version = tesseract_version == "5.3.0"
             
             self.log_test_result(
-                "🎯 КРИТИЧЕСКИЙ ТЕСТ: Simple Tesseract OCR Service Status",
-                has_status and has_ocr_service and production_ready and ocr_service_valid,
-                f"Service: {service_name_correct}, Primary: {primary_method_correct}, Speed: {optimized_for_speed}, Version: {tesseract_version_correct}",
+                "🎯 OCR Status - Tesseract как primary method",
+                is_tesseract_primary and optimized_for_speed and production_ready and has_correct_version,
+                f"Primary: {primary_method}, Speed optimized: {optimized_for_speed}, Production ready: {production_ready}, Version: {tesseract_version}",
                 data
             )
         else:
-            self.log_test_result("🎯 КРИТИЧЕСКИЙ ТЕСТ: Simple Tesseract OCR Service Status", False, f"Error: {error}", data)
+            self.log_test_result("🎯 OCR Status - Tesseract как primary method", False, f"Error: {error}", data)
+    
+    async def test_fast_ocr_methods_only(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Убедиться что система использует только simple_tesseract_ocr и НЕ падает в fallback цепочки"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Только быстрые OCR методы ===")
+        
+        success, data, error = await self.make_request("GET", "/api/ocr-status")
+        
+        if success and isinstance(data, dict):
+            ocr_service = data.get("ocr_service", {})
+            methods = ocr_service.get("methods", {})
+            
+            # Проверяем что есть ТОЛЬКО tesseract_ocr и direct_pdf
+            expected_fast_methods = {"tesseract_ocr", "direct_pdf"}
+            actual_methods = set(methods.keys())
+            
+            # Проверяем что медленные методы ОТСУТСТВУЮТ
+            slow_methods = {"llm_vision", "ocr_space", "azure_vision"}
+            slow_methods_found = slow_methods.intersection(actual_methods)
+            
+            # Проверяем что остались только быстрые методы
+            only_fast_methods = actual_methods == expected_fast_methods
+            no_slow_methods = len(slow_methods_found) == 0
+            
+            # Проверяем что tesseract_ocr доступен
+            tesseract_method = methods.get("tesseract_ocr", {})
+            tesseract_available = tesseract_method.get("available") is True
+            
+            # Проверяем что direct_pdf доступен
+            direct_pdf_method = methods.get("direct_pdf", {})
+            direct_pdf_available = direct_pdf_method.get("available") is True
+            
+            self.log_test_result(
+                "🎯 Только быстрые OCR методы (без fallback цепочки)",
+                only_fast_methods and no_slow_methods and tesseract_available and direct_pdf_available,
+                f"Expected: {expected_fast_methods}, Actual: {actual_methods}, Slow methods found: {slow_methods_found}",
+                {
+                    "expected_methods": list(expected_fast_methods),
+                    "actual_methods": list(actual_methods),
+                    "slow_methods_found": list(slow_methods_found),
+                    "tesseract_available": tesseract_available,
+                    "direct_pdf_available": direct_pdf_available
+                }
+            )
+        else:
+            self.log_test_result("🎯 Только быстрые OCR методы (без fallback цепочки)", False, f"Error: {error}", data)
+    
+    async def test_no_slow_operations_removed(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Убедиться что все медленные операции убраны"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверка что медленные операции убраны ===")
+        
+        success, data, error = await self.make_request("GET", "/api/ocr-status")
+        
+        if success and isinstance(data, dict):
+            ocr_service = data.get("ocr_service", {})
+            methods = ocr_service.get("methods", {})
+            
+            # Список медленных операций которые должны быть убраны
+            forbidden_slow_operations = {
+                "llm_vision",      # Медленные LLM вызовы
+                "ocr_space",       # Внешние API вызовы
+                "azure_vision",    # Внешние API вызовы
+                "multiple_tesseract_calls",  # Множественные tesseract вызовы
+                "opencv_operations",         # Сложная обработка изображений
+                "image_enhancement"          # Долгие улучшения изображений
+            }
+            
+            actual_methods = set(methods.keys())
+            slow_operations_found = forbidden_slow_operations.intersection(actual_methods)
+            
+            # Проверяем что primary_method НЕ является медленным методом
+            primary_method = ocr_service.get("primary_method")
+            primary_is_fast = primary_method == "tesseract_ocr"
+            
+            # Проверяем что система оптимизирована для скорости
+            optimized_for_speed = ocr_service.get("optimized_for_speed") is True
+            
+            # Проверяем что нет opencv операций в описании tesseract метода
+            tesseract_method = methods.get("tesseract_ocr", {})
+            tesseract_description = tesseract_method.get("description", "").lower()
+            no_opencv_mentioned = "opencv" not in tesseract_description and "сложная обработка" not in tesseract_description
+            
+            self.log_test_result(
+                "🎯 Медленные операции убраны (нет opencv, множественных вызовов)",
+                len(slow_operations_found) == 0 and primary_is_fast and optimized_for_speed and no_opencv_mentioned,
+                f"Slow operations found: {slow_operations_found}, Primary fast: {primary_is_fast}, Speed optimized: {optimized_for_speed}",
+                {
+                    "forbidden_operations": list(forbidden_slow_operations),
+                    "slow_operations_found": list(slow_operations_found),
+                    "primary_method": primary_method,
+                    "optimized_for_speed": optimized_for_speed
+                }
+            )
+        else:
+            self.log_test_result("🎯 Медленные операции убраны (нет opencv, множественных вызовов)", False, f"Error: {error}", data)
+    
+    async def test_fast_pdf_processing(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверить что PDF обработка стала быстрой (только direct extraction, без OCR)"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Быстрая PDF обработка ===")
+        
+        success, data, error = await self.make_request("GET", "/api/ocr-status")
+        
+        if success and isinstance(data, dict):
+            ocr_service = data.get("ocr_service", {})
+            methods = ocr_service.get("methods", {})
+            
+            # Проверяем что есть direct_pdf метод
+            direct_pdf_method = methods.get("direct_pdf", {})
+            direct_pdf_available = direct_pdf_method.get("available") is True
+            
+            # Проверяем описание direct_pdf метода
+            direct_pdf_description = direct_pdf_method.get("description", "").lower()
+            is_direct_extraction = "прямое извлечение" in direct_pdf_description or "direct" in direct_pdf_description
+            no_ocr_for_pdf = "без ocr" in direct_pdf_description or "direct extraction" in direct_pdf_description
+            
+            # Проверяем что нет медленных PDF методов
+            pdf_ocr_methods = {"pdf_ocr", "pdf_image_ocr", "pdf_tesseract_ocr"}
+            actual_methods = set(methods.keys())
+            no_slow_pdf_methods = len(pdf_ocr_methods.intersection(actual_methods)) == 0
+            
+            self.log_test_result(
+                "🎯 Быстрая PDF обработка (только direct extraction)",
+                direct_pdf_available and is_direct_extraction and no_slow_pdf_methods,
+                f"Direct PDF available: {direct_pdf_available}, Direct extraction: {is_direct_extraction}, No slow PDF methods: {no_slow_pdf_methods}",
+                {
+                    "direct_pdf_available": direct_pdf_available,
+                    "direct_pdf_description": direct_pdf_method.get("description", ""),
+                    "slow_pdf_methods_found": list(pdf_ocr_methods.intersection(actual_methods))
+                }
+            )
+        else:
+            self.log_test_result("🎯 Быстрая PDF обработка (только direct extraction)", False, f"Error: {error}", data)
+    
+    async def test_analyze_file_performance_ready(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Тестировать загрузку и анализ через /api/analyze-file (проверить что endpoint работает быстро)"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Производительность /api/analyze-file ===")
+        
+        # Создаем тестовое изображение
+        test_image_data = self.create_test_image()
+        
+        # Тестируем разные форматы изображений для быстрой обработки
+        image_formats = [
+            ('test_photo.jpg', 'image/jpeg'),
+            ('test_document.png', 'image/png'),
+            ('test_scan.webp', 'image/webp')
+        ]
+        
+        all_formats_fast = True
+        response_times = []
+        
+        for filename, content_type in image_formats:
+            form_data = aiohttp.FormData()
+            form_data.add_field('file', test_image_data, filename=filename, content_type=content_type)
+            form_data.add_field('language', 'ru')
+            
+            # Измеряем время ответа для проверки быстродействия
+            start_time = time.time()
+            success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
+            response_time = time.time() - start_time
+            response_times.append(response_time)
+            
+            # Endpoint должен быстро отвечать (даже с ошибкой аутентификации)
+            is_fast_response = response_time < 3.0  # Должен отвечать в течение 3 секунд
+            requires_auth = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+            
+            if not (is_fast_response and requires_auth):
+                all_formats_fast = False
+                logger.warning(f"Format {filename} performance issue: fast={is_fast_response}, auth_required={requires_auth}, time={response_time:.2f}s")
+        
+        avg_response_time = sum(response_times) / len(response_times) if response_times else 0
+        
+        self.log_test_result(
+            "🎯 /api/analyze-file быстродействие (< 3 сек ответ)",
+            all_formats_fast and avg_response_time < 3.0,
+            f"All formats fast: {all_formats_fast}, Avg response time: {avg_response_time:.2f}s, Max time: {max(response_times):.2f}s",
+            {
+                "tested_formats": [f[0] for f in image_formats],
+                "response_times": response_times,
+                "average_response_time": avg_response_time,
+                "max_response_time": max(response_times) if response_times else 0
+            }
+        )
+    
+    async def test_system_speed_optimization_summary(self):
+        """🎯 ИТОГОВЫЙ ТЕСТ: Общая проверка оптимизации системы на скорость"""
+        logger.info("=== 🎯 ИТОГОВЫЙ ТЕСТ: Общая оптимизация системы на скорость ===")
+        
+        success, data, error = await self.make_request("GET", "/api/ocr-status")
+        
+        if success and isinstance(data, dict):
+            ocr_service = data.get("ocr_service", {})
+            
+            # Ключевые показатели оптимизации
+            service_name = ocr_service.get("service_name", "")
+            is_simple_service = service_name == "Simple Tesseract OCR Service"
+            
+            primary_method = ocr_service.get("primary_method")
+            primary_is_tesseract = primary_method == "tesseract_ocr"
+            
+            optimized_for_speed = ocr_service.get("optimized_for_speed") is True
+            production_ready = ocr_service.get("production_ready") is True
+            tesseract_dependency = ocr_service.get("tesseract_dependency") is True
+            
+            # Проверяем что остались только быстрые методы
+            methods = ocr_service.get("methods", {})
+            fast_methods_only = set(methods.keys()) == {"tesseract_ocr", "direct_pdf"}
+            
+            # Проверяем что медленные методы отсутствуют
+            slow_methods = {"llm_vision", "ocr_space", "azure_vision"}
+            no_slow_methods = len(slow_methods.intersection(set(methods.keys()))) == 0
+            
+            # Общая оценка оптимизации
+            system_optimized = all([
+                is_simple_service,
+                primary_is_tesseract,
+                optimized_for_speed,
+                production_ready,
+                tesseract_dependency,
+                fast_methods_only,
+                no_slow_methods
+            ])
+            
+            self.log_test_result(
+                "🎯 ИТОГОВАЯ ОЦЕНКА: Система оптимизирована для быстродействия",
+                system_optimized,
+                f"Simple service: {is_simple_service}, Tesseract primary: {primary_is_tesseract}, Speed optimized: {optimized_for_speed}, Fast methods only: {fast_methods_only}",
+                {
+                    "service_name": service_name,
+                    "primary_method": primary_method,
+                    "optimized_for_speed": optimized_for_speed,
+                    "production_ready": production_ready,
+                    "tesseract_dependency": tesseract_dependency,
+                    "methods_count": len(methods),
+                    "fast_methods_only": fast_methods_only,
+                    "no_slow_methods": no_slow_methods
+                }
+            )
+        else:
+            self.log_test_result("🎯 ИТОГОВАЯ ОЦЕНКА: Система оптимизирована для быстродействия", False, f"Error: {error}", data)
     
     async def test_simple_tesseract_ocr_methods_only(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверка что остались только tesseract_ocr и direct_pdf методы"""
