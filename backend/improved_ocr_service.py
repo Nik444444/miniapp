@@ -134,53 +134,27 @@ class ImprovedOCRService:
             return ""
     
     def _enhance_image_for_ocr(self, image: Image.Image) -> Image.Image:
-        """Продвинутое улучшение изображения для супер-качественного OCR"""
+        """БЫСТРОЕ улучшение изображения для OCR - только базовые операции"""
         try:
-            # Конвертируем в numpy array
-            img_array = np.array(image)
+            # Простое улучшение - только resize если нужно
+            width, height = image.size
             
-            # Если изображение цветное, конвертируем в серый
-            if len(img_array.shape) == 3:
-                img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-            
-            # Продвинутое улучшение качества
-            # 1. Адаптивная гауссова фильтрация для удаления шума
-            img_array = cv2.GaussianBlur(img_array, (3, 3), 0)
-            
-            # 2. Улучшение контраста с помощью CLAHE
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-            img_array = clahe.apply(img_array)
-            
-            # 3. Морфологические операции для очистки текста
-            kernel = np.ones((2,2), np.uint8)
-            img_array = cv2.morphologyEx(img_array, cv2.MORPH_CLOSE, kernel)
-            img_array = cv2.morphologyEx(img_array, cv2.MORPH_OPEN, kernel)
-            
-            # 4. Адаптивная пороговая обработка
-            img_array = cv2.adaptiveThreshold(img_array, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-            
-            # 5. Дополнительное увеличение размера для лучшего OCR
-            height, width = img_array.shape
-            if width < 1500:  # Увеличиваем целевой размер
-                scale_factor = 1500 / width
+            # Только если изображение слишком маленькое, немного увеличиваем
+            if width < 800:
+                scale_factor = 800 / width  
                 new_width = int(width * scale_factor)
                 new_height = int(height * scale_factor)
-                img_array = cv2.resize(img_array, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+                image = image.resize((new_width, new_height), Image.LANCZOS)
             
-            # 6. Дополнительное повышение резкости
-            kernel_sharpen = np.array([[-1,-1,-1], 
-                                     [-1, 9,-1], 
-                                     [-1,-1,-1]])
-            img_array = cv2.filter2D(img_array, -1, kernel_sharpen)
-            
-            # Конвертируем обратно в PIL Image
-            enhanced_image = Image.fromarray(img_array)
-            
-            return enhanced_image
+            # Конвертируем в серый только если цветное
+            if image.mode != 'L':
+                image = image.convert('L')
+                
+            return image
             
         except Exception as e:
             logger.error(f"Error enhancing image: {e}")
-            return image  # Возвращаем оригинальное изображение в случае ошибки
+            return image
     
     async def extract_text_with_tesseract(self, image_path: str) -> str:
         """
