@@ -391,9 +391,7 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
 
                             <div 
                                 {...getRootProps()}
-                                className="relative z-10 p-12 cursor-pointer"
-                                onMouseEnter={() => setMagneticHover(true)}
-                                onMouseLeave={() => setMagneticHover(false)}
+                                className="relative p-8 cursor-pointer"
                             >
                                 <input {...getInputProps()} />
                                 <input 
@@ -404,48 +402,24 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                     id="file-input-analysis"
                                 />
                                 
-                                {/* Анимированный прогресс-бар */}
+                                {/* Простой прогресс-бар */}
                                 {loading && uploadProgress > 0 && (
-                                    <div className="absolute top-0 left-0 h-2 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 transition-all duration-500 rounded-t-3xl overflow-hidden" 
+                                    <div className="absolute top-0 left-0 h-1 bg-blue-500 transition-all duration-300 rounded-t-2xl" 
                                          style={{width: `${uploadProgress}%`}}>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse"></div>
-                                        <div className="absolute top-0 left-0 w-full h-full">
-                                            {[...Array(10)].map((_, i) => (
-                                                <div key={i} 
-                                                     className="absolute top-0 w-1 h-full bg-white/40 animate-pulse"
-                                                     style={{
-                                                         left: `${i * 10}%`,
-                                                         animationDelay: `${i * 0.1}s`
-                                                     }}
-                                                />
-                                            ))}
-                                        </div>
                                     </div>
                                 )}
                                 
                                 {loading ? (
-                                    // Упрощенное состояние загрузки
-                                    <div className="space-y-6 text-center">
-                                        <div className="mx-auto w-24 h-24 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
-                                        
-                                        <div className="space-y-4">
-                                            <h3 className="text-2xl font-bold text-white">
-                                                Анализ документа
-                                            </h3>
-                                            
-                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto">
-                                                <p className="text-lg font-medium text-white">
-                                                    {processingStage}
-                                                </p>
-                                                <div className="mt-4 flex justify-center space-x-2">
-                                                    {[1, 2, 3].map((i) => (
-                                                        <div 
-                                                            key={i}
-                                                            className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
-                                                            style={{ animationDelay: `${i * 0.2}s` }}
-                                                        ></div>
-                                                    ))}
-                                                </div>
+                                    // Простое состояние загрузки
+                                    <div className="space-y-4 text-center">
+                                        <div className="mx-auto w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+                                        <div className="space-y-2">
+                                            <h3 className="text-xl font-bold text-white">Анализ документа</h3>
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 max-w-sm mx-auto">
+                                                <p className="text-white">{processingStage}</p>
+                                            </div>
+                                            <div className="mt-2 bg-white/20 rounded-full p-2">
+                                                <div className="text-sm text-white/80">Загрузка результата...</div>
                                             </div>
                                         </div>
                                     </div>
