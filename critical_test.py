@@ -16,16 +16,8 @@ logger = logging.getLogger(__name__)
 
 class CriticalTester:
     def __init__(self):
-        # Get backend URL from frontend .env file
-        frontend_env_path = Path("/app/frontend/.env")
-        self.backend_url = "https://ee963ade-fefc-44c0-8080-6adf62e051cd.preview.emergentagent.com"
-        
-        if frontend_env_path.exists():
-            with open(frontend_env_path, 'r') as f:
-                for line in f:
-                    if line.startswith('REACT_APP_BACKEND_URL='):
-                        self.backend_url = line.split('=', 1)[1].strip()
-                        break
+        # Test local backend directly
+        self.backend_url = "http://localhost:8001"
         
         logger.info(f"🎯 Testing backend at: {self.backend_url}")
         self.session = None
