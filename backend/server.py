@@ -192,7 +192,8 @@ async def read_root():
         "status": "OK", 
         "auth": "Google OAuth Only", 
         "database": "SQLite",
-        "version": "3.0.0"
+        "version": "3.0.0",
+        "telegram_mini_app": True
     }
 
 # Health check
