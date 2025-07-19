@@ -424,38 +424,31 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                         </div>
                                     </div>
                                 ) : selectedFile ? (
-                                    // Упрощенное отображение выбранного файла
-                                    <div className="space-y-6 text-center">
-                                        <div className="mx-auto w-20 h-20 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
-                                            <CheckCircle className="h-12 w-12 text-white" />
+                                    // Простое отображение выбранного файла
+                                    <div className="space-y-4 text-center">
+                                        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                                            <CheckCircle className="h-10 w-10 text-white" />
                                         </div>
-                                        
-                                        <div className="space-y-4">
-                                            <h3 className="text-2xl font-bold text-white">
-                                                Файл готов к анализу
-                                            </h3>
-                                            
-                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="text-green-300">
-                                                        {getFileIcon(selectedFile)}
-                                                    </div>
+                                        <div className="space-y-3">
+                                            <h3 className="text-xl font-bold text-white">Файл готов к анализу</h3>
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 max-w-sm mx-auto">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="text-green-300">{getFileIcon(selectedFile)}</div>
                                                     <div className="text-left">
-                                                        <p className="font-bold text-white truncate">
+                                                        <p className="font-bold text-white text-sm truncate">
                                                             {selectedFile.name}
                                                         </p>
-                                                        <p className="text-green-200 font-medium">
+                                                        <p className="text-green-200 text-sm">
                                                             {formatFileSize(selectedFile.size)}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                
                                                 {filePreview && (
-                                                    <div className="mt-4">
+                                                    <div className="mt-3">
                                                         <img 
                                                             src={filePreview} 
                                                             alt="Preview" 
-                                                            className="max-w-full max-h-32 rounded-xl mx-auto border-2 border-green-300/50"
+                                                            className="max-w-full max-h-24 rounded-xl mx-auto border border-green-300/50"
                                                         />
                                                     </div>
                                                 )}
@@ -463,47 +456,37 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    // Упрощенное состояние по умолчанию
-                                    <div className="space-y-8 text-center">
-                                        <div className="relative mx-auto w-32 h-32">
-                                            {/* Основной круг с простым градиентом */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-xl"></div>
-                                            <div className="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center">
-                                                <Upload className="h-16 w-16 text-blue-400" />
-                                            </div>
+                                    // Простое состояние по умолчанию
+                                    <div className="space-y-6 text-center">
+                                        <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                            <Upload className="h-12 w-12 text-white" />
                                         </div>
-                                        
-                                        <div className="space-y-6">
-                                            <h3 className="text-2xl font-bold text-white">
-                                                Загрузить документ для анализа
-                                            </h3>
-                                            
-                                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 border border-purple-300/30">
-                                                <p className="text-lg text-white mb-6 font-medium">
+                                        <div className="space-y-4">
+                                            <h3 className="text-xl font-bold text-white">Загрузить документ для анализа</h3>
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-gray-300/30">
+                                                <p className="text-white mb-4 font-medium">
                                                     {isDragActive 
                                                         ? "Отпустите файл для анализа" 
                                                         : "Перетащите файл сюда или нажмите для выбора"
                                                     }
                                                 </p>
-                                                
-                                                <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-6">
-                                                    <div className="flex flex-col items-center space-y-2 p-4 bg-blue-500/20 rounded-xl">
-                                                        <FileText className="h-8 w-8 text-blue-300" />
-                                                        <span className="text-sm font-medium text-blue-200">PDF</span>
+                                                <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto mb-4">
+                                                    <div className="flex flex-col items-center space-y-2 p-3 bg-blue-500/20 rounded-xl">
+                                                        <FileText className="h-6 w-6 text-blue-300" />
+                                                        <span className="text-xs font-medium text-blue-200">PDF</span>
                                                     </div>
-                                                    <div className="flex flex-col items-center space-y-2 p-4 bg-purple-500/20 rounded-xl">
-                                                        <Image className="h-8 w-8 text-purple-300" />
-                                                        <span className="text-sm font-medium text-purple-200">Фото</span>
+                                                    <div className="flex flex-col items-center space-y-2 p-3 bg-purple-500/20 rounded-xl">
+                                                        <Image className="h-6 w-6 text-purple-300" />
+                                                        <span className="text-xs font-medium text-purple-200">Фото</span>
                                                     </div>
-                                                    <div className="flex flex-col items-center space-y-2 p-4 bg-cyan-500/20 rounded-xl">
-                                                        <Camera className="h-8 w-8 text-cyan-300" />
-                                                        <span className="text-sm font-medium text-cyan-200">Скан</span>
+                                                    <div className="flex flex-col items-center space-y-2 p-3 bg-cyan-500/20 rounded-xl">
+                                                        <Camera className="h-6 w-6 text-cyan-300" />
+                                                        <span className="text-xs font-medium text-cyan-200">Скан</span>
                                                     </div>
                                                 </div>
-                                                
                                                 <button
                                                     type="button"
-                                                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-3 mx-auto font-bold"
+                                                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-2 mx-auto font-bold"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (isTelegramWebApp()) {
@@ -515,15 +498,14 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                         }
                                                     }}
                                                 >
-                                                    <Upload className="w-5 h-5" />
-                                                    <span>{t('selectFile')}</span>
+                                                    <Upload className="w-4 h-4" />
+                                                    <span>Выбрать файл</span>
                                                 </button>
                                             </div>
-                                            
-                                            <div className="bg-gray-500/20 rounded-xl p-4 border border-gray-300/30">
+                                            <div className="bg-gray-500/20 rounded-xl p-3 border border-gray-300/30">
                                                 <p className="text-sm text-gray-300 font-medium flex items-center justify-center space-x-2">
                                                     <Shield className="h-4 w-4" />
-                                                    <span>Максимальный размер файла: 10MB</span>
+                                                    <span>Максимальный размер: 10MB</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -531,10 +513,10 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                 )}
                                 
                                 {error && (
-                                    <div className="mt-8 p-6 bg-red-500/20 border-2 border-red-400/30 rounded-2xl shadow-2xl">
-                                        <div className="flex items-center space-x-3 text-red-300">
-                                            <AlertCircle className="h-6 w-6 animate-pulse" />
-                                            <span className="font-bold text-lg">{error}</span>
+                                    <div className="mt-6 p-4 bg-red-500/20 border border-red-400/30 rounded-xl">
+                                        <div className="flex items-center space-x-2 text-red-300">
+                                            <AlertCircle className="h-5 w-5" />
+                                            <span className="font-bold">{error}</span>
                                         </div>
                                     </div>
                                 )}
