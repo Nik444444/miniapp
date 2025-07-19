@@ -196,28 +196,28 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
                     <Comet className="h-10 w-10 text-purple-500" />
                 </div>
                 <div className="absolute top-6 right-20 animate-pulse" style={{animationDelay: '0.5s'}}>
-                    <Lightning className="h-8 w-8 text-blue-500" />
+                    <Zap className="h-8 w-8 text-blue-500" />
                 </div>
                 <div className="absolute bottom-4 left-4 animate-pulse" style={{animationDelay: '1s'}}>
-                    <Galaxy className="h-12 w-12 text-indigo-500" />
+                    <Star className="h-12 w-12 text-indigo-500" />
                 </div>
                 <div className="absolute bottom-6 left-20 animate-bounce" style={{animationDelay: '1.5s'}}>
-                    <Crystal className="h-7 w-7 text-pink-500" />
+                    <Diamond className="h-7 w-7 text-pink-500" />
                 </div>
                 <div className="absolute top-1/2 right-1/4 animate-ping" style={{animationDelay: '2s'}}>
-                    <Prism className="h-6 w-6 text-purple-500" />
+                    <Crown className="h-6 w-6 text-purple-500" />
                 </div>
                 <div className="absolute bottom-1/3 left-1/4 animate-bounce" style={{animationDelay: '2.5s'}}>
-                    <Flash className="h-8 w-8 text-cyan-500" />
+                    <Flame className="h-8 w-8 text-cyan-500" />
                 </div>
                 <div className="absolute top-1/4 left-1/3 animate-pulse" style={{animationDelay: '3s'}}>
-                    <Beam className="h-7 w-7 text-emerald-500" />
+                    <Rocket className="h-7 w-7 text-emerald-500" />
                 </div>
                 <div className="absolute top-3/4 right-1/3 animate-bounce" style={{animationDelay: '3.5s'}}>
-                    <Aurora className="h-6 w-6 text-teal-500" />
+                    <Sparkles className="h-6 w-6 text-teal-500" />
                 </div>
                 <div className="absolute top-1/3 right-2/3 animate-ping" style={{animationDelay: '4s'}}>
-                    <Nebula className="h-5 w-5 text-violet-500" />
+                    <Gem className="h-5 w-5 text-violet-500" />
                 </div>
             </div>
 
