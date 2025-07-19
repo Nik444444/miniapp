@@ -203,7 +203,8 @@ async def health_check():
         "status": "healthy", 
         "service": "german-letter-ai-assistant", 
         "auth": "google-oauth-only",
-        "database": "sqlite"
+        "database": "sqlite",
+        "telegram_mini_app": True
     }
 
 # API endpoints (с префиксом /api)
