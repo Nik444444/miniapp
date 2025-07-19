@@ -601,29 +601,26 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                 Загрузить документ для анализа
                                             </h3>
                                             
-                                            <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-purple-300/30 shadow-2xl">
-                                                <p className="text-2xl text-white mb-8 font-bold drop-shadow-xl">
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 border border-purple-300/30">
+                                                <p className="text-lg text-white mb-6 font-medium">
                                                     {isDragActive 
-                                                        ? "✨ Отпустите файл для начала волшебства ✨" 
-                                                        : "🎯 Перетащите файл сюда или нажмите для выбора"
+                                                        ? "Отпустите файл для анализа" 
+                                                        : "Перетащите файл сюда или нажмите для выбора"
                                                     }
                                                 </p>
                                                 
-                                                <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto mb-8">
-                                                    <div className="flex flex-col items-center space-y-4 p-6 bg-blue-500/20 rounded-3xl hover:bg-blue-500/30 transition-colors shadow-2xl transform hover:scale-105 border border-blue-400/30">
-                                                        <FileText className="h-12 w-12 text-blue-300 animate-pulse" />
-                                                        <span className="text-lg font-black text-blue-200 drop-shadow-lg">PDF</span>
-                                                        <span className="text-sm text-blue-300">Документы</span>
+                                                <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-6">
+                                                    <div className="flex flex-col items-center space-y-2 p-4 bg-blue-500/20 rounded-xl">
+                                                        <FileText className="h-8 w-8 text-blue-300" />
+                                                        <span className="text-sm font-medium text-blue-200">PDF</span>
                                                     </div>
-                                                    <div className="flex flex-col items-center space-y-4 p-6 bg-purple-500/20 rounded-3xl hover:bg-purple-500/30 transition-colors shadow-2xl transform hover:scale-105 border border-purple-400/30">
-                                                        <Image className="h-12 w-12 text-purple-300 animate-pulse delay-300" />
-                                                        <span className="text-lg font-black text-purple-200 drop-shadow-lg">Фото</span>
-                                                        <span className="text-sm text-purple-300">Изображения</span>
+                                                    <div className="flex flex-col items-center space-y-2 p-4 bg-purple-500/20 rounded-xl">
+                                                        <Image className="h-8 w-8 text-purple-300" />
+                                                        <span className="text-sm font-medium text-purple-200">Фото</span>
                                                     </div>
-                                                    <div className="flex flex-col items-center space-y-4 p-6 bg-cyan-500/20 rounded-3xl hover:bg-cyan-500/30 transition-colors shadow-2xl transform hover:scale-105 border border-cyan-400/30">
-                                                        <Camera className="h-12 w-12 text-cyan-300 animate-pulse delay-600" />
-                                                        <span className="text-lg font-black text-cyan-200 drop-shadow-lg">Скан</span>
-                                                        <span className="text-sm text-cyan-300">Документы</span>
+                                                    <div className="flex flex-col items-center space-y-2 p-4 bg-cyan-500/20 rounded-xl">
+                                                        <Camera className="h-8 w-8 text-cyan-300" />
+                                                        <span className="text-sm font-medium text-cyan-200">Скан</span>
                                                     </div>
                                                 </div>
                                                 
