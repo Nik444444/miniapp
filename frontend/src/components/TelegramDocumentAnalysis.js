@@ -504,11 +504,11 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                 </div>
                                                 
                                                 {filePreview && (
-                                                    <div className="mt-8">
+                                                    <div className="mt-4">
                                                         <img 
                                                             src={filePreview} 
                                                             alt="Preview" 
-                                                            className="max-w-full max-h-48 rounded-2xl shadow-2xl mx-auto border-4 border-emerald-300/50"
+                                                            className="max-w-full max-h-32 rounded-xl mx-auto border-2 border-green-300/50"
                                                         />
                                                     </div>
                                                 )}
