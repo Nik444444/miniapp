@@ -22,7 +22,21 @@ import {
     Heart,
     Settings,
     RotateCcw,
-    RefreshCw
+    RefreshCw,
+    Crown,
+    Diamond,
+    Gem,
+    Wand2,
+    Flame,
+    Bot,
+    Cpu,
+    Activity,
+    Shield,
+    Rocket,
+    Globe,
+    Layers,
+    Target,
+    Award
 } from 'lucide-react';
 import { 
     GlassCard, 
