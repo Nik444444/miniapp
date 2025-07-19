@@ -586,39 +586,19 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    // СУПЕР ЭФФЕКТНОЕ СОСТОЯНИЕ ПО УМОЛЧАНИЮ
-                                    <div className="space-y-12 text-center">
-                                        <div className="relative mx-auto w-48 h-48">
-                                            {/* Основной круг с градиентом */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full animate-pulse shadow-2xl"></div>
-                                            <div className="absolute inset-4 bg-slate-900 rounded-full flex items-center justify-center shadow-inner">
-                                                <Upload className="h-24 w-24 text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text animate-bounce" />
+                                    // Упрощенное состояние по умолчанию
+                                    <div className="space-y-8 text-center">
+                                        <div className="relative mx-auto w-32 h-32">
+                                            {/* Основной круг с простым градиентом */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-xl"></div>
+                                            <div className="absolute inset-2 bg-slate-900 rounded-full flex items-center justify-center">
+                                                <Upload className="h-16 w-16 text-blue-400" />
                                             </div>
-                                            
-                                            {/* Орбитальные анимированные элементы */}
-                                            <div className="absolute inset-0 animate-spin" style={{animationDuration: '8s'}}>
-                                                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                                    <Sparkles className="h-8 w-8 text-cyan-400 animate-pulse" />
-                                                </div>
-                                                <div className="absolute top-1/2 -right-4 transform -translate-y-1/2">
-                                                    <Star className="h-6 w-6 text-blue-400 animate-pulse delay-500" />
-                                                </div>
-                                                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                                                    <Diamond className="h-10 w-10 text-purple-400 animate-pulse delay-1000" />
-                                                </div>
-                                                <div className="absolute top-1/2 -left-4 transform -translate-y-1/2">
-                                                    <Gem className="h-8 w-8 text-pink-400 animate-pulse delay-1500" />
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Дополнительные кольца */}
-                                            <div className="absolute inset-0 border-2 border-cyan-300/30 rounded-full animate-ping"></div>
-                                            <div className="absolute inset-8 border-2 border-purple-300/30 rounded-full animate-ping delay-1000"></div>
                                         </div>
                                         
-                                        <div className="space-y-8">
-                                            <h3 className="text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl">
-                                                🚀 РЕВОЛЮЦИОННЫЙ АНАЛИЗ ДОКУМЕНТОВ
+                                        <div className="space-y-6">
+                                            <h3 className="text-2xl font-bold text-white">
+                                                Загрузить документ для анализа
                                             </h3>
                                             
                                             <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-purple-300/30 shadow-2xl">
