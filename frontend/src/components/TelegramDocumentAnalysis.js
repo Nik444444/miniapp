@@ -306,24 +306,22 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/30 to-pink-900/20"></div>
             </div>
             
-            {/* Header с улучшенными эффектами */}
+            {/* Header */}
             <div className="relative z-10 px-4 pt-6 pb-4">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={onBack}
-                        className="flex items-center space-x-2 bg-white/20 backdrop-blur-xl border-2 border-white/30 rounded-2xl px-6 py-3 hover:bg-white/30 transition-all duration-300 transform hover:scale-105 hover:rotate-1 shadow-2xl"
+                        className="flex items-center space-x-2 bg-white/20 backdrop-blur-xl rounded-xl px-4 py-2 hover:bg-white/30 transition-colors"
                     >
-                        <ArrowLeft className="w-5 h-5 text-white drop-shadow-lg" />
-                        <span className="text-white font-semibold drop-shadow-lg">{t('back')}</span>
+                        <ArrowLeft className="w-5 h-5 text-white" />
+                        <span className="text-white font-semibold">Назад</span>
                     </button>
                     
                     <div className="text-center">
-                        <h1 className="text-3xl font-black mb-2">
-                            <GradientText className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 drop-shadow-2xl">
-                                🚀 {t('documentAnalysis')}
-                            </GradientText>
+                        <h1 className="text-2xl font-black text-white mb-1">
+                            Анализ документов
                         </h1>
-                        <p className="text-lg text-blue-200 drop-shadow-xl font-medium">✨ {t('aiAnalysis')} ✨</p>
+                        <p className="text-blue-200 font-medium">AI анализ</p>
                     </div>
                     
                     <div className="w-20"></div>
