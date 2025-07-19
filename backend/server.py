@@ -764,32 +764,20 @@ async def analyze_file_authenticated(
             temp_file_path = temp_file.name
 
         try:
-            # Используем простой Tesseract OCR сервис как основной метод
-            try:
-                extracted_text, processing_method = await simple_tesseract_ocr.process_document(
-                    temp_file_path, 
-                    file.content_type or ""
-                )
-                logger.info(f"Simple Tesseract OCR processing method: {processing_method}, extracted text length: {len(extracted_text)}")
-            except Exception as ocr_error:
-                logger.warning(f"Simple Tesseract OCR failed, falling back to alternative OCR: {ocr_error}")
-                # Fallback к альтернативному OCR сервису
-                try:
-                    extracted_text, processing_method = alternative_ocr_service.process_document(temp_file_path, file.content_type or "")
-                    logger.info(f"Alternative OCR processing method: {processing_method}, extracted text length: {len(extracted_text)}")
-                except Exception as alt_ocr_error:
-                    logger.warning(f"Alternative OCR failed, falling back to document_processor: {alt_ocr_error}")
-                    # Последний fallback к основному document_processor
-                    extracted_text, processing_method = document_processor.process_document(temp_file_path, file.content_type or "")
-                    logger.info(f"Fallback processing method: {processing_method}, extracted text length: {len(extracted_text)}")
+            # Используем ТОЛЬКО простой Tesseract OCR сервис - максимально быстро
+            extracted_text, processing_method = await simple_tesseract_ocr.process_document(
+                temp_file_path, 
+                file.content_type or ""
+            )
+            logger.info(f"Fast OCR processing method: {processing_method}, extracted text length: {len(extracted_text)}")
             
             # Проверяем качество извлеченного текста
-            if not extracted_text or len(extracted_text.strip()) < 10:
-                logger.warning("Insufficient text extracted from document")
+            if not extracted_text or len(extracted_text.strip()) < 5:
+                logger.warning("Minimal text extracted from document")
                 if file.content_type and file.content_type.startswith('image/'):
-                    extracted_text = "Изображение получено, но текст не был извлечен. Возможно, изображение не содержит текста или качество недостаточное для распознавания."
+                    extracted_text = "Изображение получено, но текст не найден. Попробуйте изображение с более четким текстом."
                 else:
-                    extracted_text = "Документ получен, но текст не был извлечен. Возможно, документ не содержит читаемого текста."
+                    extracted_text = "Документ получен, но текст не найден. Возможно, документ содержит только изображения."
 
             # Используем новый супер-анализатор для WOW-эффекта
             super_analysis_result = await super_analysis_engine.analyze_document_comprehensively(
