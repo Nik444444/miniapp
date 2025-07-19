@@ -357,47 +357,70 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
                         </div>
                     </div>
                 ) : (
-                    // Default Upload State
-                    <div className="space-y-8 text-center">
-                        <div className="relative mx-auto w-32 h-32">
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-pulse"></div>
-                            <div className="absolute inset-1 bg-white rounded-full flex items-center justify-center">
-                                <Upload className="h-16 w-16 text-blue-600" />
+                    // Ultra Default Upload State
+                    <div className="space-y-10 text-center">
+                        <div className="relative mx-auto w-40 h-40">
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 rounded-full animate-pulse shadow-2xl"></div>
+                            <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center shadow-inner">
+                                <Upload className="h-20 w-20 text-transparent bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text animate-bounce" />
+                            </div>
+                            
+                            {/* Orbiting Elements */}
+                            <div className="absolute inset-0 animate-spin" style={{animationDuration: '10s'}}>
+                                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+                                    <Sparkles className="h-6 w-6 text-purple-500" />
+                                </div>
+                                <div className="absolute top-1/2 -right-2 transform -translate-y-1/2">
+                                    <Star className="h-5 w-5 text-blue-500" />
+                                </div>
+                                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
+                                    <Diamond className="h-7 w-7 text-pink-500" />
+                                </div>
+                                <div className="absolute top-1/2 -left-2 transform -translate-y-1/2">
+                                    <Gem className="h-6 w-6 text-cyan-500" />
+                                </div>
                             </div>
                         </div>
                         
-                        <div className="space-y-4">
-                            <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                Магический анализ документов
+                        <div className="space-y-6">
+                            <h3 className="text-4xl font-black bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+                                🚀 МАГИЧЕСКИЙ АНАЛИЗ ДОКУМЕНТОВ
                             </h3>
                             
-                            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/30">
-                                <p className="text-lg text-gray-700 mb-4">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border-2 border-purple-200 shadow-2xl">
+                                <p className="text-xl text-gray-700 mb-6 font-semibold">
                                     {isDragActive 
-                                        ? "Отпустите файл для начала анализа" 
-                                        : "Перетащите файл сюда или нажмите для выбора"
+                                        ? "✨ Отпустите файл для начала волшебства ✨" 
+                                        : "🎯 Перетащите файл сюда или нажмите для выбора"
                                     }
                                 </p>
                                 
-                                <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-                                    <div className="flex flex-col items-center space-y-2 p-4 bg-blue-50 rounded-xl">
-                                        <FileText className="h-8 w-8 text-blue-600" />
-                                        <span className="text-sm font-medium text-blue-900">PDF</span>
+                                <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto">
+                                    <div className="flex flex-col items-center space-y-4 p-6 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors shadow-lg transform hover:scale-105">
+                                        <FileText className="h-12 w-12 text-blue-600" />
+                                        <span className="text-base font-black text-blue-900">PDF</span>
+                                        <span className="text-xs text-blue-700">Документы</span>
                                     </div>
-                                    <div className="flex flex-col items-center space-y-2 p-4 bg-purple-50 rounded-xl">
-                                        <Image className="h-8 w-8 text-purple-600" />
-                                        <span className="text-sm font-medium text-purple-900">Изображения</span>
+                                    <div className="flex flex-col items-center space-y-4 p-6 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-colors shadow-lg transform hover:scale-105">
+                                        <Image className="h-12 w-12 text-purple-600" />
+                                        <span className="text-base font-black text-purple-900">Фото</span>
+                                        <span className="text-xs text-purple-700">Изображения</span>
                                     </div>
-                                    <div className="flex flex-col items-center space-y-2 p-4 bg-green-50 rounded-xl">
-                                        <File className="h-8 w-8 text-green-600" />
-                                        <span className="text-sm font-medium text-green-900">Текст</span>
+                                    <div className="flex flex-col items-center space-y-4 p-6 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors shadow-lg transform hover:scale-105">
+                                        <File className="h-12 w-12 text-green-600" />
+                                        <span className="text-base font-black text-green-900">Текст</span>
+                                        <span className="text-xs text-green-700">Документы</span>
                                     </div>
                                 </div>
                             </div>
                             
-                            <p className="text-sm text-gray-500">
-                                Максимальный размер файла: 10MB
-                            </p>
+                            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-4 border border-purple-200">
+                                <p className="text-sm text-gray-600 font-semibold flex items-center justify-center space-x-2">
+                                    <Shield className="h-4 w-4 text-green-500" />
+                                    <span>Максимальный размер файла: 10MB</span>
+                                    <Shield className="h-4 w-4 text-green-500" />
+                                </p>
+                            </div>
                         </div>
                     </div>
                 )}
