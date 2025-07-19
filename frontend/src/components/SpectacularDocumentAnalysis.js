@@ -30,8 +30,7 @@ import {
     Shield,
     Award,
     Trophy,
-    Medal,
-    Comet
+    Medal
 } from 'lucide-react';
 
 const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfigured }) => {
