@@ -165,34 +165,68 @@ const TelegramAnalysisResult = ({ analysisResult, onClose }) => {
 
     const suggestedResponse = generateSuggestedResponse();
 
-    // Функция для красивого форматирования текста
+    // Функция для красивого форматирования текста с исправлением проблем
     const formatText = (text) => {
         if (!text) return '';
         
-        let formatted = text.replace(/\*+/g, '').replace(/#+/g, '').trim();
-        const paragraphs = formatted.split('\n').filter(p => p.trim());
+        // Очищаем текст от лишних символов markdown и HTML
+        let formatted = text
+            .replace(/\*+/g, '')           // убираем звездочки markdown
+            .replace(/#+/g, '')            // убираем решетки markdown
+            .replace(/&nbsp;/g, ' ')       // заменяем неразрывные пробелы
+            .replace(/&amp;/g, '&')        // декодируем амперсанды
+            .replace(/&lt;/g, '<')         // декодируем < 
+            .replace(/&gt;/g, '>')         // декодируем >
+            .replace(/\s+/g, ' ')          // убираем лишние пробелы
+            .trim();
+
+        // Разбиваем на абзацы более аккуратно
+        const paragraphs = formatted
+            .split(/\n+/)                  // разбиваем по переносам строк
+            .map(p => p.trim())            // убираем пробелы в начале и конце
+            .filter(p => p.length > 0);    // убираем пустые строки
         
         return paragraphs.map((paragraph, index) => {
-            const trimmed = paragraph.trim();
-            if (!trimmed) return null;
+            if (!paragraph) return null;
             
-            const isHeader = trimmed === trimmed.toUpperCase() && trimmed.length > 3;
+            // Определяем заголовки более точно
+            const isHeader = (
+                paragraph === paragraph.toUpperCase() && 
+                paragraph.length > 3 && 
+                paragraph.length < 100 &&
+                !paragraph.includes('.') &&
+                !paragraph.includes(',')
+            );
+            
+            // Определяем списки
+            const isList = paragraph.match(/^[•·-]\s/) || paragraph.match(/^\d+[\.\)]\s/);
             
             if (isHeader) {
                 return (
-                    <div key={index} className="font-bold text-base text-gray-900 mt-3 mb-2 flex items-center space-x-2">
-                        <span className="text-blue-500">📋</span>
-                        <span>{trimmed}</span>
+                    <div key={index} className="font-black text-2xl text-gray-900 mt-6 mb-4 flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl border-l-8 border-blue-500 shadow-lg">
+                        <div className="p-2 bg-blue-500 rounded-xl">
+                            <Star className="h-6 w-6 text-white" />
+                        </div>
+                        <span className="drop-shadow-md">{paragraph}</span>
+                    </div>
+                );
+            } else if (isList) {
+                return (
+                    <div key={index} className="text-gray-700 leading-relaxed mb-3 text-lg font-medium p-4 bg-gray-50 rounded-xl border-l-4 border-emerald-500 flex items-start space-x-3">
+                        <div className="p-1 bg-emerald-500 rounded-full mt-1 flex-shrink-0">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span>{paragraph.replace(/^[•·-]\s/, '').replace(/^\d+[\.\)]\s/, '')}</span>
                     </div>
                 );
             } else {
                 return (
-                    <p key={index} className="text-gray-700 leading-relaxed mb-2 text-sm">
-                        {trimmed}
+                    <p key={index} className="text-gray-700 leading-relaxed mb-4 text-lg font-medium p-4 bg-white/80 rounded-xl shadow-sm border border-gray-100">
+                        {paragraph}
                     </p>
                 );
             }
-        });
+        }).filter(Boolean);
     };
 
     const handleClose = () => {
