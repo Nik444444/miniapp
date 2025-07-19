@@ -477,8 +477,8 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                         </div>
                                     </div>
                                 ) : selectedFile ? (
-                                    // СУПЕР КРАСИВОЕ ОТОБРАЖЕНИЕ ВЫБРАННОГО ФАЙЛА
-                                    <div className="space-y-8 text-center">
+                                    // Упрощенное отображение выбранного файла
+                                    <div className="space-y-6 text-center">
                                         <div className="mx-auto w-40 h-40 bg-gradient-to-r from-emerald-400 via-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse transform hover:scale-110 transition-transform duration-300">
                                             <CheckCircle className="h-20 w-20 text-white drop-shadow-2xl" />
                                         </div>
