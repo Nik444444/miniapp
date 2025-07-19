@@ -173,48 +173,70 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
     }
 
     return (
-        <div className={`relative overflow-hidden rounded-3xl border-2 border-dashed transition-all duration-1000 ${
+        <div className={`relative overflow-hidden rounded-3xl border-4 border-dashed transition-all duration-1000 ${
             animateIn ? 'scale-100 opacity-100 rotate-0' : 'scale-95 opacity-0 rotate-1'
         } ${
             isDragActive || dragActive 
-                ? 'border-blue-400 bg-blue-50 shadow-2xl shadow-blue-500/30' 
-                : 'border-gray-300 bg-gradient-to-br from-white via-blue-50 to-indigo-50'
-        } ${loading ? 'pointer-events-none' : 'cursor-pointer hover:shadow-2xl hover:shadow-blue-500/20'}`}>
+                ? 'border-purple-500 bg-purple-50 shadow-2xl shadow-purple-500/50 transform scale-105' 
+                : 'border-gray-300 bg-gradient-to-br from-white via-blue-50 to-purple-50'
+        } ${loading ? 'pointer-events-none' : 'cursor-pointer hover:shadow-2xl hover:shadow-purple-500/30 hover:border-purple-400 hover:scale-105 hover:rotate-1'}`}>
             
-            {/* Spectacular Background Effects */}
-            <div className="absolute inset-0 opacity-30">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-200/30 to-transparent transform -skew-x-12 animate-pulse"></div>
+            {/* Ultra Spectacular Background Effects */}
+            <div className="absolute inset-0 opacity-40">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-200/50 to-transparent transform -skew-x-12 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-l from-blue-200/30 via-transparent to-pink-200/30 transform skew-x-12 animate-pulse" style={{animationDelay: '0.5s'}}></div>
             </div>
             
-            {/* Floating Particles */}
+            {/* Cosmic Particles */}
             <div className="absolute inset-0 pointer-events-none">
-                {[...Array(20)].map((_, i) => (
+                {[...Array(40)].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute w-1 h-1 bg-blue-400 rounded-full animate-pulse"
+                        className="absolute animate-pulse"
                         style={{
                             left: `${Math.random() * 100}%`,
                             top: `${Math.random() * 100}%`,
                             animationDelay: `${Math.random() * 3}s`,
-                            animationDuration: `${2 + Math.random() * 2}s`
+                            animationDuration: `${2 + Math.random() * 3}s`
                         }}
-                    />
+                    >
+                        {i % 5 === 0 && '✨'}
+                        {i % 5 === 1 && '⭐'}
+                        {i % 5 === 2 && '💎'}
+                        {i % 5 === 3 && '🔥'}
+                        {i % 5 === 4 && '💫'}
+                    </div>
                 ))}
             </div>
             
-            {/* Animated Corner Elements */}
+            {/* Ultra Animated Corner Elements */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-4 right-4 animate-bounce">
-                    <Sparkles className="h-8 w-8 text-blue-500" />
+                    <Comet className="h-10 w-10 text-purple-500" />
                 </div>
-                <div className="absolute bottom-4 left-4 animate-pulse" style={{animationDelay: '0.5s'}}>
-                    <Diamond className="h-6 w-6 text-indigo-500" />
+                <div className="absolute top-6 right-20 animate-pulse" style={{animationDelay: '0.5s'}}>
+                    <Lightning className="h-8 w-8 text-blue-500" />
                 </div>
-                <div className="absolute top-1/2 right-1/4 animate-ping" style={{animationDelay: '1s'}}>
-                    <Star className="h-4 w-4 text-purple-500" />
+                <div className="absolute bottom-4 left-4 animate-pulse" style={{animationDelay: '1s'}}>
+                    <Galaxy className="h-12 w-12 text-indigo-500" />
                 </div>
-                <div className="absolute bottom-1/3 left-1/4 animate-bounce" style={{animationDelay: '1.5s'}}>
-                    <Gem className="h-5 w-5 text-pink-500" />
+                <div className="absolute bottom-6 left-20 animate-bounce" style={{animationDelay: '1.5s'}}>
+                    <Crystal className="h-7 w-7 text-pink-500" />
+                </div>
+                <div className="absolute top-1/2 right-1/4 animate-ping" style={{animationDelay: '2s'}}>
+                    <Prism className="h-6 w-6 text-purple-500" />
+                </div>
+                <div className="absolute bottom-1/3 left-1/4 animate-bounce" style={{animationDelay: '2.5s'}}>
+                    <Flash className="h-8 w-8 text-cyan-500" />
+                </div>
+                <div className="absolute top-1/4 left-1/3 animate-pulse" style={{animationDelay: '3s'}}>
+                    <Beam className="h-7 w-7 text-emerald-500" />
+                </div>
+                <div className="absolute top-3/4 right-1/3 animate-bounce" style={{animationDelay: '3.5s'}}>
+                    <Aurora className="h-6 w-6 text-teal-500" />
+                </div>
+                <div className="absolute top-1/3 right-2/3 animate-ping" style={{animationDelay: '4s'}}>
+                    <Nebula className="h-5 w-5 text-violet-500" />
                 </div>
             </div>
 
