@@ -166,6 +166,46 @@ code {
     animation: gradient-shift 3s ease infinite;
 }
 
+/* Ultra Spectacular Animation Classes */
+.reverse-spin {
+    animation: reverse-spin 2s linear infinite;
+}
+
+.animate-cosmic-glow {
+    animation: cosmic-glow 2s ease-in-out infinite;
+}
+
+.animate-particles-float {
+    animation: particles-float 8s ease-in-out infinite;
+}
+
+.animate-magical-shimmer {
+    animation: magical-shimmer 2s linear infinite;
+}
+
+.animate-ultra-bounce {
+    animation: ultra-bounce 2s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* Дополнительные стили для плавности */
 .backdrop-blur-xl {
     backdrop-filter: blur(24px);
