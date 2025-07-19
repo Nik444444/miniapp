@@ -674,7 +674,7 @@ const SuperMainApp = () => {
 
                 {/* Analysis Result Modal */}
                 {showAnalysisResult && analysisResult && (
-                    <SpectacularAnalysisResult 
+                    <UltraSpectacularAnalysisResult 
                         analysisResult={analysisResult} 
                         onClose={() => setShowAnalysisResult(false)} 
                     />
