@@ -244,42 +244,74 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
                 <input {...getInputProps()} />
                 
                 {loading ? (
-                    // Spectacular Loading State
+                    // Ultra Spectacular Loading State
                     <div className="space-y-8 text-center">
-                        <div className="relative mx-auto w-32 h-32">
-                            {/* Rotating Rings */}
-                            <div className="absolute inset-0 border-4 border-blue-200 rounded-full animate-spin"></div>
-                            <div className="absolute inset-2 border-4 border-blue-400 rounded-full animate-spin reverse-spin"></div>
-                            <div className="absolute inset-4 border-4 border-blue-600 rounded-full animate-spin"></div>
+                        <div className="relative mx-auto w-40 h-40">
+                            {/* Multiple Rotating Cosmic Rings */}
+                            <div className="absolute inset-0 border-4 border-purple-200 rounded-full animate-spin"></div>
+                            <div className="absolute inset-2 border-4 border-blue-300 rounded-full animate-spin reverse-spin"></div>
+                            <div className="absolute inset-4 border-4 border-pink-400 rounded-full animate-spin" style={{animationDuration: '0.8s'}}></div>
+                            <div className="absolute inset-6 border-4 border-cyan-500 rounded-full animate-spin reverse-spin" style={{animationDuration: '1.2s'}}></div>
                             
-                            {/* Center Icon */}
+                            {/* Ultra Center Icon */}
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full p-4 shadow-2xl">
-                                    <Bot className="h-8 w-8 text-white animate-pulse" />
+                                <div className="bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 rounded-full p-6 shadow-2xl animate-pulse">
+                                    <Bot className="h-12 w-12 text-white animate-bounce" />
                                 </div>
+                            </div>
+                            
+                            {/* Floating Elements Around */}
+                            <div className="absolute -top-4 -right-4 animate-bounce" style={{animationDelay: '0.5s'}}>
+                                <Sparkles className="h-6 w-6 text-purple-400" />
+                            </div>
+                            <div className="absolute -bottom-4 -left-4 animate-pulse" style={{animationDelay: '1s'}}>
+                                <Star className="h-8 w-8 text-blue-400" />
+                            </div>
+                            <div className="absolute -top-4 -left-4 animate-bounce" style={{animationDelay: '1.5s'}}>
+                                <Diamond className="h-7 w-7 text-pink-400" />
+                            </div>
+                            <div className="absolute -bottom-4 -right-4 animate-pulse" style={{animationDelay: '2s'}}>
+                                <Gem className="h-6 w-6 text-cyan-400" />
                             </div>
                         </div>
                         
-                        <div className="space-y-4">
-                            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Магия анализа в процессе
+                        <div className="space-y-6">
+                            <h3 className="text-3xl font-black bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
+                                🚀 МАГИЯ АНАЛИЗА В ПРОЦЕССЕ
                             </h3>
                             
-                            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                                <p className="text-lg font-medium text-gray-700 animate-pulse">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border-2 border-purple-200 shadow-2xl">
+                                <p className="text-xl font-bold text-gray-700 animate-pulse">
                                     {processingStage}
                                 </p>
+                                <div className="mt-4 flex justify-center space-x-2">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <div 
+                                            key={i}
+                                            className="w-3 h-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full animate-bounce"
+                                            style={{ animationDelay: `${i * 0.1}s` }}
+                                        ></div>
+                                    ))}
+                                </div>
                             </div>
                             
-                            {/* Processing Steps */}
-                            <div className="grid grid-cols-5 gap-2 max-w-md mx-auto">
-                                {[Bot, Eye, Cpu, Wand2, Sparkles].map((Icon, index) => (
-                                    <div key={index} className="flex justify-center">
-                                        <div className={`p-3 rounded-full transition-all duration-500 ${
-                                            index < 3 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' : 'bg-gray-200 text-gray-400'
+                            {/* Ultra Processing Steps */}
+                            <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
+                                {[
+                                    { icon: Bot, label: 'AI Сканер' },
+                                    { icon: Eye, label: 'Распознавание' },
+                                    { icon: Cpu, label: 'Обработка' },
+                                    { icon: Wand2, label: 'Анализ' },
+                                    { icon: Sparkles, label: 'Результат' }
+                                ].map(({ icon: Icon, label }, index) => (
+                                    <div key={index} className="text-center">
+                                        <div className={`p-4 rounded-2xl transition-all duration-500 shadow-lg ${
+                                            index < 3 ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white transform scale-110' : 
+                                            'bg-gray-200 text-gray-400'
                                         }`}>
-                                            <Icon className="h-4 w-4" />
+                                            <Icon className="h-6 w-6 mx-auto" />
                                         </div>
+                                        <p className="text-xs font-semibold mt-2 text-gray-600">{label}</p>
                                     </div>
                                 ))}
                             </div>
