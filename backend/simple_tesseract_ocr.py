@@ -123,29 +123,42 @@ class SimpleTesseractOCR:
             logger.error(f"Tesseract OCR failed: {e}")
             return ""
     
-    async def extract_text_from_image(self, image_path: str) -> str:
+    async def extract_text_from_image(self, file_path: str) -> str:
         """
-        Извлечение текста из изображения ТОЛЬКО с Tesseract
+        СУПЕР-БЫСТРОЕ извлечение текста из изображения - без сложной обработки
         """
         try:
-            logger.info(f"Starting fast image OCR for: {image_path}")
+            logger.info(f"Starting fast image OCR for: {file_path}")
             
             if not self.tesseract_available:
                 logger.error("Tesseract OCR is not available")
                 return "Tesseract OCR недоступен"
             
-            # Используем только Tesseract для максимальной скорости
-            text = await self.extract_text_with_tesseract(image_path)
+            # Открываем изображение
+            image = Image.open(file_path)
             
-            if text and len(text.strip()) > 5:
-                logger.info("✅ Tesseract OCR successful")
-                return text
-            else:
-                logger.warning("❌ Tesseract OCR failed to extract meaningful text")
-                return "Не удалось извлечь текст из изображения. Попробуйте изображение лучшего качества."
+            # Минимальная оптимизация изображения
+            if image.mode != 'L':
+                image = image.convert('L')  # Только в серый, без других улучшений
             
+            # Только один быстрый вызов tesseract
+            try:
+                # Используем самую простую и быструю конфигурацию
+                text = pytesseract.image_to_string(image, config='--oem 3 --psm 6')
+                
+                if text and len(text.strip()) > 5:
+                    logger.info(f"✅ Fast image OCR successful: {len(text)} characters")
+                    return text.strip()
+                else:
+                    logger.info("Fast OCR returned minimal text")
+                    return "Текст не найден в изображении"
+                    
+            except Exception as e:
+                logger.error(f"Fast tesseract call failed: {e}")
+                return "Ошибка при обработке изображения"
+                
         except Exception as e:
-            logger.error(f"Image OCR failed: {e}")
+            logger.error(f"Fast image OCR failed: {e}")
             return "Ошибка при обработке изображения"
     
     def extract_text_from_pdf_direct(self, pdf_path: str) -> str:
