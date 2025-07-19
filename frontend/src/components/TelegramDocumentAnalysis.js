@@ -643,11 +643,10 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                 </button>
                                             </div>
                                             
-                                            <div className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-2xl p-6 border-2 border-purple-300/30 shadow-xl">
-                                                <p className="text-lg text-white font-bold flex items-center justify-center space-x-3 drop-shadow-lg">
-                                                    <Shield className="h-6 w-6 text-emerald-400" />
+                                            <div className="bg-gray-500/20 rounded-xl p-4 border border-gray-300/30">
+                                                <p className="text-sm text-gray-300 font-medium flex items-center justify-center space-x-2">
+                                                    <Shield className="h-4 w-4" />
                                                     <span>Максимальный размер файла: 10MB</span>
-                                                    <Shield className="h-6 w-6 text-emerald-400" />
                                                 </p>
                                             </div>
                                         </div>
