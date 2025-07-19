@@ -278,9 +278,6 @@ code {
 .text-shadow-glow {
     text-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
 }
-        opacity: 0.8;
-    }
-}
 
 @keyframes rotate-slow {
     from {
