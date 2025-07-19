@@ -435,8 +435,9 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
                 )}
             </div>
             
-            {/* Bottom Decorative Elements */}
-            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-50"></div>
+            {/* Bottom Ultra Decorative Elements */}
+            <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 opacity-60 animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400"></div>
         </div>
     );
 };
