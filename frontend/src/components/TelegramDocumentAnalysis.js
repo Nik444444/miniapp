@@ -493,11 +493,11 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                     <div className="text-green-300">
                                                         {getFileIcon(selectedFile)}
                                                     </div>
-                                                    <div className="flex-grow text-left">
-                                                        <p className="font-black text-white truncate text-xl drop-shadow-lg">
+                                                    <div className="text-left">
+                                                        <p className="font-bold text-white truncate">
                                                             {selectedFile.name}
                                                         </p>
-                                                        <p className="text-lg text-emerald-200 font-semibold drop-shadow-lg">
+                                                        <p className="text-green-200 font-medium">
                                                             {formatFileSize(selectedFile.size)}
                                                         </p>
                                                     </div>
