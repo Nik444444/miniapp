@@ -15,7 +15,6 @@ import {
     Heart,
     Flame,
     Rocket,
-    Magic,
     Palette,
     Eye,
     Globe,
@@ -32,13 +31,7 @@ import {
     Award,
     Trophy,
     Medal,
-    Wreath,
-    PartyPopper,
-    Celebration,
-    Comet,
-    Heart,
-    Globe,
-    Shield
+    Comet
 } from 'lucide-react';
 
 const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfigured }) => {
