@@ -596,31 +596,7 @@ const SuperMainApp = () => {
                                 </GlassCard>
                             )}
 
-                            {/* Success Message */}
-                            {analysisResult && !showAnalysisResult && (
-                                <GlassCard className="p-6 sm:p-8 bg-gradient-to-r from-green-50/80 to-emerald-50/80 border border-green-200">
-                                    <div className="flex items-center space-x-4 sm:space-x-6">
-                                        <div className="p-3 sm:p-4 bg-green-500 rounded-xl sm:rounded-2xl shadow-lg">
-                                            <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="text-lg sm:text-2xl font-bold text-green-900 mb-2">
-                                                🎉 Анализ завершен успешно!
-                                            </h3>
-                                            <p className="text-green-700 text-sm sm:text-lg">
-                                                Файл <span className="font-semibold">"{analysisResult.file_name}"</span> обработан успешно
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => setShowAnalysisResult(true)}
-                                            className="px-4 sm:px-8 py-2 sm:py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg sm:rounded-xl transition-all duration-300 font-bold text-sm sm:text-lg shadow-lg"
-                                        >
-                                            <span className="hidden sm:inline">✨ Показать результат</span>
-                                            <span className="sm:hidden">Результат</span>
-                                        </button>
-                                    </div>
-                                </GlassCard>
-                            )}
+                            {/* Results show automatically - no success message needed */}
                         </div>
 
                         {/* Right Panel - Telegram News (Desktop Only) */}
