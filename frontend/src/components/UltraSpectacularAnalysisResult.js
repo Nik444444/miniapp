@@ -81,7 +81,7 @@ const UltraSpectacularAnalysisResult = ({ analysisResult, onClose }) => {
                 return {
                     color: 'text-amber-600',
                     bg: 'bg-amber-50 border-amber-300',
-                    icon: <Lightning className="h-8 w-8 text-amber-500" />,
+                    icon: <Flame className="h-8 w-8 text-red-500" />,
                     gradient: 'from-amber-500 via-orange-500 to-yellow-500',
                     glow: 'shadow-amber-500/50 drop-shadow-2xl',
                     pulse: '',
