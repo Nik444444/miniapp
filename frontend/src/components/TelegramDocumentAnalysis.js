@@ -626,7 +626,7 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                 
                                                 <button
                                                     type="button"
-                                                    className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 text-white px-12 py-6 rounded-2xl hover:from-cyan-700 hover:via-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center space-x-4 mx-auto font-bold text-xl transform hover:scale-105 shadow-2xl border-2 border-white/20"
+                                                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-colors flex items-center space-x-3 mx-auto font-bold"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         if (isTelegramWebApp()) {
@@ -638,9 +638,8 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                                         }
                                                     }}
                                                 >
-                                                    <Upload className="w-6 h-6" />
+                                                    <Upload className="w-5 h-5" />
                                                     <span>{t('selectFile')}</span>
-                                                    <span className="text-2xl">🚀</span>
                                                 </button>
                                             </div>
                                             
