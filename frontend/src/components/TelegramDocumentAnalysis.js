@@ -289,7 +289,7 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
 
     if (showAnalysisResult && analysisResult) {
         return (
-            <TelegramAnalysisResult 
+            <ImprovedTelegramAnalysisResult 
                 analysisResult={analysisResult} 
                 onClose={() => setShowAnalysisResult(false)}
             />
