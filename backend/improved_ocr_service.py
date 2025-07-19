@@ -158,7 +158,7 @@ class ImprovedOCRService:
     
     async def extract_text_with_tesseract(self, image_path: str) -> str:
         """
-        Извлечение текста с помощью Tesseract OCR (основной метод)
+        БЫСТРОЕ извлечение текста с помощью Tesseract OCR - только одна конфигурация
         """
         try:
             if not self.tesseract_available:
@@ -168,47 +168,32 @@ class ImprovedOCRService:
             # Открываем изображение
             image = Image.open(image_path)
             
-            # Улучшаем качество изображения для OCR
+            # Быстрое улучшение изображения (минимальное)
             enhanced_image = self._enhance_image_for_ocr(image)
             
-            # Пробуем разные конфигурации OCR
-            text_results = []
-            
-            # Конфигурация для документов
+            # Используем ТОЛЬКО одну быструю конфигурацию
             try:
-                text1 = self._safe_tesseract_call(enhanced_image, self.tesseract_config_document)
-                if text1:
-                    text_results.append(text1)
+                text = self._safe_tesseract_call(enhanced_image, '--oem 3 --psm 6 -l rus+deu+eng')
+                if text and len(text.strip()) > 5:
+                    logger.info(f"Fast Tesseract OCR extracted {len(text)} characters")
+                    return text
             except Exception as e:
-                logger.warning(f"Tesseract document config failed: {e}")
+                logger.warning(f"Fast Tesseract OCR failed: {e}")
+                
+                # Fallback - попробуем без языков
+                try:
+                    text = self._safe_tesseract_call(enhanced_image, '--oem 3 --psm 6')
+                    if text:
+                        logger.info(f"Fallback Tesseract OCR extracted {len(text)} characters")
+                        return text
+                except Exception as e2:
+                    logger.warning(f"Fallback Tesseract OCR also failed: {e2}")
             
-            # Конфигурация для одного блока
-            try:
-                text2 = self._safe_tesseract_call(enhanced_image, self.tesseract_config_single_block)
-                if text2:
-                    text_results.append(text2)
-            except Exception as e:
-                logger.warning(f"Tesseract single block config failed: {e}")
-            
-            # Стандартная конфигурация
-            try:
-                text3 = self._safe_tesseract_call(enhanced_image, self.tesseract_config)
-                if text3:
-                    text_results.append(text3)
-            except Exception as e:
-                logger.warning(f"Tesseract standard config failed: {e}")
-            
-            # Выбираем наиболее длинный результат
-            if text_results:
-                best_text = max(text_results, key=len)
-                logger.info(f"Tesseract OCR extracted {len(best_text)} characters")
-                return best_text
-            else:
-                logger.warning("No text extracted with Tesseract")
-                return ""
+            logger.warning("No text extracted with fast Tesseract")
+            return ""
                 
         except Exception as e:
-            logger.error(f"Tesseract OCR failed: {e}")
+            logger.error(f"Fast Tesseract OCR failed: {e}")
             return ""
     
     async def extract_text_with_llm_vision(self, image_path: str, user_providers: List = None) -> str:
