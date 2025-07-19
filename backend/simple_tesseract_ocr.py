@@ -187,57 +187,22 @@ class SimpleTesseractOCR:
     
     async def extract_text_from_pdf(self, pdf_path: str) -> str:
         """
-        Извлечение текста из PDF с использованием только Tesseract
+        БЫСТРОЕ извлечение текста из PDF - только прямое извлечение, без OCR
         """
         try:
-            logger.info(f"Starting fast PDF OCR for: {pdf_path}")
+            logger.info(f"Starting fast PDF processing for: {pdf_path}")
             
-            # Сначала попробуем прямое извлечение
+            # Пробуем прямое извлечение текста из PDF
             direct_text = self.extract_text_from_pdf_direct(pdf_path)
-            if direct_text and len(direct_text.strip()) > 50:
+            if direct_text and len(direct_text.strip()) > 20:
                 logger.info("✅ Direct PDF text extraction successful")
                 return direct_text
             
-            # Если прямое извлечение не работает, конвертируем в изображения
-            logger.info("Converting PDF to images for OCR...")
-            
-            if not self.tesseract_available:
-                logger.error("Tesseract OCR is not available")
-                return "Tesseract OCR недоступен для обработки PDF"
-            
-            try:
-                # Конвертируем PDF в изображения (ограничиваем 3 страницами для скорости)
-                images = convert_from_path(pdf_path, dpi=200, first_page=1, last_page=3)
-                
-                extracted_text = ""
-                for i, image in enumerate(images):
-                    # Сохраняем изображение во временный файл
-                    with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_img:
-                        image.save(temp_img.name, 'PNG')
-                        temp_img_path = temp_img.name
-                    
-                    try:
-                        # Используем только Tesseract
-                        page_text = await self.extract_text_with_tesseract(temp_img_path)
-                        if page_text and len(page_text.strip()) > 10:
-                            extracted_text += f"--- Страница {i+1} ---\n{page_text}\n\n"
-                    finally:
-                        # Удаляем временный файл
-                        if os.path.exists(temp_img_path):
-                            os.unlink(temp_img_path)
-                
-                if extracted_text.strip():
-                    logger.info(f"✅ PDF OCR successful: {len(extracted_text)} characters")
-                    return extracted_text.strip()
-                
-            except Exception as e:
-                logger.error(f"PDF to images conversion failed: {e}")
-            
-            logger.warning("❌ PDF OCR failed")
-            return "PDF содержит изображения, но не удалось извлечь текст"
+            logger.info("❌ PDF contains no extractable text (probably images)")
+            return "PDF файл содержит изображения. Для анализа изображений в PDF используйте другой формат."
             
         except Exception as e:
-            logger.error(f"PDF OCR failed: {e}")
+            logger.error(f"PDF processing failed: {e}")
             return "Ошибка при обработке PDF файла"
     
     async def process_document(self, file_path: str, file_type: str) -> Tuple[str, str]:
