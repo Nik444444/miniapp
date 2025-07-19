@@ -192,7 +192,7 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
             {/* Ultra Animated Corner Elements */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-4 right-4 animate-bounce">
-                    <Comet className="h-10 w-10 text-purple-500" />
+                    <Star className="h-10 w-10 text-purple-500" />
                 </div>
                 <div className="absolute top-6 right-20 animate-pulse" style={{animationDelay: '0.5s'}}>
                     <Zap className="h-8 w-8 text-blue-500" />
