@@ -28,28 +28,11 @@ import {
     Trophy,
     Medal,
     Rocket,
-    Magic,
     Palette,
-    Rainbow,
     Comet,
-    Lightning,
-    Beam,
-    Aurora,
-    Nebula,
-    Crystal,
-    Prism,
-    Galaxy,
-    Meteor,
-    Nova,
-    Supernova,
-    Twinkle,
-    Flash,
-    Glow,
-    Radiance,
-    Shine,
-    Shimmer,
-    Sparkle,
-    Glitter
+    Heart,
+    Shield,
+    Globe
 } from 'lucide-react';
 
 const UltraSpectacularAnalysisResult = ({ analysisResult, onClose }) => {
