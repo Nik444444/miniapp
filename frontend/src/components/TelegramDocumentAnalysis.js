@@ -483,9 +483,9 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                             <CheckCircle className="h-12 w-12 text-white" />
                                         </div>
                                         
-                                        <div className="space-y-6">
-                                            <h3 className="text-4xl font-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
-                                                ✅ ФАЙЛ ГОТОВ К МАГИЧЕСКОМУ АНАЛИЗУ
+                                        <div className="space-y-4">
+                                            <h3 className="text-2xl font-bold text-white">
+                                                Файл готов к анализу
                                             </h3>
                                             
                                             <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-emerald-300/30 max-w-md mx-auto shadow-2xl">
