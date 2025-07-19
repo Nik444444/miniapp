@@ -23,7 +23,20 @@ import {
     TrendingUp,
     ArrowLeft,
     Share2,
-    Bookmark
+    Bookmark,
+    Crown,
+    Diamond,
+    Gem,
+    Wand2,
+    Flame,
+    Shield,
+    Award,
+    Activity,
+    Layers,
+    Rocket,
+    Cpu,
+    Heart,
+    Waves
 } from 'lucide-react';
 import { hapticFeedback, showTelegramAlert, isTelegramWebApp } from '../utils/telegramWebApp';
 
