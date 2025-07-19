@@ -592,10 +592,6 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                     </div>
                                 )}
                             </div>
-                            
-                            {/* Декоративные элементы по краям */}
-                            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 opacity-60 animate-pulse rounded-b-3xl"></div>
-                            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 rounded-b-3xl"></div>
                         </div>
                     </div>
 
