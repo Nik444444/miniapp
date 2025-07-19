@@ -477,29 +477,27 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                         </div>
                     </div>
 
-                    {/* Текущая информация о файле с эффектами */}
+                    {/* Информация о файле */}
                     {currentFile && !loading && (
-                        <div className={`transform transition-all duration-700 ${
-                            animateIn ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
+                        <div className={`transform transition-all duration-300 ${
+                            animateIn ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
                         }`}>
-                            <div className="relative overflow-hidden bg-white/20 backdrop-blur-xl border-2 border-emerald-300/30 rounded-3xl p-6 shadow-2xl">
-                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10"></div>
-                                
-                                <div className="relative flex items-center justify-between">
-                                    <div className="flex items-center space-x-4">
-                                        <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse">
+                            <div className="bg-white/20 backdrop-blur-xl rounded-xl p-4 border border-white/30">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center">
                                             {getFileIcon(currentFile)}
                                         </div>
                                         <div>
-                                            <p className="text-white font-bold text-xl truncate max-w-48 drop-shadow-lg">{currentFile.name}</p>
-                                            <p className="text-emerald-200 text-lg font-semibold drop-shadow-lg">{(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                            <p className="text-white font-bold truncate max-w-32">{currentFile.name}</p>
+                                            <p className="text-green-200 text-sm">{(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={resetAnalysis}
-                                        className="p-4 bg-white/20 hover:bg-white/30 rounded-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-180 shadow-xl border border-white/30"
+                                        className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors"
                                     >
-                                        <RefreshCw className="w-6 h-6 text-white drop-shadow-lg" />
+                                        <RefreshCw className="w-5 h-5 text-white" />
                                     </button>
                                 </div>
                             </div>
