@@ -2,7 +2,7 @@ import React, { useContext, useState, useCallback, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import UserProfile from './UserProfile';
 import ImprovedAnalysisResult from './ImprovedAnalysisResult';
-import SpectacularAnalysisResult from './SpectacularAnalysisResult';
+import UltraSpectacularAnalysisResult from './UltraSpectacularAnalysisResult';
 import SpectacularDocumentAnalysis from './SpectacularDocumentAnalysis';
 import TelegramNews from './TelegramNews';
 import MobileOptimizations from './MobileOptimizations';
