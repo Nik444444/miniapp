@@ -164,7 +164,8 @@ const SuperMainApp = () => {
             });
 
             setAnalysisResult(response.data);
-            setShowAnalysisResult(true);
+            // Показываем результаты сразу без промежуточного сообщения
+            setTimeout(() => setShowAnalysisResult(true), 500);
             
             // Success feedback
             if (isTelegramWebApp()) {
