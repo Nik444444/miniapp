@@ -34,7 +34,23 @@ import {
     Medal,
     Wreath,
     PartyPopper,
-    Celebration
+    Celebration,
+    Comet,
+    Lightning,
+    Galaxy,
+    Rainbow,
+    Crystal,
+    Prism,
+    Flash,
+    Beam,
+    Aurora,
+    Nebula,
+    Supernova,
+    Twinkle,
+    Glow,
+    Radiance,
+    Nova,
+    Meteor
 } from 'lucide-react';
 
 const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfigured }) => {
