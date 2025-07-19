@@ -1,7 +1,7 @@
 import React, { useContext, useState, useCallback, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import TelegramAnalysisResult from './TelegramAnalysisResult';
+import ImprovedTelegramAnalysisResult from './ImprovedTelegramAnalysisResult';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { 
