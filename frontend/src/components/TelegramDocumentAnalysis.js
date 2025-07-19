@@ -64,6 +64,41 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
     const [dragActive, setDragActive] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [currentFile, setCurrentFile] = useState(null);
+    const [animateIn, setAnimateIn] = useState(false);
+    const [processingStage, setProcessingStage] = useState('');
+    const [magneticHover, setMagneticHover] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
+
+    // Анимация появления
+    useEffect(() => {
+        const timer = setTimeout(() => setAnimateIn(true), 300);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Симуляция этапов обработки
+    useEffect(() => {
+        if (loading) {
+            const stages = [
+                '🚀 Подготовка к анализу...',
+                '🔍 Сканирование документа...',
+                '🤖 Извлечение текста...',
+                '💎 Обработка содержимого...',
+                '⚡ Создание анализа...',
+                '✨ Финализация результатов...'
+            ];
+            let currentStage = 0;
+            
+            const interval = setInterval(() => {
+                setProcessingStage(stages[currentStage]);
+                currentStage = (currentStage + 1) % stages.length;
+            }, 1500);
+            
+            return () => clearInterval(interval);
+        } else {
+            setProcessingStage('');
+        }
+    }, [loading]);
 
     // Telegram WebApp настройки
     useEffect(() => {
@@ -82,6 +117,17 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
         if (acceptedFiles.length > 0) {
             const file = acceptedFiles[0];
             setCurrentFile(file);
+            setSelectedFile(file);
+            
+            // Создаем превью для изображений
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => setFilePreview(e.target.result);
+                reader.readAsDataURL(file);
+            } else {
+                setFilePreview(null);
+            }
+            
             analyzeFile(file);
         }
     }, []);
@@ -122,26 +168,20 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                 return;
             }
             
-            // Уведомляем пользователя, если нет API ключей (но продолжаем с системными)
-            if (!user?.has_gemini_api_key && !user?.has_api_key_1 && !user?.gemini_api_key) {
-                console.log('User has no API key, will try system providers');
-            }
-            
-            // Симуляция прогресса загрузки
+            // Симуляция прогресса загрузки с более красивой анимацией
             const progressInterval = setInterval(() => {
                 setUploadProgress(prev => {
                     if (prev >= 90) {
                         clearInterval(progressInterval);
                         return prev;
                     }
-                    return prev + 10;
+                    return prev + Math.random() * 15 + 5; // Более динамичный прогресс
                 });
-            }, 200);
+            }, 300);
             
             const formData = new FormData();
             formData.append('file', file);
             
-            // Добавляем язык пользователя из профиля
             if (user?.preferred_language) {
                 formData.append('language', user.preferred_language);
             }
@@ -210,6 +250,7 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
         const file = e.target.files[0];
         if (file) {
             setCurrentFile(file);
+            setSelectedFile(file);
             analyzeFile(file);
         }
     };
@@ -219,9 +260,31 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
         setShowAnalysisResult(false);
         setError('');
         setCurrentFile(null);
+        setSelectedFile(null);
+        setFilePreview(null);
         if (isTelegramWebApp()) {
             hapticFeedback('light');
         }
+    };
+
+    const getFileIcon = (file) => {
+        if (!file) return <FileText className="h-8 w-8" />;
+        
+        if (file.type.startsWith('image/')) {
+            return <Image className="h-8 w-8" />;
+        } else if (file.type === 'application/pdf') {
+            return <FileText className="h-8 w-8" />;
+        } else {
+            return <FileText className="h-8 w-8" />;
+        }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     if (showAnalysisResult && analysisResult) {
@@ -234,64 +297,130 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-            {/* Animated Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/30 to-pink-900/20"></div>
+        <div className={`min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden transition-all duration-1000 ${
+            animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}>
             
-            {/* Floating Particles */}
-            <FloatingParticles />
+            {/* СУПЕР ЭФФЕКТНЫЙ АНИМИРОВАННЫЙ ФОН */}
+            <div className="absolute inset-0">
+                {/* Основные градиентные слои */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-purple-900/60 to-pink-900/40 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-800/30 via-transparent to-rose-800/30"></div>
+                
+                {/* Анимированные космические орбы */}
+                <div className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-blue-500/40 to-purple-500/40 rounded-full blur-3xl animate-pulse opacity-80"></div>
+                <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-3xl animate-pulse delay-1000 opacity-70"></div>
+                <div className="absolute bottom-20 left-32 w-72 h-72 bg-gradient-to-br from-cyan-500/35 to-blue-500/35 rounded-full blur-3xl animate-pulse delay-2000 opacity-75"></div>
+                <div className="absolute bottom-40 right-10 w-64 h-64 bg-gradient-to-br from-pink-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse delay-3000 opacity-80"></div>
+                
+                {/* Движущиеся световые полосы */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent transform -skew-x-12 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-purple-400/10 to-transparent transform skew-x-12 animate-pulse delay-1000"></div>
+                
+                {/* Множественные анимированные частицы */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {[...Array(60)].map((_, i) => (
+                        <div
+                            key={i}
+                            className={`absolute animate-pulse opacity-80`}
+                            style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                                animationDelay: `${Math.random() * 5}s`,
+                                animationDuration: `${3 + Math.random() * 4}s`
+                            }}
+                        >
+                            {i % 8 === 0 && <Sparkles className="h-3 w-3 text-blue-400/60" />}
+                            {i % 8 === 1 && <Star className="h-2 w-2 text-purple-400/60" />}
+                            {i % 8 === 2 && <Diamond className="h-3 w-3 text-pink-400/60" />}
+                            {i % 8 === 3 && <Gem className="h-2 w-2 text-cyan-400/60" />}
+                            {i % 8 === 4 && <Crown className="h-3 w-3 text-yellow-400/60" />}
+                            {i % 8 === 5 && <Wand2 className="h-2 w-2 text-emerald-400/60" />}
+                            {i % 8 === 6 && <Flame className="h-3 w-3 text-red-400/60" />}
+                            {i % 8 === 7 && <Rocket className="h-2 w-2 text-orange-400/60" />}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Дополнительные волновые эффекты */}
+                <div className="absolute inset-0 opacity-30">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse"></div>
+                    <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 animate-pulse delay-1000"></div>
+                    <div className="absolute left-0 top-0 w-2 h-full bg-gradient-to-b from-cyan-500 via-blue-500 to-purple-500 animate-pulse delay-2000"></div>
+                    <div className="absolute right-0 top-0 w-2 h-full bg-gradient-to-b from-purple-500 via-pink-500 to-rose-500 animate-pulse delay-3000"></div>
+                </div>
+            </div>
             
-            {/* Animated Gradient Orbs */}
-            <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-            
-            {/* Header */}
+            {/* Header с улучшенными эффектами */}
             <div className="relative z-10 px-4 pt-6 pb-4">
                 <div className="flex items-center justify-between">
                     <button
                         onClick={onBack}
-                        className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-2 hover:bg-white/20 transition-all duration-200"
+                        className="flex items-center space-x-2 bg-white/20 backdrop-blur-xl border-2 border-white/30 rounded-2xl px-6 py-3 hover:bg-white/30 transition-all duration-300 transform hover:scale-105 hover:rotate-1 shadow-2xl"
                     >
-                        <ArrowLeft className="w-5 h-5 text-white" />
-                        <span className="text-white">{t('back')}</span>
+                        <ArrowLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                        <span className="text-white font-semibold drop-shadow-lg">{t('back')}</span>
                     </button>
                     
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold">
-                            <GradientText className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-                                {t('documentAnalysis')}
+                        <h1 className="text-3xl font-black mb-2">
+                            <GradientText className="bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 drop-shadow-2xl">
+                                🚀 {t('documentAnalysis')}
                             </GradientText>
                         </h1>
-                        <p className="text-sm text-gray-300">{t('aiAnalysis')}</p>
+                        <p className="text-lg text-blue-200 drop-shadow-xl font-medium">✨ {t('aiAnalysis')} ✨</p>
                     </div>
                     
-                    <div className="w-16"></div> {/* Spacer */}
+                    <div className="w-20"></div>
                 </div>
             </div>
 
-            {/* Main Content */}
+            {/* Основной контент с невероятными эффектами */}
             <div className="relative z-10 px-4 pb-8">
-                <div className="max-w-2xl mx-auto space-y-6">
-                    {/* File Upload */}
-                    <FloatingElement delay={200}>
-                        <GlassCard className="p-6 bg-white/10 backdrop-blur-xl border border-white/20">
-                            <div className="flex items-center space-x-4 mb-6">
-                                <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
-                                    <Upload className="w-8 h-8 text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-semibold text-white">{t('uploadDocument')}</h3>
-                                    <p className="text-sm text-gray-300">{t('aiAnalysisInSeconds')}</p>
-                                </div>
+                <div className="max-w-2xl mx-auto space-y-8">
+                    
+                    {/* СУПЕР ЭФФЕКТНАЯ ОБЛАСТЬ ЗАГРУЗКИ */}
+                    <div className={`transform transition-all duration-1000 ${
+                        animateIn ? 'translate-y-0 opacity-100 rotate-0' : 'translate-y-10 opacity-0 rotate-3'
+                    }`}>
+                        <div className={`relative overflow-hidden rounded-3xl border-4 border-dashed transition-all duration-700 shadow-2xl ${
+                            isDragActive || magneticHover
+                                ? 'border-cyan-400 bg-cyan-500/20 shadow-cyan-500/50 transform scale-105 rotate-1' 
+                                : 'border-purple-400/60 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10 hover:border-purple-300 hover:scale-102 hover:-rotate-1'
+                        }`}>
+                            
+                            {/* Анимированный фон области загрузки */}
+                            <div className="absolute inset-0 opacity-40">
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent transform -skew-x-12 animate-pulse"></div>
+                                <div className="absolute inset-0 bg-gradient-to-l from-purple-200/20 via-transparent to-blue-200/20 transform skew-x-12 animate-pulse delay-500"></div>
                             </div>
                             
-                            <div
+                            {/* Орбитальные элементы вокруг области загрузки */}
+                            <div className="absolute inset-0 pointer-events-none">
+                                {[...Array(20)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="absolute animate-pulse opacity-70"
+                                        style={{
+                                            left: `${Math.random() * 100}%`,
+                                            top: `${Math.random() * 100}%`,
+                                            animationDelay: `${Math.random() * 3}s`,
+                                            animationDuration: `${2 + Math.random() * 2}s`
+                                        }}
+                                    >
+                                        {i % 4 === 0 && '✨'}
+                                        {i % 4 === 1 && '⭐'}
+                                        {i % 4 === 2 && '💎'}
+                                        {i % 4 === 3 && '🚀'}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div 
                                 {...getRootProps()}
-                                className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 relative overflow-hidden ${
-                                    isDragActive 
-                                        ? 'border-blue-400 bg-blue-500/20 scale-105' 
-                                        : 'border-white/30 bg-white/5 hover:border-blue-400/50 hover:bg-white/10'
-                                }`}
+                                className="relative z-10 p-12 cursor-pointer"
+                                onMouseEnter={() => setMagneticHover(true)}
+                                onMouseLeave={() => setMagneticHover(false)}
                             >
                                 <input {...getInputProps()} />
                                 <input 
@@ -302,133 +431,296 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                     id="file-input-analysis"
                                 />
                                 
-                                {/* Loading Progress */}
+                                {/* Анимированный прогресс-бар */}
                                 {loading && uploadProgress > 0 && (
-                                    <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" 
+                                    <div className="absolute top-0 left-0 h-2 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 transition-all duration-500 rounded-t-3xl overflow-hidden" 
                                          style={{width: `${uploadProgress}%`}}>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent animate-pulse"></div>
+                                        <div className="absolute top-0 left-0 w-full h-full">
+                                            {[...Array(10)].map((_, i) => (
+                                                <div key={i} 
+                                                     className="absolute top-0 w-1 h-full bg-white/40 animate-pulse"
+                                                     style={{
+                                                         left: `${i * 10}%`,
+                                                         animationDelay: `${i * 0.1}s`
+                                                     }}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                                 
-                                <div className="space-y-6">
-                                    <div className={`w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto transition-all duration-300 ${
-                                        loading ? 'animate-pulse scale-110' : 'hover:scale-110'
-                                    }`}>
-                                        {loading ? (
-                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                                        ) : (
-                                            <FileText className="w-12 h-12 text-white" />
-                                        )}
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 className="text-xl font-semibold text-white mb-2">
-                                            {loading ? (
-                                                <span className="flex items-center justify-center space-x-2">
-                                                    <span>{t('analyzing')}</span>
-                                                    <span className="animate-pulse">🤖</span>
-                                                </span>
-                                            ) : (
-                                                t('dragFileOrClick')
-                                            )}
-                                        </h4>
-                                        <p className="text-sm text-gray-300 mb-4">
-                                            📄 PDF • 🖼️ Изображения • 📝 Текст (до 10MB)
-                                        </p>
-                                        
-                                        {loading && (
-                                            <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg p-3 mb-4">
-                                                <div className="flex items-center justify-center space-x-2">
-                                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-100"></div>
-                                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce delay-200"></div>
+                                {loading ? (
+                                    // СУПЕР ЭФФЕКТНАЯ АНИМАЦИЯ ЗАГРУЗКИ
+                                    <div className="space-y-10 text-center">
+                                        <div className="relative mx-auto w-48 h-48">
+                                            {/* Множественные вращающиеся кольца */}
+                                            <div className="absolute inset-0 border-4 border-cyan-300 rounded-full animate-spin opacity-80"></div>
+                                            <div className="absolute inset-4 border-4 border-blue-400 rounded-full animate-spin reverse-spin opacity-70"></div>
+                                            <div className="absolute inset-8 border-4 border-purple-500 rounded-full animate-spin opacity-60" style={{animationDuration: '0.8s'}}></div>
+                                            <div className="absolute inset-12 border-4 border-pink-600 rounded-full animate-spin reverse-spin opacity-50" style={{animationDuration: '1.2s'}}></div>
+                                            <div className="absolute inset-16 border-4 border-cyan-700 rounded-full animate-spin opacity-40" style={{animationDuration: '1.5s'}}></div>
+                                            
+                                            {/* Центральная анимированная иконка */}
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full p-8 shadow-2xl animate-pulse">
+                                                    <Bot className="h-16 w-16 text-white animate-bounce" />
                                                 </div>
-                                                <p className="text-sm text-blue-200 text-center mt-2">
-                                                    {uploadProgress < 100 ? `Загрузка ${uploadProgress}%` : 'Анализ документа...'}
+                                            </div>
+                                            
+                                            {/* Орбитальные элементы */}
+                                            <div className="absolute inset-0 animate-spin" style={{animationDuration: '3s'}}>
+                                                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                                                    <Sparkles className="h-8 w-8 text-cyan-400 animate-pulse" />
+                                                </div>
+                                                <div className="absolute top-1/2 -right-4 transform -translate-y-1/2">
+                                                    <Star className="h-6 w-6 text-blue-400 animate-pulse delay-500" />
+                                                </div>
+                                                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                                                    <Diamond className="h-10 w-10 text-purple-400 animate-pulse delay-1000" />
+                                                </div>
+                                                <div className="absolute top-1/2 -left-4 transform -translate-y-1/2">
+                                                    <Gem className="h-8 w-8 text-pink-400 animate-pulse delay-1500" />
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Дополнительные летающие элементы */}
+                                            {[...Array(12)].map((_, i) => (
+                                                <div key={i} 
+                                                     className="absolute animate-bounce opacity-80"
+                                                     style={{
+                                                         left: `${20 + Math.random() * 60}%`,
+                                                         top: `${20 + Math.random() * 60}%`,
+                                                         animationDelay: `${Math.random() * 2}s`,
+                                                         animationDuration: `${1 + Math.random()}s`
+                                                     }}>
+                                                    {i % 6 === 0 && <Rocket className="h-4 w-4 text-orange-400" />}
+                                                    {i % 6 === 1 && <Crown className="h-3 w-3 text-yellow-400" />}
+                                                    {i % 6 === 2 && <Wand2 className="h-4 w-4 text-emerald-400" />}
+                                                    {i % 6 === 3 && <Flame className="h-3 w-3 text-red-400" />}
+                                                    {i % 6 === 4 && <Shield className="h-4 w-4 text-teal-400" />}
+                                                    {i % 6 === 5 && <Award className="h-3 w-3 text-violet-400" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <h3 className="text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
+                                                🚀 МАГИЯ ИСКУССТВЕННОГО ИНТЕЛЛЕКТА
+                                            </h3>
+                                            
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-cyan-300/30 shadow-2xl">
+                                                <p className="text-2xl font-bold text-white animate-pulse drop-shadow-xl">
+                                                    {processingStage}
+                                                </p>
+                                                <div className="mt-6 flex justify-center space-x-3">
+                                                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                                                        <div 
+                                                            key={i}
+                                                            className="w-4 h-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full animate-bounce shadow-lg"
+                                                            style={{ animationDelay: `${i * 0.2}s` }}
+                                                        ></div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Этапы обработки с красивыми иконками */}
+                                            <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
+                                                {[
+                                                    { icon: Bot, label: 'AI Сканер', color: 'from-cyan-500 to-blue-600' },
+                                                    { icon: Eye, label: 'Распознавание', color: 'from-blue-500 to-purple-600' },
+                                                    { icon: Cpu, label: 'Обработка', color: 'from-purple-500 to-pink-600' },
+                                                    { icon: Wand2, label: 'Анализ', color: 'from-pink-500 to-red-600' },
+                                                    { icon: Sparkles, label: 'Результат', color: 'from-red-500 to-orange-600' }
+                                                ].map(({ icon: Icon, label, color }, index) => (
+                                                    <div key={index} className="text-center">
+                                                        <div className={`p-4 rounded-2xl transition-all duration-500 shadow-2xl transform hover:scale-110 ${
+                                                            index < Math.floor(uploadProgress / 20) ? `bg-gradient-to-r ${color} text-white scale-110 animate-pulse` : 
+                                                            'bg-gray-700 text-gray-400'
+                                                        }`}>
+                                                            <Icon className="h-6 w-6 mx-auto" />
+                                                        </div>
+                                                        <p className="text-xs font-bold mt-2 text-gray-300 drop-shadow-lg">{label}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : selectedFile ? (
+                                    // СУПЕР КРАСИВОЕ ОТОБРАЖЕНИЕ ВЫБРАННОГО ФАЙЛА
+                                    <div className="space-y-8 text-center">
+                                        <div className="mx-auto w-40 h-40 bg-gradient-to-r from-emerald-400 via-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse transform hover:scale-110 transition-transform duration-300">
+                                            <CheckCircle className="h-20 w-20 text-white drop-shadow-2xl" />
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <h3 className="text-4xl font-black bg-gradient-to-r from-emerald-300 via-cyan-300 to-blue-300 bg-clip-text text-transparent drop-shadow-2xl">
+                                                ✅ ФАЙЛ ГОТОВ К МАГИЧЕСКОМУ АНАЛИЗУ
+                                            </h3>
+                                            
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-emerald-300/30 max-w-md mx-auto shadow-2xl">
+                                                <div className="flex items-center space-x-6">
+                                                    <div className="flex-shrink-0 text-emerald-300 animate-bounce">
+                                                        {getFileIcon(selectedFile)}
+                                                    </div>
+                                                    <div className="flex-grow text-left">
+                                                        <p className="font-black text-white truncate text-xl drop-shadow-lg">
+                                                            {selectedFile.name}
+                                                        </p>
+                                                        <p className="text-lg text-emerald-200 font-semibold drop-shadow-lg">
+                                                            {formatFileSize(selectedFile.size)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                {filePreview && (
+                                                    <div className="mt-8">
+                                                        <img 
+                                                            src={filePreview} 
+                                                            alt="Preview" 
+                                                            className="max-w-full max-h-48 rounded-2xl shadow-2xl mx-auto border-4 border-emerald-300/50"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // СУПЕР ЭФФЕКТНОЕ СОСТОЯНИЕ ПО УМОЛЧАНИЮ
+                                    <div className="space-y-12 text-center">
+                                        <div className="relative mx-auto w-48 h-48">
+                                            {/* Основной круг с градиентом */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full animate-pulse shadow-2xl"></div>
+                                            <div className="absolute inset-4 bg-slate-900 rounded-full flex items-center justify-center shadow-inner">
+                                                <Upload className="h-24 w-24 text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text animate-bounce" />
+                                            </div>
+                                            
+                                            {/* Орбитальные анимированные элементы */}
+                                            <div className="absolute inset-0 animate-spin" style={{animationDuration: '8s'}}>
+                                                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                                                    <Sparkles className="h-8 w-8 text-cyan-400 animate-pulse" />
+                                                </div>
+                                                <div className="absolute top-1/2 -right-4 transform -translate-y-1/2">
+                                                    <Star className="h-6 w-6 text-blue-400 animate-pulse delay-500" />
+                                                </div>
+                                                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
+                                                    <Diamond className="h-10 w-10 text-purple-400 animate-pulse delay-1000" />
+                                                </div>
+                                                <div className="absolute top-1/2 -left-4 transform -translate-y-1/2">
+                                                    <Gem className="h-8 w-8 text-pink-400 animate-pulse delay-1500" />
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Дополнительные кольца */}
+                                            <div className="absolute inset-0 border-2 border-cyan-300/30 rounded-full animate-ping"></div>
+                                            <div className="absolute inset-8 border-2 border-purple-300/30 rounded-full animate-ping delay-1000"></div>
+                                        </div>
+                                        
+                                        <div className="space-y-8">
+                                            <h3 className="text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent drop-shadow-2xl">
+                                                🚀 РЕВОЛЮЦИОННЫЙ АНАЛИЗ ДОКУМЕНТОВ
+                                            </h3>
+                                            
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-purple-300/30 shadow-2xl">
+                                                <p className="text-2xl text-white mb-8 font-bold drop-shadow-xl">
+                                                    {isDragActive 
+                                                        ? "✨ Отпустите файл для начала волшебства ✨" 
+                                                        : "🎯 Перетащите файл сюда или нажмите для выбора"
+                                                    }
+                                                </p>
+                                                
+                                                <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto mb-8">
+                                                    <div className="flex flex-col items-center space-y-4 p-6 bg-blue-500/20 rounded-3xl hover:bg-blue-500/30 transition-colors shadow-2xl transform hover:scale-105 border border-blue-400/30">
+                                                        <FileText className="h-12 w-12 text-blue-300 animate-pulse" />
+                                                        <span className="text-lg font-black text-blue-200 drop-shadow-lg">PDF</span>
+                                                        <span className="text-sm text-blue-300">Документы</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center space-y-4 p-6 bg-purple-500/20 rounded-3xl hover:bg-purple-500/30 transition-colors shadow-2xl transform hover:scale-105 border border-purple-400/30">
+                                                        <Image className="h-12 w-12 text-purple-300 animate-pulse delay-300" />
+                                                        <span className="text-lg font-black text-purple-200 drop-shadow-lg">Фото</span>
+                                                        <span className="text-sm text-purple-300">Изображения</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-center space-y-4 p-6 bg-cyan-500/20 rounded-3xl hover:bg-cyan-500/30 transition-colors shadow-2xl transform hover:scale-105 border border-cyan-400/30">
+                                                        <Camera className="h-12 w-12 text-cyan-300 animate-pulse delay-600" />
+                                                        <span className="text-lg font-black text-cyan-200 drop-shadow-lg">Скан</span>
+                                                        <span className="text-sm text-cyan-300">Документы</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <button
+                                                    type="button"
+                                                    className="bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 text-white px-12 py-6 rounded-2xl hover:from-cyan-700 hover:via-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center space-x-4 mx-auto font-bold text-xl transform hover:scale-105 shadow-2xl border-2 border-white/20"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (isTelegramWebApp()) {
+                                                            hapticFeedback('light');
+                                                        }
+                                                        const fileInput = document.getElementById('file-input-analysis');
+                                                        if (fileInput) {
+                                                            fileInput.click();
+                                                        }
+                                                    }}
+                                                >
+                                                    <Upload className="w-6 h-6" />
+                                                    <span>{t('selectFile')}</span>
+                                                    <span className="text-2xl">🚀</span>
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-2xl p-6 border-2 border-purple-300/30 shadow-xl">
+                                                <p className="text-lg text-white font-bold flex items-center justify-center space-x-3 drop-shadow-lg">
+                                                    <Shield className="h-6 w-6 text-emerald-400" />
+                                                    <span>Максимальный размер файла: 10MB</span>
+                                                    <Shield className="h-6 w-6 text-emerald-400" />
                                                 </p>
                                             </div>
-                                        )}
-                                    </div>
-                                    
-                                    {!loading && (
-                                        <div className="space-y-4">
-                                            <button
-                                                type="button"
-                                                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 flex items-center space-x-3 mx-auto font-medium transform hover:scale-105 shadow-lg"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (isTelegramWebApp()) {
-                                                        hapticFeedback('light');
-                                                    }
-                                                    const fileInput = document.getElementById('file-input-analysis');
-                                                    if (fileInput) {
-                                                        fileInput.click();
-                                                    }
-                                                }}
-                                            >
-                                                <Upload className="w-5 h-5" />
-                                                <span>{t('selectFile')}</span>
-                                                <span className="text-xl">📁</span>
-                                            </button>
-                                            
-                                            <div className="grid grid-cols-3 gap-4 text-center">
-                                                <div className="bg-white/10 rounded-lg p-3">
-                                                    <FileText className="w-6 h-6 text-blue-400 mx-auto mb-1" />
-                                                    <p className="text-xs text-gray-300">PDF</p>
-                                                </div>
-                                                <div className="bg-white/10 rounded-lg p-3">
-                                                    <Image className="w-6 h-6 text-purple-400 mx-auto mb-1" />
-                                                    <p className="text-xs text-gray-300">Фото</p>
-                                                </div>
-                                                <div className="bg-white/10 rounded-lg p-3">
-                                                    <Camera className="w-6 h-6 text-pink-400 mx-auto mb-1" />
-                                                    <p className="text-xs text-gray-300">Скан</p>
-                                                </div>
-                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        </GlassCard>
-                    </FloatingElement>
-
-                    {/* Error Display */}
-                    {error && (
-                        <FloatingElement delay={400}>
-                            <GlassCard className="p-4 bg-red-500/20 border border-red-400/30 animate-shake">
-                                <div className="flex items-center space-x-3">
-                                    <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
-                                    <div>
-                                        <p className="text-red-300 font-medium">{t('analysisError')}</p>
-                                        <p className="text-red-200 text-sm">{error}</p>
                                     </div>
-                                </div>
-                            </GlassCard>
-                        </FloatingElement>
-                    )}
+                                )}
+                                
+                                {error && (
+                                    <div className="mt-8 p-6 bg-red-500/20 border-2 border-red-400/30 rounded-2xl shadow-2xl">
+                                        <div className="flex items-center space-x-3 text-red-300">
+                                            <AlertCircle className="h-6 w-6 animate-pulse" />
+                                            <span className="font-bold text-lg">{error}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Декоративные элементы по краям */}
+                            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 opacity-60 animate-pulse rounded-b-3xl"></div>
+                            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 rounded-b-3xl"></div>
+                        </div>
+                    </div>
 
-                    {/* Current File Info */}
+                    {/* Текущая информация о файле с эффектами */}
                     {currentFile && !loading && (
-                        <FloatingElement delay={600}>
-                            <GlassCard className="p-4 bg-white/10 backdrop-blur-xl border border-white/20">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
-                                            <FileText className="w-5 h-5 text-white" />
+                        <div className={`transform transition-all duration-700 ${
+                            animateIn ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
+                        }`}>
+                            <div className="relative overflow-hidden bg-white/20 backdrop-blur-xl border-2 border-emerald-300/30 rounded-3xl p-6 shadow-2xl">
+                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10"></div>
+                                
+                                <div className="relative flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse">
+                                            {getFileIcon(currentFile)}
                                         </div>
                                         <div>
-                                            <p className="text-white font-medium truncate max-w-48">{currentFile.name}</p>
-                                            <p className="text-gray-300 text-sm">{(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                            <p className="text-white font-bold text-xl truncate max-w-48 drop-shadow-lg">{currentFile.name}</p>
+                                            <p className="text-emerald-200 text-lg font-semibold drop-shadow-lg">{(currentFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={resetAnalysis}
-                                        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200"
+                                        className="p-4 bg-white/20 hover:bg-white/30 rounded-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-180 shadow-xl border border-white/30"
                                     >
-                                        <RefreshCw className="w-4 h-4 text-gray-300" />
+                                        <RefreshCw className="w-6 h-6 text-white drop-shadow-lg" />
                                     </button>
                                 </div>
-                            </GlassCard>
-                        </FloatingElement>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
