@@ -253,66 +253,44 @@ const ImprovedTelegramAnalysisResult = ({ analysisResult, onClose }) => {
     const sections = parseAnalysisToSections();
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className={`bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden transform transition-all duration-700 ${
-                animateIn ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-8'
-            }`}>
+        <div className="fixed inset-0 bg-slate-900 z-50 overflow-hidden">
+            <div className="h-full flex flex-col">
                 
-                {/* Красивый заголовок */}
-                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-6 py-8 relative overflow-hidden">
-                    {/* Фоновые эффекты */}
-                    <div className="absolute inset-0 opacity-20">
-                        <div className="absolute top-4 right-4 animate-pulse">
-                            <Sparkles className="h-8 w-8 text-white" />
-                        </div>
-                        <div className="absolute bottom-4 left-4 animate-pulse">
-                            <Crown className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="absolute top-1/2 right-1/3 animate-bounce">
-                            <Star className="h-5 w-5 text-white" />
-                        </div>
-                    </div>
-                    
-                    <div className="relative flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                                <FileText className="h-8 w-8 text-white" />
+                {/* Заголовок во весь экран */}
+                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-4 py-4 flex-shrink-0">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                                <FileText className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-3xl font-bold text-white mb-1">
-                                    Полный анализ
-                                </h2>
-                                <p className="text-white/90 text-lg">
-                                    Детальный разбор документа
-                                </p>
+                                <h2 className="text-xl font-bold text-white">Результат анализа</h2>
+                                <p className="text-white/90 text-sm">AI обработка завершена</p>
                             </div>
                         </div>
-                        
                         <button
                             onClick={onClose}
-                            className="p-3 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm"
+                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
                         >
-                            <ArrowLeft className="h-6 w-6 text-white" />
+                            <ArrowLeft className="h-5 w-5 text-white" />
                         </button>
                     </div>
                 </div>
 
-                {/* Основной контент */}
-                <div className="p-6 max-h-[75vh] overflow-y-auto space-y-6 bg-gradient-to-br from-gray-50 to-blue-50">
+                {/* Основной контент во весь экран */}
+                <div className="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4">
                     
                     {/* Информация о файле */}
-                    <div className={`bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6 transform transition-all duration-500 ${
-                        animateIn ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                    }`}>
-                        <div className="flex items-center space-x-4">
-                            <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                                <FileText className="h-6 w-6 text-white" />
+                    <div className="bg-white rounded-xl shadow-lg border p-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
+                                <FileText className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                                <h3 className="text-lg font-bold text-gray-900">
                                     {analysisResult?.file_name || 'Документ'}
                                 </h3>
-                                <p className="text-gray-600 flex items-center space-x-2">
+                                <p className="text-gray-600 text-sm flex items-center space-x-1">
                                     <Bot className="h-4 w-4" />
                                     <span>Обработано AI</span>
                                 </p>
@@ -320,8 +298,8 @@ const ImprovedTelegramAnalysisResult = ({ analysisResult, onClose }) => {
                         </div>
                     </div>
 
-                    {/* Секции анализа */}
-                    <div className="space-y-6">
+                    {/* Секции анализа с исправленным выравниванием текста */}
+                    <div className="space-y-4">
                         {sections.map((section, index) => {
                             const colorConfig = getColorConfig(section.color);
                             const importanceConfig = getImportanceConfig(section.importance);
@@ -329,19 +307,16 @@ const ImprovedTelegramAnalysisResult = ({ analysisResult, onClose }) => {
                             return (
                                 <div
                                     key={section.id}
-                                    className={`bg-white rounded-2xl shadow-lg border-2 ${colorConfig.border} p-6 transform transition-all duration-700 hover:shadow-xl hover:-translate-y-1 ${
-                                        sectionsVisible[index] ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-                                    }`}
-                                    style={{ transitionDelay: `${index * 150}ms` }}
+                                    className={`bg-white rounded-xl shadow-lg border-2 ${colorConfig.border} p-4`}
                                 >
                                     {/* Заголовок секции */}
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center space-x-4">
-                                            <div className={`p-3 bg-gradient-to-r ${colorConfig.gradient} rounded-xl shadow-lg transform hover:scale-110 transition-transform`}>
-                                                <span className="text-2xl">{section.icon}</span>
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-center space-x-3 flex-1">
+                                            <div className={`p-2 bg-gradient-to-r ${colorConfig.gradient} rounded-lg flex-shrink-0`}>
+                                                <span className="text-lg">{section.icon}</span>
                                             </div>
-                                            <div>
-                                                <h4 className={`text-xl font-bold ${colorConfig.text} mb-1`}>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className={`text-lg font-bold ${colorConfig.text} mb-1`}>
                                                     {section.title}
                                                 </h4>
                                                 {importanceConfig && (
@@ -355,23 +330,29 @@ const ImprovedTelegramAnalysisResult = ({ analysisResult, onClose }) => {
                                         
                                         <button
                                             onClick={() => copyToClipboard(section.content, section.id)}
-                                            className={`p-3 bg-gradient-to-r ${colorConfig.gradient} hover:shadow-lg rounded-xl transition-all transform hover:scale-110 group`}
+                                            className={`p-2 bg-gradient-to-r ${colorConfig.gradient} hover:shadow-lg rounded-lg transition-all flex-shrink-0 ml-2`}
                                         >
-                                            <Copy className="h-5 w-5 text-white" />
+                                            <Copy className="h-4 w-4 text-white" />
                                         </button>
                                     </div>
                                     
-                                    {/* Контент секции */}
-                                    <div className={`${colorConfig.bg} rounded-xl p-5 ${colorConfig.border} border`}>
-                                        <div className={`${colorConfig.text} leading-relaxed text-base whitespace-pre-wrap`}>
-                                            {section.content}
+                                    {/* Контент секции с правильным выравниванием */}
+                                    <div className={`${colorConfig.bg} rounded-lg p-4 ${colorConfig.border} border`}>
+                                        <div className={`${colorConfig.text} leading-relaxed text-base`}>
+                                            {section.content.split('\n').map((line, lineIndex) => (
+                                                line.trim() && (
+                                                    <p key={lineIndex} className="mb-2 text-left">
+                                                        {line.trim()}
+                                                    </p>
+                                                )
+                                            ))}
                                         </div>
                                     </div>
                                     
                                     {/* Индикатор копирования */}
                                     {copiedSection === section.id && (
-                                        <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold animate-bounce shadow-lg">
-                                            ✅ Скопировано!
+                                        <div className="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                                            ✅ Скопировано
                                         </div>
                                     )}
                                 </div>
@@ -380,13 +361,11 @@ const ImprovedTelegramAnalysisResult = ({ analysisResult, onClose }) => {
                     </div>
 
                     {/* Нижняя панель */}
-                    <div className={`bg-gradient-to-r from-indigo-100 to-purple-100 rounded-2xl p-6 border-2 border-indigo-200 transform transition-all duration-700 ${
-                        animateIn ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                    }`} style={{ transitionDelay: `${sections.length * 150 + 300}ms` }}>
+                    <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl p-4 border-2 border-indigo-200">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                                <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl">
-                                    <Award className="h-6 w-6 text-white" />
+                                <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
+                                    <Award className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-900">Анализ завершен</p>
@@ -396,7 +375,7 @@ const ImprovedTelegramAnalysisResult = ({ analysisResult, onClose }) => {
                             
                             <button
                                 onClick={onClose}
-                                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all transform hover:scale-105 shadow-lg font-bold"
+                                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg transition-all font-bold"
                             >
                                 Готово
                             </button>
