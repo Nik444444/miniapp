@@ -2053,6 +2053,31 @@ class BackendTester:
         else:
             self.log_test_result("System Status - Not in fallback mode (LLM)", False, f"Error: {error}", data)
     
+    async def test_telegram_authentication_comprehensive(self):
+        """🎯 COMPREHENSIVE TELEGRAM AUTHENTICATION TESTING"""
+        logger.info("=== 🎯 COMPREHENSIVE TELEGRAM AUTHENTICATION TESTING ===")
+        
+        # Test 1: Bot Token Configuration
+        await self._test_bot_token_configuration()
+        
+        # Test 2: Different authentication data formats
+        await self._test_telegram_verify_endpoint_formats()
+        
+        # Test 3: User creation and updates
+        await self._test_telegram_user_creation()
+        
+        # Test 4: Error handling
+        await self._test_telegram_error_handling()
+        
+        # Test 5: Response format validation
+        await self._test_telegram_response_format()
+        
+        # Test 6: CORS configuration
+        await self._test_cors_configuration()
+        
+        # Test 7: Fly.dev backend accessibility
+        await self._test_fly_dev_backend_accessibility()
+    
     async def test_basic_functionality_after_render_fix(self):
         """Test basic functionality after Render deployment fix"""
         logger.info("=== Testing Basic Functionality After Render Fix ===")
