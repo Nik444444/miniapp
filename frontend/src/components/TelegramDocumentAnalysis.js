@@ -297,58 +297,13 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
     }
 
     return (
-        <div className={`min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden transition-all duration-1000 ${
-            animateIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        <div className={`min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative transition-all duration-500 ${
+            animateIn ? 'opacity-100' : 'opacity-0'
         }`}>
             
-            {/* СУПЕР ЭФФЕКТНЫЙ АНИМИРОВАННЫЙ ФОН */}
+            {/* Простой фон без анимаций */}
             <div className="absolute inset-0">
-                {/* Основные градиентные слои */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-purple-900/60 to-pink-900/40 animate-pulse"></div>
-                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-800/30 via-transparent to-rose-800/30"></div>
-                
-                {/* Анимированные космические орбы */}
-                <div className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-blue-500/40 to-purple-500/40 rounded-full blur-3xl animate-pulse opacity-80"></div>
-                <div className="absolute top-40 right-20 w-80 h-80 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-3xl animate-pulse delay-1000 opacity-70"></div>
-                <div className="absolute bottom-20 left-32 w-72 h-72 bg-gradient-to-br from-cyan-500/35 to-blue-500/35 rounded-full blur-3xl animate-pulse delay-2000 opacity-75"></div>
-                <div className="absolute bottom-40 right-10 w-64 h-64 bg-gradient-to-br from-pink-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse delay-3000 opacity-80"></div>
-                
-                {/* Движущиеся световые полосы */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent transform -skew-x-12 animate-pulse"></div>
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-purple-400/10 to-transparent transform skew-x-12 animate-pulse delay-1000"></div>
-                
-                {/* Множественные анимированные частицы */}
-                <div className="absolute inset-0 pointer-events-none">
-                    {[...Array(60)].map((_, i) => (
-                        <div
-                            key={i}
-                            className={`absolute animate-pulse opacity-80`}
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 5}s`,
-                                animationDuration: `${3 + Math.random() * 4}s`
-                            }}
-                        >
-                            {i % 8 === 0 && <Sparkles className="h-3 w-3 text-blue-400/60" />}
-                            {i % 8 === 1 && <Star className="h-2 w-2 text-purple-400/60" />}
-                            {i % 8 === 2 && <Diamond className="h-3 w-3 text-pink-400/60" />}
-                            {i % 8 === 3 && <Gem className="h-2 w-2 text-cyan-400/60" />}
-                            {i % 8 === 4 && <Crown className="h-3 w-3 text-yellow-400/60" />}
-                            {i % 8 === 5 && <Wand2 className="h-2 w-2 text-emerald-400/60" />}
-                            {i % 8 === 6 && <Flame className="h-3 w-3 text-red-400/60" />}
-                            {i % 8 === 7 && <Rocket className="h-2 w-2 text-orange-400/60" />}
-                        </div>
-                    ))}
-                </div>
-
-                {/* Дополнительные волновые эффекты */}
-                <div className="absolute inset-0 opacity-30">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-pulse"></div>
-                    <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 animate-pulse delay-1000"></div>
-                    <div className="absolute left-0 top-0 w-2 h-full bg-gradient-to-b from-cyan-500 via-blue-500 to-purple-500 animate-pulse delay-2000"></div>
-                    <div className="absolute right-0 top-0 w-2 h-full bg-gradient-to-b from-purple-500 via-pink-500 to-rose-500 animate-pulse delay-3000"></div>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/30 to-pink-900/20"></div>
             </div>
             
             {/* Header с улучшенными эффектами */}
