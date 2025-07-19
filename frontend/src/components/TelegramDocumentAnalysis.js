@@ -451,98 +451,28 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                                 )}
                                 
                                 {loading ? (
-                                    // СУПЕР ЭФФЕКТНАЯ АНИМАЦИЯ ЗАГРУЗКИ
-                                    <div className="space-y-10 text-center">
-                                        <div className="relative mx-auto w-48 h-48">
-                                            {/* Множественные вращающиеся кольца */}
-                                            <div className="absolute inset-0 border-4 border-cyan-300 rounded-full animate-spin opacity-80"></div>
-                                            <div className="absolute inset-4 border-4 border-blue-400 rounded-full animate-spin reverse-spin opacity-70"></div>
-                                            <div className="absolute inset-8 border-4 border-purple-500 rounded-full animate-spin opacity-60" style={{animationDuration: '0.8s'}}></div>
-                                            <div className="absolute inset-12 border-4 border-pink-600 rounded-full animate-spin reverse-spin opacity-50" style={{animationDuration: '1.2s'}}></div>
-                                            <div className="absolute inset-16 border-4 border-cyan-700 rounded-full animate-spin opacity-40" style={{animationDuration: '1.5s'}}></div>
-                                            
-                                            {/* Центральная анимированная иконка */}
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-full p-8 shadow-2xl animate-pulse">
-                                                    <Bot className="h-16 w-16 text-white animate-bounce" />
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Орбитальные элементы */}
-                                            <div className="absolute inset-0 animate-spin" style={{animationDuration: '3s'}}>
-                                                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                                    <Sparkles className="h-8 w-8 text-cyan-400 animate-pulse" />
-                                                </div>
-                                                <div className="absolute top-1/2 -right-4 transform -translate-y-1/2">
-                                                    <Star className="h-6 w-6 text-blue-400 animate-pulse delay-500" />
-                                                </div>
-                                                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2">
-                                                    <Diamond className="h-10 w-10 text-purple-400 animate-pulse delay-1000" />
-                                                </div>
-                                                <div className="absolute top-1/2 -left-4 transform -translate-y-1/2">
-                                                    <Gem className="h-8 w-8 text-pink-400 animate-pulse delay-1500" />
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Дополнительные летающие элементы */}
-                                            {[...Array(12)].map((_, i) => (
-                                                <div key={i} 
-                                                     className="absolute animate-bounce opacity-80"
-                                                     style={{
-                                                         left: `${20 + Math.random() * 60}%`,
-                                                         top: `${20 + Math.random() * 60}%`,
-                                                         animationDelay: `${Math.random() * 2}s`,
-                                                         animationDuration: `${1 + Math.random()}s`
-                                                     }}>
-                                                    {i % 6 === 0 && <Rocket className="h-4 w-4 text-orange-400" />}
-                                                    {i % 6 === 1 && <Crown className="h-3 w-3 text-yellow-400" />}
-                                                    {i % 6 === 2 && <Wand2 className="h-4 w-4 text-emerald-400" />}
-                                                    {i % 6 === 3 && <Flame className="h-3 w-3 text-red-400" />}
-                                                    {i % 6 === 4 && <Shield className="h-4 w-4 text-teal-400" />}
-                                                    {i % 6 === 5 && <Award className="h-3 w-3 text-violet-400" />}
-                                                </div>
-                                            ))}
-                                        </div>
+                                    // Упрощенное состояние загрузки
+                                    <div className="space-y-6 text-center">
+                                        <div className="mx-auto w-24 h-24 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
                                         
-                                        <div className="space-y-6">
-                                            <h3 className="text-4xl font-black bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
-                                                🚀 МАГИЯ ИСКУССТВЕННОГО ИНТЕЛЛЕКТА
+                                        <div className="space-y-4">
+                                            <h3 className="text-2xl font-bold text-white">
+                                                Анализ документа
                                             </h3>
                                             
-                                            <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 border-2 border-cyan-300/30 shadow-2xl">
-                                                <p className="text-2xl font-bold text-white animate-pulse drop-shadow-xl">
+                                            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-6 max-w-md mx-auto">
+                                                <p className="text-lg font-medium text-white">
                                                     {processingStage}
                                                 </p>
-                                                <div className="mt-6 flex justify-center space-x-3">
-                                                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                                                <div className="mt-4 flex justify-center space-x-2">
+                                                    {[1, 2, 3].map((i) => (
                                                         <div 
                                                             key={i}
-                                                            className="w-4 h-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full animate-bounce shadow-lg"
+                                                            className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
                                                             style={{ animationDelay: `${i * 0.2}s` }}
                                                         ></div>
                                                     ))}
                                                 </div>
-                                            </div>
-                                            
-                                            {/* Этапы обработки с красивыми иконками */}
-                                            <div className="grid grid-cols-5 gap-4 max-w-lg mx-auto">
-                                                {[
-                                                    { icon: Bot, label: 'AI Сканер', color: 'from-cyan-500 to-blue-600' },
-                                                    { icon: Eye, label: 'Распознавание', color: 'from-blue-500 to-purple-600' },
-                                                    { icon: Cpu, label: 'Обработка', color: 'from-purple-500 to-pink-600' },
-                                                    { icon: Wand2, label: 'Анализ', color: 'from-pink-500 to-red-600' },
-                                                    { icon: Sparkles, label: 'Результат', color: 'from-red-500 to-orange-600' }
-                                                ].map(({ icon: Icon, label, color }, index) => (
-                                                    <div key={index} className="text-center">
-                                                        <div className={`p-4 rounded-2xl transition-all duration-500 shadow-2xl transform hover:scale-110 ${
-                                                            index < Math.floor(uploadProgress / 20) ? `bg-gradient-to-r ${color} text-white scale-110 animate-pulse` : 
-                                                            'bg-gray-700 text-gray-400'
-                                                        }`}>
-                                                            <Icon className="h-6 w-6 mx-auto" />
-                                                        </div>
-                                                        <p className="text-xs font-bold mt-2 text-gray-300 drop-shadow-lg">{label}</p>
-                                                    </div>
-                                                ))}
                                             </div>
                                         </div>
                                     </div>
