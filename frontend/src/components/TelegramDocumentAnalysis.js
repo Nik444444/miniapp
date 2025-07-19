@@ -204,7 +204,7 @@ const TelegramDocumentAnalysis = ({ onBack }) => {
                 
                 if (isTelegramWebApp()) {
                     hapticFeedback('success');
-                    showTelegramAlert(t('analysisSuccess'));
+                    // Убираем уведомление - результаты показываются сразу
                 }
             } else {
                 console.error('Analysis response missing expected fields:', response.data);
