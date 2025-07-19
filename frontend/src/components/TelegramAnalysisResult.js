@@ -742,7 +742,7 @@ const TelegramAnalysisResult = ({ analysisResult, onClose }) => {
                                          }}>
                                         {i % 4 === 0 && <Zap className="h-4 w-4 text-orange-400" />}
                                         {i % 4 === 1 && <Rocket className="h-3 w-3 text-yellow-400" />}
-                                        {i % 4 === 2 && <Lightning className="h-4 w-4 text-amber-400" />}
+                                        {i % 4 === 2 && <Zap className="h-4 w-4 text-amber-400" />}
                                         {i % 4 === 3 && <Star className="h-3 w-3 text-orange-500" />}
                                     </div>
                                 ))}
