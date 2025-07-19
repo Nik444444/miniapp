@@ -318,38 +318,38 @@ const SpectacularDocumentAnalysis = ({ onFileSelect, loading, error, apiKeyConfi
                         </div>
                     </div>
                 ) : selectedFile ? (
-                    // File Selected State
-                    <div className="space-y-6 text-center">
-                        <div className="mx-auto w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl">
-                            <CheckCircle className="h-12 w-12 text-white" />
+                    // Ultra File Selected State
+                    <div className="space-y-8 text-center">
+                        <div className="mx-auto w-32 h-32 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse transform hover:scale-110 transition-transform duration-300">
+                            <CheckCircle className="h-16 w-16 text-white" />
                         </div>
                         
-                        <div className="space-y-4">
-                            <h3 className="text-2xl font-bold text-gray-900">
-                                Файл готов к анализу
+                        <div className="space-y-6">
+                            <h3 className="text-3xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                ✅ ФАЙЛ ГОТОВ К ВОЛШЕБНОМУ АНАЛИЗУ
                             </h3>
                             
-                            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/30 max-w-md mx-auto">
-                                <div className="flex items-center space-x-4">
-                                    <div className="flex-shrink-0 text-blue-600">
+                            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 border-2 border-green-200 max-w-md mx-auto shadow-2xl">
+                                <div className="flex items-center space-x-6">
+                                    <div className="flex-shrink-0 text-green-600 animate-bounce">
                                         {getFileIcon(selectedFile)}
                                     </div>
                                     <div className="flex-grow text-left">
-                                        <p className="font-semibold text-gray-900 truncate">
+                                        <p className="font-black text-gray-900 truncate text-lg">
                                             {selectedFile.name}
                                         </p>
-                                        <p className="text-sm text-gray-500">
+                                        <p className="text-sm text-gray-500 font-semibold">
                                             {formatFileSize(selectedFile.size)}
                                         </p>
                                     </div>
                                 </div>
                                 
                                 {filePreview && (
-                                    <div className="mt-4">
+                                    <div className="mt-6">
                                         <img 
                                             src={filePreview} 
                                             alt="Preview" 
-                                            className="max-w-full max-h-32 rounded-lg shadow-lg mx-auto"
+                                            className="max-w-full max-h-40 rounded-xl shadow-xl mx-auto border-2 border-green-200"
                                         />
                                     </div>
                                 )}
