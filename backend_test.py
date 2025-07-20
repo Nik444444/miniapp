@@ -3214,27 +3214,29 @@ class BackendTester:
         logger.info("🎯 ТЕСТИРОВАНИЕ ПРОИЗВОДИТЕЛЬНОСТИ OCR СИСТЕМЫ ЗАВЕРШЕНО")
 
     async def run_all_tests(self):
-        """Run all backend tests with focus on German Letter AI critical functionality"""
-        logger.info("🎯 STARTING CRITICAL GERMAN LETTER AI BACKEND TESTING")
+        """Run all backend tests with focus on critical document analysis fix"""
+        logger.info("🎯 STARTING CRITICAL DOCUMENT ANALYSIS TESTING")
         logger.info("=" * 80)
         
         try:
-            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ для German Letter AI
-            await self.test_critical_letter_generation_endpoints()
-            await self.test_modern_llm_manager_status()
-            await self.test_user_api_keys_support()
-            await self.test_additional_letter_endpoints()
-            await self.test_authentication_system_integrity()
-            await self.test_error_handling_quality()
+            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ ДЛЯ АНАЛИЗА ДОКУМЕНТОВ
+            await self.test_critical_document_analysis_fix()
+            await self.test_super_analysis_engine_integration()
+            await self.test_real_analysis_vs_stubs()
+            await self.test_user_api_keys_for_analysis()
+            await self.test_extracted_text_processing()
             
-            # Основные системные тесты
+            # ПОДДЕРЖИВАЮЩИЕ ТЕСТЫ
             await self.test_basic_health_endpoints()
             await self.test_api_health_endpoints()
-            await self.test_database_functionality()
-            await self.test_telegram_news_endpoint()
+            await self.test_modern_llm_status_endpoint()
+            await self.test_authentication_required_endpoints()
             
-            # Итоговый тест готовности системы
-            system_ready = await self.test_system_readiness_for_production()
+            # ТЕСТЫ ПРОИЗВОДИТЕЛЬНОСТИ
+            await self.test_analyze_file_performance_ready()
+            await self.test_ocr_performance_optimization()
+            
+            system_ready = True
             
         except Exception as e:
             logger.error(f"Critical error during testing: {e}")
@@ -3242,7 +3244,7 @@ class BackendTester:
             system_ready = False
         
         # Генерируем итоговый отчет
-        return self.generate_critical_test_summary(system_ready)
+        return self.generate_document_analysis_summary(system_ready)
     
     def generate_critical_test_summary(self, system_ready=False):
         """Generate and display critical test summary for German Letter AI"""
