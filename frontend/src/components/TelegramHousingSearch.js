@@ -199,7 +199,14 @@ const TelegramHousingSearch = ({ onBack }) => {
                     showTelegramAlert('Подписка создана! Вы получите уведомления о новых предложениях.');
                 }
             } else {
-                throw new Error('Ошибка создания подписки');
+                const errorData = await response.json();
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Необходимо войти в систему для создания подписки');
+                } else if (errorData.detail) {
+                    throw new Error(errorData.detail);
+                } else {
+                    throw new Error('Ошибка создания подписки');
+                }
             }
         } catch (error) {
             setError('Ошибка создания подписки');
