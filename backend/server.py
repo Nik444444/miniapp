@@ -791,14 +791,8 @@ async def analyze_file_authenticated(
         if current_user.get("anthropic_api_key"):
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
 
-        if not user_providers:
-            # Try system providers if no user keys
-            active_providers = llm_manager.get_available_providers()
-            if not any(active_providers.values()):
-                raise HTTPException(
-                    status_code=400,
-                    detail="No API keys configured. Please add your API keys in profile."
-                )
+        # Для пользователей без API ключей разрешаем демо анализ
+        allow_demo_analysis = not user_providers
 
         # Save uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{file.filename}") as temp_file:
