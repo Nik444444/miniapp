@@ -195,6 +195,36 @@ class PDFGenerationRequest(BaseModel):
     letter_id: str
     include_translation: bool = True
 
+# Housing Search Models
+class HousingSearchRequest(BaseModel):
+    city: str
+    max_price: Optional[int] = None
+    property_type: str = "wohnung"
+    radius: Optional[int] = None
+
+class NeighborhoodAnalysisRequest(BaseModel):
+    city: str
+    district: Optional[str] = None
+
+class HousingSubscriptionRequest(BaseModel):
+    city: str
+    max_price: Optional[int] = None
+    property_type: str = "wohnung"
+    radius: Optional[int] = None
+
+class HousingSubscriptionUpdate(BaseModel):
+    city: Optional[str] = None
+    max_price: Optional[int] = None
+    property_type: Optional[str] = None
+    radius: Optional[int] = None
+    active: Optional[bool] = None
+
+class LandlordContactRequest(BaseModel):
+    listing_id: str
+    user_name: str
+    user_occupation: Optional[str] = "Fachkraft"
+    user_income: Optional[str] = "stabiles Einkommen"
+
 # Utility functions
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
