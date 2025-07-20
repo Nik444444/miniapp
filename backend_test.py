@@ -3319,6 +3319,62 @@ class BackendTester:
             "test_results": self.test_results
         }
     
+    def generate_document_analysis_summary(self, system_ready=False):
+        """Generate and display document analysis test summary"""
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        logger.info("=" * 80)
+        logger.info("🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ АНАЛИЗА ДОКУМЕНТОВ ЗАВЕРШЕНО")
+        logger.info(f"📊 РЕЗУЛЬТАТЫ: {passed_tests}/{total_tests} тестов прошли успешно ({success_rate:.1f}% успех)")
+        logger.info(f"✅ Успешно: {passed_tests}")
+        logger.info(f"❌ Неудачно: {failed_tests}")
+        logger.info("=" * 80)
+        
+        # Выводим критические результаты анализа документов
+        critical_tests = [result for result in self.test_results if "🎯" in result["test"]]
+        critical_passed = sum(1 for result in critical_tests if result["success"])
+        critical_total = len(critical_tests)
+        
+        if critical_total > 0:
+            critical_success_rate = (critical_passed / critical_total * 100)
+            logger.info(f"🎯 КРИТИЧЕСКИЕ ТЕСТЫ АНАЛИЗА ДОКУМЕНТОВ: {critical_passed}/{critical_total} ({critical_success_rate:.1f}% успех)")
+            
+            # Показываем результаты критических тестов
+            logger.info("🎯 КРИТИЧЕСКИЕ РЕЗУЛЬТАТЫ АНАЛИЗА ДОКУМЕНТОВ:")
+            for result in critical_tests:
+                status = "✅" if result["success"] else "❌"
+                logger.info(f"   {status} {result['test']}")
+            
+            # Показываем неудачные критические тесты
+            failed_critical = [result for result in critical_tests if not result["success"]]
+            if failed_critical:
+                logger.info("❌ НЕУДАЧНЫЕ КРИТИЧЕСКИЕ ТЕСТЫ:")
+                for result in failed_critical:
+                    logger.info(f"   ❌ {result['test']}: {result['details']}")
+            
+            # Итоговое заключение по анализу документов
+            if critical_passed == critical_total:
+                logger.info("🚀 КРИТИЧЕСКИЙ РЕЗУЛЬТАТ: ВСЕ ТЕСТЫ АНАЛИЗА ДОКУМЕНТОВ ПРОШЛИ!")
+                logger.info("✅ ПРОБЛЕМА 'файлы считываются, но анализ не выдается' ИСПРАВЛЕНА!")
+                logger.info("✅ Система использует РЕАЛЬНЫЙ AI анализ через super_analysis_engine")
+                logger.info("✅ Статичные заглушки заменены на comprehensive analysis")
+            else:
+                logger.info("❌ КРИТИЧЕСКАЯ ПРОБЛЕМА: НЕ ВСЕ ТЕСТЫ АНАЛИЗА ДОКУМЕНТОВ ПРОШЛИ")
+                logger.info("❌ Требуется дополнительная работа над анализом документов")
+        
+        logger.info("=" * 80)
+        
+        return {
+            "success_rate": success_rate,
+            "critical_passed": critical_passed,
+            "critical_total": critical_total,
+            "system_ready": system_ready,
+            "document_analysis_fixed": critical_passed == critical_total
+        }
+    
     def generate_performance_test_summary(self):
         """Generate and display performance test summary"""
         total_tests = len(self.test_results)
