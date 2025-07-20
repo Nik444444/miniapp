@@ -56,3 +56,4 @@ uritemplate>=4.2.0
 distro>=1.8.0
 httpcore>=1.0.0
 reportlab>=3.6.0
+beautifulsoup4>=4.12.0
