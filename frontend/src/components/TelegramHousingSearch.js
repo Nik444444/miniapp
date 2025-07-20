@@ -189,7 +189,7 @@ const TelegramHousingSearch = ({ onBack }) => {
                 
                 if (isTelegramWebApp()) {
                     hapticFeedback('success');
-                    showAlert('Подписка создана! Вы получите уведомления о новых предложениях.');
+                    showTelegramAlert('Подписка создана! Вы получите уведомления о новых предложениях.');
                 }
             } else {
                 throw new Error('Ошибка создания подписки');
