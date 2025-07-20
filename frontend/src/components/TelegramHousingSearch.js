@@ -142,7 +142,7 @@ const TelegramHousingSearch = ({ onBack }) => {
                 
                 if (isTelegramWebApp()) {
                     hapticFeedback('success');
-                    showAlert(`Найдено ${data.data?.total_found || 0} объявлений`);
+                    showTelegramAlert(`Найдено ${data.data?.total_found || 0} объявлений`);
                 }
             } else {
                 throw new Error('Ошибка поиска');
