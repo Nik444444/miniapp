@@ -508,6 +508,27 @@ REPEAT: RESPOND ONLY IN ENGLISH! DO NOT USE RUSSIAN!"""
         
         # Создаем структурированный результат
         result = {
+            "analysis": {
+                "full_analysis": cleaned_analysis,  # Добавляем для совместимости с frontend
+                "language": language,
+                "analysis_type": "ultra_comprehensive_analysis",
+                "sections": self._extract_analysis_sections(cleaned_analysis),
+                "insights": self._extract_insights(cleaned_analysis),
+                "action_items": self._extract_action_items(cleaned_analysis),
+                "urgency_assessment": self._assess_urgency(cleaned_analysis),
+                "quality_score": self._calculate_quality_score(cleaned_analysis),
+                # НОВЫЕ РАСШИРЕННЫЕ АСПЕКТЫ АНАЛИЗА
+                "psychological_profile": self._extract_psychological_profile(cleaned_analysis),
+                "power_dynamics": self._analyze_power_dynamics(cleaned_analysis),
+                "hidden_subtexts": self._extract_hidden_subtexts(cleaned_analysis),
+                "business_intelligence": self._extract_business_intelligence(cleaned_analysis),
+                "risk_assessment": self._perform_risk_assessment(cleaned_analysis),
+                "legal_compliance": self._extract_legal_compliance(cleaned_analysis),
+                "predictive_scenarios": self._generate_predictive_scenarios(cleaned_analysis),
+                "relationship_analysis": self._analyze_relationships(cleaned_analysis),
+                "cultural_context": self._extract_cultural_context(cleaned_analysis),
+                "influence_techniques": self._identify_influence_techniques(cleaned_analysis)
+            },
             "super_analysis": {
                 "full_text": cleaned_analysis,
                 "language": language,
