@@ -41,6 +41,7 @@ from google_api_key_service import google_api_service
 from letter_templates_service import letter_templates_service
 from letter_ai_service import letter_ai_service
 from letter_pdf_service import letter_pdf_service
+from super_analysis_engine import super_analysis_engine
 
 # Configure logging
 logging.basicConfig(
