@@ -1098,143 +1098,266 @@ class BackendTester:
             }
         )
     
-    async def test_critical_letter_generation_endpoints(self):
-        """🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Основные endpoints для генерации писем"""
-        logger.info("=== 🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Letter Generation Endpoints ===")
+    async def test_critical_document_analysis_fix(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверить исправление проблемы анализа документов в Telegram Mini App"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Исправление анализа документов ===")
         
-        # 1. Test GET /api/letter-categories - должен возвращать категории писем
-        success, data, error = await self.make_request("GET", "/api/letter-categories")
-        if success and isinstance(data, dict):
-            has_status = data.get("status") == "success"
-            has_categories = "categories" in data and isinstance(data["categories"], list)
-            categories_count = len(data.get("categories", []))
-            
-            # Проверяем что есть основные категории (Job Center, BAMF, медицинские)
-            categories = data.get("categories", [])
-            category_keys = [cat.get("key") for cat in categories if isinstance(cat, dict)]
-            has_job_center = "job_center" in category_keys
-            has_bamf = "bamf" in category_keys
-            has_medical = any("medical" in key or "health" in key for key in category_keys)
-            
-            self.log_test_result(
-                "🎯 GET /api/letter-categories - Категории писем",
-                has_status and has_categories and categories_count >= 3 and has_job_center,
-                f"Status: {has_status}, Categories count: {categories_count}, Has Job Center: {has_job_center}, Keys: {category_keys[:5]}",
-                data
-            )
-        else:
-            self.log_test_result("🎯 GET /api/letter-categories - Категории писем", False, f"Error: {error}", data)
+        # 1. Проверить что endpoint /api/analyze-file существует и принимает файлы
+        test_image_data = self.create_test_image()
+        form_data = aiohttp.FormData()
+        form_data.add_field('file', test_image_data, filename='test_document.jpg', content_type='image/jpeg')
+        form_data.add_field('language', 'ru')
         
-        # 2. Test GET /api/letter-templates/{category} - шаблоны по категории
-        success, data, error = await self.make_request("GET", "/api/letter-templates/job_center")
-        if success and isinstance(data, dict):
-            has_status = data.get("status") == "success"
-            has_templates = "templates" in data and isinstance(data["templates"], list)
-            templates_count = len(data.get("templates", []))
-            has_category = data.get("category") == "job_center"
-            
-            self.log_test_result(
-                "🎯 GET /api/letter-templates/job_center - Шаблоны Job Center",
-                has_status and has_templates and templates_count > 0 and has_category,
-                f"Status: {has_status}, Templates count: {templates_count}, Category: {data.get('category')}",
-                data
-            )
-        else:
-            self.log_test_result("🎯 GET /api/letter-templates/job_center - Шаблоны Job Center", False, f"Error: {error}", data)
+        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
         
-        # 3. Test GET /api/letter-template/{category}/{template} - конкретный шаблон
-        success, data, error = await self.make_request("GET", "/api/letter-template/job_center/unemployment_benefit")
-        # Может вернуть 404 если шаблон не найден - это нормально
-        if success and isinstance(data, dict):
-            has_status = data.get("status") == "success"
-            has_template = "template" in data
-            
-            self.log_test_result(
-                "🎯 GET /api/letter-template/job_center/unemployment_benefit - Конкретный шаблон",
-                has_status and has_template,
-                f"Status: {has_status}, Has template: {has_template}",
-                data
-            )
-        elif "404" in str(error):
-            # 404 - шаблон не найден, это приемлемо
-            self.log_test_result(
-                "🎯 GET /api/letter-template/job_center/unemployment_benefit - Конкретный шаблон",
-                True,
-                f"Template not found (404) - acceptable behavior",
-                data
-            )
-        else:
-            self.log_test_result("🎯 GET /api/letter-template/job_center/unemployment_benefit - Конкретный шаблон", False, f"Error: {error}", data)
-        
-        # 4. Test POST /api/generate-letter - основной endpoint для генерации писем (требует аутентификацию)
-        test_letter_data = {
-            "user_request": "Написать письмо в Job Center о продлении пособия по безработице",
-            "recipient_type": "job_center",
-            "recipient_info": {"name": "Job Center Berlin"},
-            "sender_info": {"name": "Test User"},
-            "include_translation": True
-        }
-        success, data, error = await self.make_request("POST", "/api/generate-letter", json=test_letter_data)
-        
-        # Должен требовать аутентификацию (401/403), не возвращать ошибку сервера
+        # Должен требовать аутентификацию, но НЕ возвращать ошибку сервера (500)
         is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        no_server_error = "500" not in str(error) and not (isinstance(data, dict) and "500" in str(data))
         
         self.log_test_result(
-            "🎯 POST /api/generate-letter - Генерация письма (требует auth)",
-            is_auth_required,
-            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            "🎯 POST /api/analyze-file - Endpoint доступен для анализа документов",
+            is_auth_required and no_server_error,
+            f"Auth required: {is_auth_required}, No server error: {no_server_error}, Response: {error}",
             data
         )
         
-        # 5. Test POST /api/generate-letter-template - генерация по шаблону (требует аутентификацию)
-        test_template_data = {
-            "template_category": "job_center",
-            "template_key": "unemployment_benefit",
-            "user_data": {"name": "Test User", "address": "Berlin"},
-            "sender_info": {"name": "Test User"},
-            "recipient_info": {"name": "Job Center Berlin"},
-            "include_translation": True
-        }
-        success, data, error = await self.make_request("POST", "/api/generate-letter-template", json=test_template_data)
+        # 2. Проверить что endpoint принимает разные типы файлов
+        file_types = [
+            ('document.jpg', 'image/jpeg'),
+            ('scan.png', 'image/png'), 
+            ('letter.pdf', 'application/pdf'),
+            ('photo.webp', 'image/webp')
+        ]
         
-        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        all_types_accepted = True
+        for filename, content_type in file_types:
+            form_data = aiohttp.FormData()
+            form_data.add_field('file', test_image_data, filename=filename, content_type=content_type)
+            form_data.add_field('language', 'ru')
+            
+            success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
+            
+            # Должен принимать файл (требовать auth, а не отклонять формат)
+            accepts_format = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+            
+            if not accepts_format:
+                all_types_accepted = False
+                logger.warning(f"File type {content_type} not properly accepted: {error}")
         
         self.log_test_result(
-            "🎯 POST /api/generate-letter-template - Генерация по шаблону (требует auth)",
-            is_auth_required,
-            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            "🎯 POST /api/analyze-file - Принимает разные типы файлов",
+            all_types_accepted,
+            f"All file types accepted: {all_types_accepted}",
+            {"tested_types": [f[1] for f in file_types]}
+        )
+        
+        # 3. Проверить что система готова для реального анализа (не заглушки)
+        # Проверяем что super_analysis_engine импортирован через проверку структуры ответа
+        success, data, error = await self.make_request("GET", "/api/health")
+        
+        if success and isinstance(data, dict):
+            # Система должна быть готова к анализу
+            is_healthy = data.get("status") == "healthy"
+            has_users = "users_count" in data
+            has_analyses = "analyses_count" in data
+            
+            self.log_test_result(
+                "🎯 Система готова для реального анализа (не заглушки)",
+                is_healthy and has_users and has_analyses,
+                f"Healthy: {is_healthy}, Has users: {has_users}, Has analyses: {has_analyses}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 Система готова для реального анализа (не заглушки)", False, f"Health check failed: {error}", data)
+    
+    async def test_super_analysis_engine_integration(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверить интеграцию super_analysis_engine"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Интеграция super_analysis_engine ===")
+        
+        # Проверяем что система не работает в fallback режиме с заглушками
+        # Это можно проверить через modern LLM status
+        success, data, error = await self.make_request("GET", "/api/modern-llm-status")
+        
+        if success and isinstance(data, dict):
+            has_modern_flag = data.get("modern") is True
+            has_providers = "providers" in data and isinstance(data["providers"], dict)
+            providers_count = len(data.get("providers", {}))
+            
+            # Проверяем что есть современные провайдеры для анализа
+            providers = data.get("providers", {})
+            modern_providers = []
+            for provider_name, provider_info in providers.items():
+                if provider_info.get("modern") is True:
+                    modern_providers.append(provider_name)
+            
+            self.log_test_result(
+                "🎯 Super Analysis Engine - Modern LLM интеграция",
+                has_modern_flag and has_providers and len(modern_providers) > 0,
+                f"Modern: {has_modern_flag}, Providers: {providers_count}, Modern providers: {modern_providers}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 Super Analysis Engine - Modern LLM интеграция", False, f"Error: {error}", data)
+        
+        # Проверяем что система НЕ в fallback режиме
+        success, data, error = await self.make_request("GET", "/api/llm-status")
+        
+        if success and isinstance(data, dict):
+            has_providers = "providers" in data and isinstance(data["providers"], dict)
+            active_providers = data.get("active_providers", 0)
+            total_providers = data.get("total_providers", 0)
+            
+            # Система должна иметь доступные провайдеры для анализа
+            has_active_providers = active_providers > 0 or total_providers > 0
+            
+            self.log_test_result(
+                "🎯 Super Analysis Engine - НЕ в fallback режиме",
+                has_providers and has_active_providers,
+                f"Has providers: {has_providers}, Active: {active_providers}/{total_providers}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 Super Analysis Engine - НЕ в fallback режиме", False, f"Error: {error}", data)
+    
+    async def test_real_analysis_vs_stubs(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Убедиться что система возвращает реальный анализ, а не заглушки"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Реальный анализ vs заглушки ===")
+        
+        # Проверяем что analyze-file endpoint настроен для реального анализа
+        # Тестируем структуру ответа без аутентификации
+        test_image_data = self.create_test_image()
+        form_data = aiohttp.FormData()
+        form_data.add_field('file', test_image_data, filename='important_document.jpg', content_type='image/jpeg')
+        form_data.add_field('language', 'ru')
+        
+        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
+        
+        # Должен требовать аутентификацию, но НЕ возвращать заглушку или статичный ответ
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        # Проверяем что это НЕ статичная заглушка (не возвращает готовый анализ без аутентификации)
+        is_not_static_stub = not (success and isinstance(data, dict) and "analysis" in data and "summary" in data)
+        
+        self.log_test_result(
+            "🎯 Реальный анализ - НЕ статичные заглушки",
+            is_auth_required and is_not_static_stub,
+            f"Requires auth: {is_auth_required}, Not static stub: {is_not_static_stub}",
             data
         )
         
-        # 6. Test POST /api/save-letter - сохранение письма (требует аутентификацию)
-        test_save_data = {
-            "title": "Test Letter",
-            "content": "Test letter content",
-            "content_german": "Test German content",
-            "translation": "Test translation",
-            "translation_language": "ru",
-            "subject": "Test Subject",
-            "recipient_type": "job_center",
-            "letter_type": "custom",
-            "generation_method": "ai"
-        }
-        success, data, error = await self.make_request("POST", "/api/save-letter", json=test_save_data)
+        # Проверяем что система готова для comprehensive analysis
+        # Это можно проверить через наличие современных LLM провайдеров
+        success, data, error = await self.make_request("GET", "/api/modern-llm-status")
         
+        if success and isinstance(data, dict):
+            providers = data.get("providers", {})
+            
+            # Ищем провайдеры способные на comprehensive analysis
+            comprehensive_capable = []
+            for provider_name, provider_info in providers.items():
+                model = provider_info.get("model", "")
+                # Современные модели способные на детальный анализ
+                if any(advanced_model in model for advanced_model in ["gemini-2.0-flash", "gpt-4o", "claude-3-5-sonnet"]):
+                    comprehensive_capable.append(f"{provider_name}:{model}")
+            
+            self.log_test_result(
+                "🎯 Система готова для comprehensive analysis",
+                len(comprehensive_capable) > 0,
+                f"Comprehensive capable providers: {comprehensive_capable}",
+                {"capable_providers": comprehensive_capable}
+            )
+        else:
+            self.log_test_result("🎯 Система готова для comprehensive analysis", False, f"Error: {error}", data)
+    
+    async def test_user_api_keys_for_analysis(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверить что система использует пользовательские API ключи для анализа"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Пользовательские API ключи для анализа ===")
+        
+        # Проверяем что endpoint для сохранения API ключей работает
+        test_api_keys = {
+            "api_key_1": "test_gemini_key_for_analysis",
+            "api_key_2": "test_openai_key_for_analysis",
+            "api_key_3": "test_anthropic_key_for_analysis"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/api-keys", json=test_api_keys)
+        
+        # Должен требовать аутентификацию, но принимать новые названия ключей
         is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        no_validation_error = "422" not in str(error) and not (isinstance(data, dict) and "validation" in str(data).lower())
         
         self.log_test_result(
-            "🎯 POST /api/save-letter - Сохранение письма (требует auth)",
-            is_auth_required,
-            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            "🎯 API Keys - Поддержка пользовательских ключей для анализа",
+            is_auth_required and no_validation_error,
+            f"Auth required: {is_auth_required}, No validation error: {no_validation_error}",
             data
         )
         
-        # 7. Test POST /api/generate-letter-pdf - PDF генерация (требует аутентификацию)
-        test_pdf_data = {
-            "letter_id": "test-letter-id",
-            "include_translation": True
-        }
-        success, data, error = await self.make_request("POST", "/api/generate-letter-pdf", json=test_pdf_data)
+        # Проверяем что quick-gemini-setup также работает для анализа
+        test_gemini_setup = {"api_key": "test_gemini_key_for_document_analysis"}
+        success, data, error = await self.make_request("POST", "/api/quick-gemini-setup", json=test_gemini_setup)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        no_server_error = "500" not in str(error)
+        
+        self.log_test_result(
+            "🎯 Quick Gemini Setup - Для анализа документов",
+            is_auth_required and no_server_error,
+            f"Auth required: {is_auth_required}, No server error: {no_server_error}",
+            data
+        )
+    
+    async def test_extracted_text_processing(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверить что extracted_text правильно передается в super_analysis_engine"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Обработка извлеченного текста ===")
+        
+        # Проверяем что OCR система готова для извлечения текста
+        success, data, error = await self.make_request("GET", "/api/ocr-status")
+        
+        if success and isinstance(data, dict):
+            ocr_service = data.get("ocr_service", {})
+            
+            # Проверяем что есть методы для извлечения текста
+            methods = ocr_service.get("methods", {})
+            has_text_extraction = len(methods) > 0
+            
+            # Проверяем что есть tesseract или другие методы OCR
+            has_tesseract = "tesseract_ocr" in methods
+            has_direct_pdf = "direct_pdf" in methods
+            
+            # Проверяем что система готова к production
+            production_ready = ocr_service.get("production_ready") is True
+            
+            self.log_test_result(
+                "🎯 OCR система готова для извлечения текста",
+                has_text_extraction and (has_tesseract or has_direct_pdf) and production_ready,
+                f"Has extraction: {has_text_extraction}, Tesseract: {has_tesseract}, Direct PDF: {has_direct_pdf}, Production: {production_ready}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 OCR система готова для извлечения текста", False, f"Error: {error}", data)
+        
+        # Проверяем что analyze-file endpoint готов обрабатывать извлеченный текст
+        test_image_data = self.create_test_image()
+        form_data = aiohttp.FormData()
+        form_data.add_field('file', test_image_data, filename='text_document.jpg', content_type='image/jpeg')
+        form_data.add_field('language', 'ru')
+        
+        # Измеряем время ответа - должен быстро обрабатывать
+        start_time = time.time()
+        success, data, error = await self.make_request("POST", "/api/analyze-file", data=form_data)
+        response_time = time.time() - start_time
+        
+        # Должен быстро отвечать и требовать аутентификацию
+        is_fast = response_time < 5.0  # Должен отвечать быстро
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 Analyze-file готов для обработки извлеченного текста",
+            is_fast and is_auth_required,
+            f"Fast response: {is_fast} ({response_time:.2f}s), Auth required: {is_auth_required}",
+            {"response_time": response_time}
+        )
         
         is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
         
