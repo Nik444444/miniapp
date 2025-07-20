@@ -79,3 +79,4 @@ agenthub/agents/youtube/db
 # Mobile development
 android-sdk/ miniapp-main.zip
 miniapp-main.zip
+frontend/node_modules/.cache/default-development/0.pack
