@@ -25,7 +25,7 @@ import {
     isTelegramWebApp, 
     getTelegramWebApp, 
     hapticFeedback,
-    showAlert
+    showTelegramAlert
 } from '../utils/telegramWebApp';
 
 const TelegramHousingSearch = ({ onBack }) => {
