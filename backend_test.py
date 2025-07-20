@@ -3330,12 +3330,20 @@ class BackendTester:
         logger.info("🎯 ТЕСТИРОВАНИЕ ПРОИЗВОДИТЕЛЬНОСТИ OCR СИСТЕМЫ ЗАВЕРШЕНО")
 
     async def run_all_tests(self):
-        """Run all backend tests with focus on critical document analysis fix"""
-        logger.info("🎯 STARTING CRITICAL DOCUMENT ANALYSIS TESTING")
+        """Run all backend tests with focus on Housing Search functionality"""
+        logger.info("🏠 STARTING HOUSING SEARCH FUNCTIONALITY TESTING")
         logger.info("=" * 80)
         
         try:
-            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ ДЛЯ АНАЛИЗА ДОКУМЕНТОВ
+            # 🏠 HOUSING SEARCH TESTS (NEW FUNCTIONALITY)
+            await self.test_housing_search_endpoints()
+            await self.test_housing_services_integration()
+            await self.test_housing_authentication()
+            await self.test_housing_error_handling()
+            await self.test_housing_data_integrity()
+            await self.test_housing_comprehensive_functionality()
+            
+            # 🎯 CRITICAL DOCUMENT ANALYSIS TESTS (EXISTING)
             await self.test_critical_document_analysis_fix()
             await self.test_super_analysis_engine_integration()
             await self.test_real_analysis_vs_stubs()
@@ -3343,13 +3351,13 @@ class BackendTester:
             await self.test_user_api_keys_for_analysis()
             await self.test_extracted_text_processing()
             
-            # ПОДДЕРЖИВАЮЩИЕ ТЕСТЫ
+            # SUPPORTING TESTS
             await self.test_basic_health_endpoints()
             await self.test_api_health_endpoints()
             await self.test_modern_llm_status_endpoint()
             await self.test_authentication_required_endpoints()
             
-            # ТЕСТЫ ПРОИЗВОДИТЕЛЬНОСТИ
+            # PERFORMANCE TESTS
             await self.test_analyze_file_performance_ready()
             await self.test_ocr_performance_optimization()
             
@@ -3360,8 +3368,8 @@ class BackendTester:
             self.log_test_result("Test Execution", False, f"Critical error: {e}", None)
             system_ready = False
         
-        # Генерируем итоговый отчет
-        return self.generate_document_analysis_summary(system_ready)
+        # Generate comprehensive test summary
+        return self.generate_housing_search_summary(system_ready)
     
     def generate_critical_test_summary(self, system_ready=False):
         """Generate and display critical test summary for German Letter AI"""
