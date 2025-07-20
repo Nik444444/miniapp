@@ -3339,6 +3339,7 @@ class BackendTester:
             await self.test_critical_document_analysis_fix()
             await self.test_super_analysis_engine_integration()
             await self.test_real_analysis_vs_stubs()
+            await self.test_final_document_analysis_display_fix()
             await self.test_user_api_keys_for_analysis()
             await self.test_extracted_text_processing()
             
