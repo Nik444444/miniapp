@@ -52,7 +52,9 @@ const TelegramMainApp = () => {
             setCurrentView('document-analysis');
         } else if (toolId === 'letter-composer') {
             setCurrentView('letter-composer');
-        } else if (['housing-search', 'job-search', 'marketplace'].includes(toolId)) {
+        } else if (toolId === 'housing-search') {
+            setCurrentView('housing-search');
+        } else if (['job-search', 'marketplace'].includes(toolId)) {
             setCurrentView('coming-soon');
         }
     };
