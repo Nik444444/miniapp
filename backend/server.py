@@ -42,6 +42,8 @@ from letter_templates_service import letter_templates_service
 from letter_ai_service import letter_ai_service
 from letter_pdf_service import letter_pdf_service
 from super_analysis_engine import super_analysis_engine
+from housing_search_service import housing_search_service
+from housing_ai_service import housing_ai_service
 
 # Configure logging
 logging.basicConfig(
