@@ -3371,6 +3371,78 @@ class BackendTester:
         # Generate comprehensive test summary
         return self.generate_housing_search_summary(system_ready)
     
+    def generate_housing_search_summary(self, system_ready=False):
+        """Generate and display comprehensive test summary for Housing Search functionality"""
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        logger.info("=" * 80)
+        logger.info("🏠 HOUSING SEARCH FUNCTIONALITY TESTING COMPLETED")
+        logger.info(f"📊 OVERALL RESULTS: {passed_tests}/{total_tests} tests passed ({success_rate:.1f}% success)")
+        logger.info(f"✅ Passed: {passed_tests}")
+        logger.info(f"❌ Failed: {failed_tests}")
+        logger.info(f"🚀 System ready for production: {'YES' if system_ready else 'NO'}")
+        logger.info("=" * 80)
+        
+        # Housing Search specific results
+        housing_tests = [result for result in self.test_results if "🏠" in result["test"] or "housing" in result["test"].lower()]
+        housing_passed = sum(1 for result in housing_tests if result["success"])
+        housing_total = len(housing_tests)
+        
+        if housing_total > 0:
+            housing_success_rate = (housing_passed / housing_total * 100)
+            logger.info(f"🏠 HOUSING SEARCH TESTS: {housing_passed}/{housing_total} ({housing_success_rate:.1f}% success)")
+            
+            # Show housing test results
+            logger.info("🏠 HOUSING SEARCH RESULTS:")
+            for result in housing_tests:
+                status = "✅" if result["success"] else "❌"
+                logger.info(f"   {status} {result['test']}")
+            
+            # Show failed housing tests
+            failed_housing = [result for result in housing_tests if not result["success"]]
+            if failed_housing:
+                logger.info("❌ FAILED HOUSING TESTS:")
+                for result in failed_housing:
+                    logger.info(f"   ❌ {result['test']}: {result['details']}")
+            
+            # Housing functionality conclusion
+            if housing_passed == housing_total:
+                logger.info("🚀 HOUSING SEARCH RESULT: ALL TESTS PASSED!")
+                logger.info("✅ Housing Search API endpoints working correctly")
+                logger.info("✅ Housing Services integration successful")
+                logger.info("✅ Authentication & Authorization properly enforced")
+                logger.info("✅ Error handling and data integrity verified")
+                logger.info("✅ German real estate sites integration operational")
+                logger.info("✅ AI-powered analysis features functional")
+                logger.info("✅ Housing subscription system working")
+            else:
+                logger.info("❌ HOUSING SEARCH ISSUES: NOT ALL TESTS PASSED")
+                logger.info("❌ Some housing functionality requires attention")
+        
+        # Document Analysis results (existing functionality)
+        doc_tests = [result for result in self.test_results if "🎯" in result["test"] or "analysis" in result["test"].lower()]
+        doc_passed = sum(1 for result in doc_tests if result["success"])
+        doc_total = len(doc_tests)
+        
+        if doc_total > 0:
+            doc_success_rate = (doc_passed / doc_total * 100)
+            logger.info(f"🎯 DOCUMENT ANALYSIS TESTS: {doc_passed}/{doc_total} ({doc_success_rate:.1f}% success)")
+        
+        logger.info("=" * 80)
+        
+        return {
+            "success_rate": success_rate,
+            "housing_passed": housing_passed,
+            "housing_total": housing_total,
+            "doc_passed": doc_passed,
+            "doc_total": doc_total,
+            "system_ready": system_ready,
+            "housing_functional": housing_passed == housing_total if housing_total > 0 else False
+        }
+    
     def generate_critical_test_summary(self, system_ready=False):
         """Generate and display critical test summary for German Letter AI"""
         total_tests = len(self.test_results)
