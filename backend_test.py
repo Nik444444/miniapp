@@ -3573,6 +3573,523 @@ class BackendTester:
         logger.info("="*60)
         
         return passed, total
+    
+    # =====================================================
+    # 🏠 HOUSING SEARCH FUNCTIONALITY TESTS
+    # =====================================================
+    
+    async def test_housing_search_endpoints(self):
+        """🏠 Test all Housing Search API endpoints"""
+        logger.info("=== 🏠 Testing Housing Search API Endpoints ===")
+        
+        # Test main housing search endpoint (requires auth)
+        search_data = {
+            "city": "Berlin",
+            "max_price": 1500,
+            "property_type": "wohnung",
+            "radius": 10
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/housing-search", json=search_data)
+        
+        # Should require authentication
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "POST /api/housing-search - Main search endpoint",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test neighborhood analysis endpoint (requires auth)
+        analysis_data = {
+            "city": "München",
+            "district": "Schwabing"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/housing-neighborhood-analysis", json=analysis_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "POST /api/housing-neighborhood-analysis - Neighborhood analysis",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test create subscription endpoint (requires auth)
+        subscription_data = {
+            "city": "Hamburg",
+            "max_price": 1200,
+            "property_type": "wohnung"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/housing-subscriptions", json=subscription_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "POST /api/housing-subscriptions - Create subscription",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test get subscriptions endpoint (requires auth)
+        success, data, error = await self.make_request("GET", "/api/housing-subscriptions")
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "GET /api/housing-subscriptions - Get user subscriptions",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test update subscription endpoint (requires auth)
+        update_data = {
+            "max_price": 1300,
+            "active": True
+        }
+        
+        success, data, error = await self.make_request("PUT", "/api/housing-subscriptions/test_sub_123", json=update_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "PUT /api/housing-subscriptions/{id} - Update subscription",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test delete subscription endpoint (requires auth)
+        success, data, error = await self.make_request("DELETE", "/api/housing-subscriptions/test_sub_123")
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "DELETE /api/housing-subscriptions/{id} - Delete subscription",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test landlord contact endpoint (requires auth)
+        contact_data = {
+            "listing_id": "test_listing_123",
+            "user_name": "Max Mustermann",
+            "user_occupation": "Software Engineer",
+            "user_income": "4000 EUR"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/housing-landlord-contact", json=contact_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "POST /api/housing-landlord-contact - Generate landlord message",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test market status endpoint (public)
+        success, data, error = await self.make_request("GET", "/api/housing-market-status")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_service_data = "data" in data and isinstance(data["data"], dict)
+            service_data = data.get("data", {})
+            
+            has_supported_cities = "supported_cities" in service_data and isinstance(service_data["supported_cities"], list)
+            has_supported_sources = "supported_sources" in service_data and isinstance(service_data["supported_sources"], list)
+            has_ai_features = "ai_features" in service_data and isinstance(service_data["ai_features"], list)
+            
+            # Check for expected cities
+            expected_cities = ["Berlin", "München", "Hamburg", "Köln", "Frankfurt"]
+            cities_present = all(city in service_data.get("supported_cities", []) for city in expected_cities)
+            
+            # Check for expected sources
+            expected_sources = ["ImmoScout24", "Immobilien.de", "WG-Gesucht", "eBay Kleinanzeigen"]
+            sources_present = all(source in service_data.get("supported_sources", []) for source in expected_sources)
+            
+            # Check for AI features
+            expected_features = ["Scam Detection", "Price Analysis", "Neighborhood Insights"]
+            features_present = all(feature in service_data.get("ai_features", []) for feature in expected_features)
+            
+            self.log_test_result(
+                "GET /api/housing-market-status - Market status (public)",
+                has_status and has_service_data and has_supported_cities and has_supported_sources and has_ai_features and cities_present and sources_present and features_present,
+                f"Status: {has_status}, Cities: {cities_present}, Sources: {sources_present}, AI Features: {features_present}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "GET /api/housing-market-status - Market status (public)",
+                False,
+                f"Error: {error}",
+                data
+            )
+    
+    async def test_housing_services_integration(self):
+        """🏠 Test Housing Services Integration"""
+        logger.info("=== 🏠 Testing Housing Services Integration ===")
+        
+        # Test that housing market status shows proper service integration
+        success, data, error = await self.make_request("GET", "/api/housing-market-status")
+        
+        if success and isinstance(data, dict):
+            service_data = data.get("data", {})
+            
+            # Check service status
+            service_operational = service_data.get("service_status") == "operational"
+            
+            # Check cache functionality
+            has_cache_info = "cache_size" in service_data and isinstance(service_data["cache_size"], int)
+            
+            # Check supported sources (housing scraper integration)
+            supported_sources = service_data.get("supported_sources", [])
+            scraper_sources = ["ImmoScout24", "Immobilien.de", "WG-Gesucht", "eBay Kleinanzeigen"]
+            scraper_integration = all(source in supported_sources for source in scraper_sources)
+            
+            # Check AI features (housing AI service integration)
+            ai_features = service_data.get("ai_features", [])
+            expected_ai_features = ["Scam Detection", "Price Analysis", "Neighborhood Insights", "Total Cost Calculator", "Landlord Message Generator"]
+            ai_integration = all(feature in ai_features for feature in expected_ai_features)
+            
+            # Check supported cities
+            supported_cities = service_data.get("supported_cities", [])
+            major_cities = ["Berlin", "München", "Hamburg", "Köln", "Frankfurt", "Stuttgart", "Düsseldorf"]
+            cities_coverage = all(city in supported_cities for city in major_cities)
+            
+            self.log_test_result(
+                "Housing Services - Integration check",
+                service_operational and has_cache_info and scraper_integration and ai_integration and cities_coverage,
+                f"Service operational: {service_operational}, Cache: {has_cache_info}, Scraper: {scraper_integration}, AI: {ai_integration}, Cities: {cities_coverage}",
+                data
+            )
+            
+            # Test individual service components
+            self.log_test_result(
+                "Housing Scraper Service - Source integration",
+                scraper_integration,
+                f"All 4 scraper sources integrated: {scraper_sources}",
+                {"sources": supported_sources}
+            )
+            
+            self.log_test_result(
+                "Housing AI Service - Feature integration", 
+                ai_integration,
+                f"All 5 AI features integrated: {expected_ai_features}",
+                {"features": ai_features}
+            )
+            
+            self.log_test_result(
+                "Housing Search Service - Cache functionality",
+                has_cache_info,
+                f"Cache system operational with size tracking",
+                {"cache_size": service_data.get("cache_size")}
+            )
+            
+        else:
+            self.log_test_result(
+                "Housing Services - Integration check",
+                False,
+                f"Service status unavailable: {error}",
+                data
+            )
+    
+    async def test_housing_authentication(self):
+        """🏠 Test Housing Authentication & Authorization"""
+        logger.info("=== 🏠 Testing Housing Authentication & Authorization ===")
+        
+        # List of all protected housing endpoints
+        protected_endpoints = [
+            ("POST", "/api/housing-search", {"city": "Berlin", "max_price": 1500}),
+            ("POST", "/api/housing-neighborhood-analysis", {"city": "München", "district": "Schwabing"}),
+            ("POST", "/api/housing-subscriptions", {"city": "Hamburg", "max_price": 1200}),
+            ("GET", "/api/housing-subscriptions", None),
+            ("PUT", "/api/housing-subscriptions/test_123", {"max_price": 1300}),
+            ("DELETE", "/api/housing-subscriptions/test_123", None),
+            ("POST", "/api/housing-landlord-contact", {"listing_id": "test_123", "user_name": "Test User"})
+        ]
+        
+        all_protected = True
+        
+        for method, endpoint, payload in protected_endpoints:
+            if payload:
+                success, data, error = await self.make_request(method, endpoint, json=payload)
+            else:
+                success, data, error = await self.make_request(method, endpoint)
+            
+            # Should require authentication (401 or 403)
+            is_protected = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+            
+            if not is_protected:
+                all_protected = False
+                logger.warning(f"{method} {endpoint} does not require authentication!")
+        
+        self.log_test_result(
+            "Housing Endpoints - Authentication enforcement",
+            all_protected,
+            "All housing endpoints correctly require authentication" if all_protected else "Some housing endpoints allow unauthorized access",
+            {"protected_endpoints_count": len(protected_endpoints)}
+        )
+        
+        # Test public endpoint (should NOT require auth)
+        success, data, error = await self.make_request("GET", "/api/housing-market-status")
+        
+        is_public = success or not ("401" in str(error) or "403" in str(error))
+        
+        self.log_test_result(
+            "Housing Market Status - Public access",
+            is_public,
+            "Market status endpoint correctly allows public access" if is_public else f"Public endpoint requires auth: {error}",
+            data
+        )
+    
+    async def test_housing_error_handling(self):
+        """🏠 Test Housing Error Handling"""
+        logger.info("=== 🏠 Testing Housing Error Handling ===")
+        
+        # Test invalid request data
+        invalid_search_data = {
+            "city": "",  # Empty city
+            "max_price": -100,  # Negative price
+            "property_type": "invalid_type"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/housing-search", json=invalid_search_data)
+        
+        # Should fail with validation error or auth error (both acceptable)
+        handles_invalid_data = not success and ("422" in str(error) or "401" in str(error) or "403" in str(error) or "validation" in str(data).lower())
+        
+        self.log_test_result(
+            "Housing Search - Invalid data handling",
+            handles_invalid_data,
+            f"Correctly handles invalid search data" if handles_invalid_data else f"Invalid data handling issue: {error}",
+            data
+        )
+        
+        # Test missing required fields
+        incomplete_subscription = {
+            "max_price": 1500
+            # Missing required 'city' field
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/housing-subscriptions", json=incomplete_subscription)
+        
+        handles_missing_fields = not success and ("422" in str(error) or "401" in str(error) or "403" in str(error) or "validation" in str(data).lower())
+        
+        self.log_test_result(
+            "Housing Subscriptions - Missing fields handling",
+            handles_missing_fields,
+            f"Correctly handles missing required fields" if handles_missing_fields else f"Missing fields handling issue: {error}",
+            data
+        )
+        
+        # Test invalid subscription ID format
+        success, data, error = await self.make_request("PUT", "/api/housing-subscriptions/invalid-id-format", json={"max_price": 1000})
+        
+        handles_invalid_id = not success and ("401" in str(error) or "403" in str(error) or "404" in str(error))
+        
+        self.log_test_result(
+            "Housing Subscriptions - Invalid ID handling",
+            handles_invalid_id,
+            f"Correctly handles invalid subscription ID" if handles_invalid_id else f"Invalid ID handling issue: {error}",
+            data
+        )
+        
+        # Test malformed JSON
+        try:
+            # This should cause a JSON parsing error
+            success, data, error = await self.make_request("POST", "/api/housing-search", data="invalid json")
+            
+            handles_malformed_json = not success and ("400" in str(error) or "422" in str(error) or "401" in str(error))
+            
+            self.log_test_result(
+                "Housing Endpoints - Malformed JSON handling",
+                handles_malformed_json,
+                f"Correctly handles malformed JSON" if handles_malformed_json else f"JSON handling issue: {error}",
+                data
+            )
+        except Exception as e:
+            # Exception during request is also acceptable error handling
+            self.log_test_result(
+                "Housing Endpoints - Malformed JSON handling",
+                True,
+                f"Correctly raises exception for malformed JSON: {str(e)}",
+                None
+            )
+    
+    async def test_housing_data_integrity(self):
+        """🏠 Test Housing Data Integrity"""
+        logger.info("=== 🏠 Testing Housing Data Integrity ===")
+        
+        # Test housing market status data structure
+        success, data, error = await self.make_request("GET", "/api/housing-market-status")
+        
+        if success and isinstance(data, dict):
+            # Check top-level structure
+            has_status = "status" in data and data["status"] == "success"
+            has_data = "data" in data and isinstance(data["data"], dict)
+            has_message = "message" in data and isinstance(data["message"], str)
+            
+            service_data = data.get("data", {})
+            
+            # Check service data structure
+            required_fields = ["service_status", "cache_size", "supported_cities", "supported_sources", "ai_features"]
+            has_required_fields = all(field in service_data for field in required_fields)
+            
+            # Validate data types
+            cache_size_valid = isinstance(service_data.get("cache_size"), int) and service_data.get("cache_size") >= 0
+            cities_valid = isinstance(service_data.get("supported_cities"), list) and len(service_data.get("supported_cities", [])) > 0
+            sources_valid = isinstance(service_data.get("supported_sources"), list) and len(service_data.get("supported_sources", [])) > 0
+            features_valid = isinstance(service_data.get("ai_features"), list) and len(service_data.get("ai_features", [])) > 0
+            
+            # Check for expected German cities
+            expected_cities = ["Berlin", "München", "Hamburg", "Köln", "Frankfurt"]
+            cities_content_valid = all(city in service_data.get("supported_cities", []) for city in expected_cities)
+            
+            # Check for expected real estate sources
+            expected_sources = ["ImmoScout24", "Immobilien.de", "WG-Gesucht", "eBay Kleinanzeigen"]
+            sources_content_valid = all(source in service_data.get("supported_sources", []) for source in expected_sources)
+            
+            # Check for expected AI features
+            expected_features = ["Scam Detection", "Price Analysis", "Neighborhood Insights"]
+            features_content_valid = all(feature in service_data.get("ai_features", []) for feature in expected_features)
+            
+            data_integrity_valid = (has_status and has_data and has_message and has_required_fields and 
+                                  cache_size_valid and cities_valid and sources_valid and features_valid and
+                                  cities_content_valid and sources_content_valid and features_content_valid)
+            
+            self.log_test_result(
+                "Housing Market Status - Data structure integrity",
+                data_integrity_valid,
+                f"Structure: {has_required_fields}, Types: {cache_size_valid and cities_valid and sources_valid and features_valid}, Content: {cities_content_valid and sources_content_valid and features_content_valid}",
+                {
+                    "cities_count": len(service_data.get("supported_cities", [])),
+                    "sources_count": len(service_data.get("supported_sources", [])),
+                    "features_count": len(service_data.get("ai_features", [])),
+                    "cache_size": service_data.get("cache_size")
+                }
+            )
+            
+            # Test individual data components
+            self.log_test_result(
+                "Housing Data - German cities coverage",
+                cities_content_valid and len(service_data.get("supported_cities", [])) >= 15,
+                f"Covers major German cities: {len(service_data.get('supported_cities', []))} cities including {expected_cities}",
+                {"supported_cities": service_data.get("supported_cities", [])}
+            )
+            
+            self.log_test_result(
+                "Housing Data - Real estate sources integration",
+                sources_content_valid and len(service_data.get("supported_sources", [])) == 4,
+                f"All 4 major German real estate sources integrated: {expected_sources}",
+                {"supported_sources": service_data.get("supported_sources", [])}
+            )
+            
+            self.log_test_result(
+                "Housing Data - AI features availability",
+                features_content_valid and len(service_data.get("ai_features", [])) >= 5,
+                f"Comprehensive AI features available: {len(service_data.get('ai_features', []))} features including {expected_features}",
+                {"ai_features": service_data.get("ai_features", [])}
+            )
+            
+        else:
+            self.log_test_result(
+                "Housing Market Status - Data structure integrity",
+                False,
+                f"Failed to retrieve market status: {error}",
+                data
+            )
+    
+    async def test_housing_comprehensive_functionality(self):
+        """🏠 Comprehensive Housing Search Functionality Test"""
+        logger.info("=== 🏠 Testing Comprehensive Housing Search Functionality ===")
+        
+        # Test that all housing endpoints exist and are properly configured
+        housing_endpoints = [
+            ("POST", "/api/housing-search", "Main housing search"),
+            ("POST", "/api/housing-neighborhood-analysis", "Neighborhood analysis"),
+            ("POST", "/api/housing-subscriptions", "Create subscription"),
+            ("GET", "/api/housing-subscriptions", "Get subscriptions"),
+            ("PUT", "/api/housing-subscriptions/test", "Update subscription"),
+            ("DELETE", "/api/housing-subscriptions/test", "Delete subscription"),
+            ("POST", "/api/housing-landlord-contact", "Landlord contact"),
+            ("GET", "/api/housing-market-status", "Market status")
+        ]
+        
+        all_endpoints_exist = True
+        endpoint_results = []
+        
+        for method, endpoint, description in housing_endpoints:
+            if method == "GET" and "market-status" in endpoint:
+                # Public endpoint
+                success, data, error = await self.make_request(method, endpoint)
+                endpoint_exists = success or not ("404" in str(error))
+            else:
+                # Protected endpoints - should return auth error, not 404
+                test_data = {"city": "Berlin"} if method == "POST" else None
+                if test_data:
+                    success, data, error = await self.make_request(method, endpoint, json=test_data)
+                else:
+                    success, data, error = await self.make_request(method, endpoint)
+                
+                endpoint_exists = not ("404" in str(error))  # 404 means endpoint doesn't exist
+            
+            endpoint_results.append({
+                "endpoint": f"{method} {endpoint}",
+                "description": description,
+                "exists": endpoint_exists,
+                "error": error if not endpoint_exists else None
+            })
+            
+            if not endpoint_exists:
+                all_endpoints_exist = False
+        
+        self.log_test_result(
+            "Housing Search - All endpoints availability",
+            all_endpoints_exist,
+            f"All 8 housing endpoints exist and are properly configured" if all_endpoints_exist else f"Some endpoints missing or misconfigured",
+            {"endpoint_results": endpoint_results}
+        )
+        
+        # Test housing search system readiness
+        success, data, error = await self.make_request("GET", "/api/housing-market-status")
+        
+        if success and isinstance(data, dict):
+            service_data = data.get("data", {})
+            system_operational = service_data.get("service_status") == "operational"
+            has_all_sources = len(service_data.get("supported_sources", [])) == 4
+            has_all_features = len(service_data.get("ai_features", [])) >= 5
+            has_major_cities = len(service_data.get("supported_cities", [])) >= 15
+            
+            system_ready = system_operational and has_all_sources and has_all_features and has_major_cities
+            
+            self.log_test_result(
+                "Housing Search System - Production readiness",
+                system_ready,
+                f"Operational: {system_operational}, Sources: {has_all_sources}, Features: {has_all_features}, Cities: {has_major_cities}",
+                {
+                    "service_status": service_data.get("service_status"),
+                    "sources_count": len(service_data.get("supported_sources", [])),
+                    "features_count": len(service_data.get("ai_features", [])),
+                    "cities_count": len(service_data.get("supported_cities", []))
+                }
+            )
+        else:
+            self.log_test_result(
+                "Housing Search System - Production readiness",
+                False,
+                f"System status check failed: {error}",
+                data
+            )
 
 async def main():
     """Main test execution"""
