@@ -577,5 +577,207 @@ class SQLiteDatabase:
                 "actions": [dict(row) for row in action_stats]
             }
 
+    # =====================================================
+    # МЕТОДЫ ДЛЯ РАБОТЫ С ПОДПИСКАМИ НА ПОИСК ЖИЛЬЯ
+    # =====================================================
+
+    def create_housing_subscription(self, subscription_data: Dict[str, Any]) -> str:
+        """Создание подписки на поиск жилья (синхронная версия)"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Создаем таблицу если её нет
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS housing_subscriptions (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                city TEXT NOT NULL,
+                max_price INTEGER,
+                property_type TEXT DEFAULT 'wohnung',
+                radius INTEGER,
+                active INTEGER DEFAULT 1,
+                created_at TEXT NOT NULL,
+                last_checked TEXT,
+                notification_count INTEGER DEFAULT 0,
+                search_params TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Вставляем данные
+        cursor.execute('''
+            INSERT OR REPLACE INTO housing_subscriptions 
+            (id, user_id, city, max_price, property_type, radius, active, 
+             created_at, last_checked, notification_count, search_params)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            subscription_data['id'],
+            subscription_data['user_id'],
+            subscription_data['city'],
+            subscription_data.get('max_price'),
+            subscription_data.get('property_type', 'wohnung'),
+            subscription_data.get('radius'),
+            1 if subscription_data.get('active', True) else 0,
+            subscription_data['created_at'],
+            subscription_data.get('last_checked'),
+            subscription_data.get('notification_count', 0),
+            json.dumps(subscription_data)
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"Created housing subscription: {subscription_data['id']}")
+        return subscription_data['id']
+
+    def get_user_housing_subscriptions(self, user_id: str) -> List[Dict[str, Any]]:
+        """Получение подписок пользователя на жилье"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Создаем таблицу если её нет
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS housing_subscriptions (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                city TEXT NOT NULL,
+                max_price INTEGER,
+                property_type TEXT DEFAULT 'wohnung',
+                radius INTEGER,
+                active INTEGER DEFAULT 1,
+                created_at TEXT NOT NULL,
+                last_checked TEXT,
+                notification_count INTEGER DEFAULT 0,
+                search_params TEXT,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        cursor.execute('''
+            SELECT * FROM housing_subscriptions 
+            WHERE user_id = ? AND active = 1
+            ORDER BY created_at DESC
+        ''', (user_id,))
+        
+        rows = cursor.fetchall()
+        subscriptions = []
+        
+        for row in rows:
+            subscription = dict(row)
+            # Parse search_params if available
+            if subscription['search_params']:
+                try:
+                    parsed_params = json.loads(subscription['search_params'])
+                    subscription.update(parsed_params)
+                except:
+                    pass
+            subscriptions.append(subscription)
+        
+        conn.close()
+        return subscriptions
+
+    def update_housing_subscription(self, subscription_id: str, user_id: str, updates: Dict[str, Any]) -> bool:
+        """Обновление подписки на жилье"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Build dynamic update query
+        set_clauses = []
+        values = []
+        
+        for key, value in updates.items():
+            if key in ['city', 'max_price', 'property_type', 'radius', 'active']:
+                set_clauses.append(f"{key} = ?")
+                values.append(value)
+        
+        if not set_clauses:
+            conn.close()
+            return False
+        
+        values.extend([subscription_id, user_id])
+        
+        query = f'''
+            UPDATE housing_subscriptions 
+            SET {', '.join(set_clauses)}
+            WHERE id = ? AND user_id = ?
+        '''
+        
+        cursor.execute(query, values)
+        updated_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        return updated_count > 0
+
+    def delete_housing_subscription(self, subscription_id: str, user_id: str) -> bool:
+        """Удаление подписки на жилье"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE housing_subscriptions 
+            SET active = 0 
+            WHERE id = ? AND user_id = ?
+        ''', (subscription_id, user_id))
+        
+        updated_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        return updated_count > 0
+
+    def get_all_active_housing_subscriptions(self) -> List[Dict[str, Any]]:
+        """Получение всех активных подписок для уведомлений"""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT hs.*, u.email, u.name 
+            FROM housing_subscriptions hs
+            JOIN users u ON hs.user_id = u.id
+            WHERE hs.active = 1
+            ORDER BY hs.last_checked ASC
+        ''')
+        
+        rows = cursor.fetchall()
+        subscriptions = []
+        
+        for row in rows:
+            subscription = dict(row)
+            # Parse search_params if available
+            if subscription['search_params']:
+                try:
+                    parsed_params = json.loads(subscription['search_params'])
+                    subscription.update(parsed_params)
+                except:
+                    pass
+            subscriptions.append(subscription)
+        
+        conn.close()
+        return subscriptions
+
+    def update_subscription_last_checked(self, subscription_id: str, notification_count: int = None):
+        """Обновление времени последней проверки подписки"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        if notification_count is not None:
+            cursor.execute('''
+                UPDATE housing_subscriptions 
+                SET last_checked = ?, notification_count = ?
+                WHERE id = ?
+            ''', (datetime.utcnow().isoformat(), notification_count, subscription_id))
+        else:
+            cursor.execute('''
+                UPDATE housing_subscriptions 
+                SET last_checked = ?
+                WHERE id = ?
+            ''', (datetime.utcnow().isoformat(), subscription_id))
+        
+        conn.commit()
+        conn.close()
+
 # Глобальный экземпляр базы данных
 db = SQLiteDatabase()
