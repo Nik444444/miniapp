@@ -1,0 +1,72 @@
+services:
+  # Backend сервис - используем Python buildpack для лучшей совместимости
+  - type: web
+    name: german-ai-backend
+    env: python
+    region: oregon
+    plan: starter
+    buildCommand: |
+      # Устанавливаем системные пакеты
+      apt-get update && apt-get install -y \
+        tesseract-ocr \
+        tesseract-ocr-deu \
+        tesseract-ocr-rus \
+        tesseract-ocr-eng \
+        tesseract-ocr-ukr \
+        libtesseract-dev \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        libgomp1 \
+        poppler-utils \
+        && echo "✅ System packages installed" \
+        && tesseract --version \
+        && echo "✅ Tesseract version confirmed" \
+        && pip install --upgrade pip \
+        && pip install -r backend/requirements.txt \
+        && echo "✅ Python packages installed" \
+        && pip install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ --trusted-host d33sy5i8bnduwe.cloudfront.net || echo "⚠️ emergentintegrations installation failed, will use fallback" \
+        && python -c "import pytesseract; print('✅ pytesseract OK')" \
+        && python -c "import cv2; print('✅ opencv OK')" \
+        && python -c "import PIL; print('✅ Pillow OK')" \
+        && echo "✅ Build completed successfully"
+    startCommand: cd backend && uvicorn server:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SQLITE_DB_PATH
+        value: /opt/render/project/src/backend/data/german_ai.db
+      - key: TESSERACT_AVAILABLE
+        value: true
+      - key: TESSERACT_VERSION
+        value: 5.3.0
+      - key: PATH
+        value: /usr/bin:/usr/local/bin:/opt/render/project/src/.venv/bin:/home/render/.bun/bin:/opt/render/project/nodes/node-22.16.0/bin:/opt/render/project/src/.venv/bin:/opt/render/project/poetry/bin:/opt/render/project/uv/bin:/home/render/.python-poetry/bin:/usr/local/cargo/bin:/opt/render/project/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/render/bin
+    
+  # Frontend сервис
+  - type: web
+    name: german-ai-frontend
+    env: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        value: https://german-letterai-assistant.onrender.com
+      - key: REACT_APP_GOOGLE_CLIENT_ID
+        value: 364877380148-nhlcauaonsvm5j0feh5fltn3qsa6tffm.apps.googleusercontent.com
