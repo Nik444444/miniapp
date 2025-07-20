@@ -1527,6 +1527,276 @@ async def get_public_texts():
         logger.error(f"Failed to get public texts: {e}")
         raise HTTPException(status_code=500, detail="Ошибка получения текстов")
 
+# =====================================================
+# HOUSING SEARCH ENDPOINTS
+# =====================================================
+
+@api_router.post("/housing-search")
+async def search_housing(
+    search_request: HousingSearchRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🏠 Search for housing in German cities with AI analysis
+    """
+    try:
+        logger.info(f"Housing search request from user {current_user['id']}: {search_request.city}")
+        
+        # Get user providers for AI analysis
+        user_providers = {
+            'provider': 'gemini',
+            'model': 'gemini-2.0-flash',
+            'api_key': await get_user_provider_key(current_user['id'], 'gemini')
+        }
+        
+        # Perform search
+        results = housing_search_service.search_housing(
+            city=search_request.city,
+            max_price=search_request.max_price,
+            property_type=search_request.property_type,
+            radius=search_request.radius,
+            user_providers=user_providers if user_providers['api_key'] else None
+        )
+        
+        logger.info(f"Housing search completed: {results.get('total_found', 0)} listings found")
+        
+        return {
+            "status": "success",
+            "data": results,
+            "message": f"Поиск в городе {search_request.city} завершен"
+        }
+        
+    except Exception as e:
+        logger.error(f"Housing search failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка поиска жилья: {str(e)}")
+
+@api_router.post("/housing-neighborhood-analysis")
+async def analyze_neighborhood(
+    analysis_request: NeighborhoodAnalysisRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🏙️ AI-powered neighborhood analysis
+    """
+    try:
+        logger.info(f"Neighborhood analysis request: {analysis_request.city}, {analysis_request.district}")
+        
+        # Get user providers for AI analysis
+        user_providers = {
+            'provider': 'gemini',
+            'model': 'gemini-2.0-flash',
+            'api_key': await get_user_provider_key(current_user['id'], 'gemini')
+        }
+        
+        analysis = housing_search_service.get_neighborhood_analysis(
+            city=analysis_request.city,
+            district=analysis_request.district,
+            user_providers=user_providers if user_providers['api_key'] else None
+        )
+        
+        return {
+            "status": "success",
+            "data": analysis,
+            "message": f"Анализ района в городе {analysis_request.city} завершен"
+        }
+        
+    except Exception as e:
+        logger.error(f"Neighborhood analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка анализа района: {str(e)}")
+
+@api_router.post("/housing-subscriptions")
+async def create_housing_subscription(
+    subscription_request: HousingSubscriptionRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📬 Create housing search subscription for notifications
+    """
+    try:
+        logger.info(f"Creating housing subscription for user {current_user['id']}: {subscription_request.city}")
+        
+        result = housing_search_service.save_user_search_subscription(
+            user_id=current_user['id'],
+            search_params=subscription_request.dict()
+        )
+        
+        return {
+            "status": "success",
+            "data": result,
+            "message": f"Подписка на поиск в городе {subscription_request.city} создана"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка создания подписки: {str(e)}")
+
+@api_router.get("/housing-subscriptions")
+async def get_housing_subscriptions(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📋 Get user's housing subscriptions
+    """
+    try:
+        subscriptions = housing_search_service.get_user_subscriptions(current_user['id'])
+        
+        return {
+            "status": "success",
+            "data": {
+                "subscriptions": subscriptions,
+                "total": len(subscriptions)
+            },
+            "message": f"Найдено {len(subscriptions)} активных подписок"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get subscriptions: {str(e)}")
+        raise HTTPException(status_code=500, detail="Ошибка получения подписок")
+
+@api_router.put("/housing-subscriptions/{subscription_id}")
+async def update_housing_subscription(
+    subscription_id: str,
+    updates: HousingSubscriptionUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    ✏️ Update housing subscription
+    """
+    try:
+        result = housing_search_service.update_subscription(
+            subscription_id=subscription_id,
+            user_id=current_user['id'],
+            updates=updates.dict(exclude_unset=True)
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to update subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Ошибка обновления подписки")
+
+@api_router.delete("/housing-subscriptions/{subscription_id}")
+async def delete_housing_subscription(
+    subscription_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🗑️ Delete housing subscription
+    """
+    try:
+        result = housing_search_service.delete_subscription(
+            subscription_id=subscription_id,
+            user_id=current_user['id']
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to delete subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail="Ошибка удаления подписки")
+
+@api_router.post("/housing-landlord-contact")
+async def generate_landlord_contact(
+    contact_request: LandlordContactRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    ✍️ Generate landlord contact message with AI
+    """
+    try:
+        user_info = {
+            'name': contact_request.user_name,
+            'occupation': contact_request.user_occupation,
+            'income': contact_request.user_income
+        }
+        
+        # Get user providers for AI analysis
+        user_providers = {
+            'provider': 'gemini',
+            'model': 'gemini-2.0-flash',
+            'api_key': await get_user_provider_key(current_user['id'], 'gemini')
+        }
+        
+        result = housing_search_service.generate_landlord_contact(
+            listing_id=contact_request.listing_id,
+            user_info=user_info,
+            user_providers=user_providers if user_providers['api_key'] else None
+        )
+        
+        return {
+            "status": "success",
+            "data": result,
+            "message": "Сообщение арендодателю создано"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to generate landlord contact: {str(e)}")
+        raise HTTPException(status_code=500, detail="Ошибка создания сообщения")
+
+@api_router.get("/housing-market-status")
+async def get_housing_market_status():
+    """
+    📊 Get housing market status and cache info
+    """
+    try:
+        return {
+            "status": "success",
+            "data": {
+                "service_status": "operational",
+                "cache_size": len(housing_search_service.search_cache),
+                "supported_cities": [
+                    "Berlin", "München", "Hamburg", "Köln", "Frankfurt",
+                    "Stuttgart", "Düsseldorf", "Dortmund", "Essen", "Leipzig",
+                    "Bremen", "Dresden", "Hannover", "Nürnberg", "Duisburg"
+                ],
+                "supported_sources": [
+                    "ImmoScout24", "Immobilien.de", "WG-Gesucht", "eBay Kleinanzeigen"
+                ],
+                "ai_features": [
+                    "Scam Detection", "Price Analysis", "Neighborhood Insights", 
+                    "Total Cost Calculator", "Landlord Message Generator"
+                ]
+            },
+            "message": "Housing search service operational"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get market status: {str(e)}")
+        raise HTTPException(status_code=500, detail="Service status unavailable")
+
+# Helper function for getting user API keys
+async def get_user_provider_key(user_id: str, provider: str) -> Optional[str]:
+    """Get user's API key for specified provider"""
+    try:
+        user = await db.get_user(user_id)
+        if not user:
+            return None
+        
+        # Map provider names to database columns
+        provider_mapping = {
+            'gemini': 'gemini_api_key',
+            'openai': 'openai_api_key',
+            'anthropic': 'anthropic_api_key'
+        }
+        
+        key_field = provider_mapping.get(provider)
+        if key_field and user.get(key_field):
+            return user[key_field]
+        
+        # Also check new API key fields
+        if user.get('api_key_1'):
+            return user['api_key_1']
+        elif user.get('api_key_2'):
+            return user['api_key_2']
+        elif user.get('api_key_3'):
+            return user['api_key_3']
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Failed to get user provider key: {str(e)}")
+        return None
+
 # Store push subscriptions (in production, use a database)
 push_subscriptions = {}
 
