@@ -821,21 +821,54 @@ async def analyze_file_authenticated(
                 else:
                     extracted_text = "Документ получен, но текст не найден. Возможно, документ содержит только изображения."
 
-            # Используем простой анализ документа
-            analysis_result_data = {
-                "summary": f"Анализ файла {file.filename} выполнен успешно",
-                "analysis": {
-                    "full_analysis": f"Документ {file.filename} был обработан и проанализирован.",
-                    "executive_summary": "Документ успешно обработан",
-                    "recommendations": [],
-                    "next_steps": [],
-                    "insights": [],
-                    "action_items": [],
-                    "urgency_level": "medium",
-                    "quality_score": 0.8,
-                    "sections": []
+            # Используем простой анализ документа только если не удалось извлечь текст
+            if not extracted_text or len(extracted_text.strip()) < 10:
+                # Заглушка только для пустых файлов
+                analysis_result_data = {
+                    "summary": f"Анализ файла {file.filename} - текст не найден",
+                    "analysis": {
+                        "full_analysis": "К сожалению, из данного файла не удалось извлечь читаемый текст. Попробуйте загрузить более четкое изображение или PDF с текстом.",
+                        "executive_summary": "Текст не обнаружен",
+                        "recommendations": ["Попробуйте более четкое изображение", "Убедитесь что документ содержит текст"],
+                        "next_steps": ["Переделать скан документа", "Проверить качество изображения"],
+                        "insights": [],
+                        "action_items": [],
+                        "urgency_level": "low",
+                        "quality_score": 0.1,
+                        "sections": []
+                    }
                 }
-            }
+            else:
+                # РЕАЛЬНЫЙ AI АНАЛИЗ ДОКУМЕНТА
+                logger.info(f"Starting comprehensive AI analysis for {file.filename} with text length: {len(extracted_text)}")
+                
+                try:
+                    # Используем супер-анализ для детального разбора
+                    analysis_result_data = await super_analysis_engine.analyze_document_comprehensively(
+                        document_text=extracted_text,
+                        language=user_language,
+                        filename=file.filename,
+                        user_providers=user_providers if user_providers else None
+                    )
+                    logger.info(f"Super analysis completed successfully for {file.filename}")
+                    
+                except Exception as e:
+                    logger.error(f"Super analysis failed for {file.filename}: {e}")
+                    # Fallback к простому анализу если супер-анализ не работает
+                    analysis_result_data = {
+                        "summary": f"Анализ файла {file.filename} выполнен с ограничениями",
+                        "analysis": {
+                            "full_analysis": f"Документ {file.filename} был обработан. Извлечен текст длиной {len(extracted_text)} символов. Для полного анализа необходимо настроить API ключи.",
+                            "executive_summary": "Документ успешно обработан, текст извлечен",
+                            "recommendations": ["Настройте API ключи для полного анализа"],
+                            "next_steps": ["Добавьте API ключи в профиле"],
+                            "insights": [f"Извлечен текст: {extracted_text[:200]}..." if len(extracted_text) > 200 else extracted_text],
+                            "action_items": [],
+                            "urgency_level": "medium",
+                            "quality_score": 0.6,
+                            "sections": []
+                        }
+                    }
             
             # Определяем тип файла для результата
             is_image = file.content_type and file.content_type.startswith('image/')
