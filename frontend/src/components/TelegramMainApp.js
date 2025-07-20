@@ -128,6 +128,10 @@ const TelegramMainApp = () => {
         return <TelegramLetterComposer onBack={handleBackToMenu} />;
     }
     
+    if (currentView === 'housing-search') {
+        return <TelegramHousingSearch onBack={handleBackToMenu} />;
+    }
+    
     if (currentView === 'api-key-setup') {
         return <TelegramApiKeySetup onBack={handleBackToMenu} />;
     }
