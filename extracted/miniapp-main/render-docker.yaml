@@ -1,0 +1,63 @@
+# Render.yaml для 100% работы Tesseract OCR через Docker
+services:
+  # Backend сервис с полной Docker конфигурацией
+  - type: web
+    name: german-letterai-assistant
+    env: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SQLITE_DB_PATH
+        value: /app/backend/data/german_ai.db
+      - key: TESSERACT_AVAILABLE
+        value: true
+      - key: TESSERACT_VERSION
+        value: 5.3.0
+      - key: TESSDATA_PREFIX
+        value: /usr/share/tesseract-ocr/5/tessdata
+      - key: PATH
+        value: /usr/bin:/usr/local/bin:/app/.venv/bin
+      - key: PYTHONPATH
+        value: /app/backend
+      - key: OCR_SPACE_API_KEY
+        sync: false
+      - key: AZURE_COMPUTER_VISION_KEY
+        sync: false
+      - key: AZURE_COMPUTER_VISION_ENDPOINT
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+  
+  # Frontend сервис (отдельно)
+  - type: web
+    name: german-ai-frontend
+    env: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        value: https://german-letterai-assistant.onrender.com
+      - key: REACT_APP_GOOGLE_CLIENT_ID
+        value: 364877380148-nhlcauaonsvm5j0feh5fltn3qsa6tffm.apps.googleusercontent.com

@@ -1,0 +1,76 @@
+# Используем официальный Python образ
+FROM python:3.11-slim
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Обновляем систему и устанавливаем необходимые системные пакеты
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-deu \
+    tesseract-ocr-rus \
+    tesseract-ocr-eng \
+    tesseract-ocr-ukr \
+    libtesseract-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    wget \
+    curl \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Обновляем pip до последней версии
+RUN pip install --upgrade pip
+
+# Копируем файлы зависимостей
+COPY backend/requirements.txt .
+
+# Устанавливаем стандартные зависимости
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копируем backend код
+COPY backend/ .
+
+# Устанавливаем emergentintegrations с нескольким методами установки
+RUN echo "=== INSTALLING EMERGENTINTEGRATIONS ===" && \
+    # Метод 1: Установка с основного индекса
+    pip install emergentintegrations==0.1.0 --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ --trusted-host d33sy5i8bnduwe.cloudfront.net && \
+    echo "✅ emergentintegrations installed successfully" || \
+    # Метод 2: Установка без версии, если точная версия недоступна
+    (pip install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/ --trusted-host d33sy5i8bnduwe.cloudfront.net && \
+    echo "✅ emergentintegrations installed (latest version)") || \
+    # Fallback: система будет работать без emergentintegrations
+    echo "⚠️ Warning: emergentintegrations installation failed, application will run in fallback mode"
+
+# Проверяем установку emergentintegrations
+RUN python -c "import emergentintegrations; print('✅ emergentintegrations available')" 2>/dev/null || \
+    echo "⚠️ emergentintegrations not available - system will work in fallback mode"
+
+# Создаем директорию для SQLite базы данных
+RUN mkdir -p /app/data
+
+# Проверяем установку tesseract и путь
+RUN which tesseract || echo "tesseract not found"
+RUN tesseract --version || echo "tesseract version check failed"
+RUN ls -la /usr/bin/tesseract || echo "tesseract binary not found"
+
+# Устанавливаем переменные окружения
+ENV SQLITE_DB_PATH=/app/data/german_ai.db
+ENV TESSERACT_AVAILABLE=true
+ENV TESSERACT_VERSION=5.3.0
+ENV PATH="/usr/bin:/usr/local/bin:$PATH"
+
+# Проверяем что все зависимости работают
+RUN python -c "import pytesseract; print('pytesseract OK')" || echo "pytesseract import failed"
+RUN python -c "import cv2; print('opencv OK')" || echo "opencv import failed"
+RUN python -c "import PIL; print('Pillow OK')" || echo "Pillow import failed"
+
+# Открываем порт 8001
+EXPOSE 8001
+
+# Запускаем приложение напрямую
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
