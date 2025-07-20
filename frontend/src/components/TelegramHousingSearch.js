@@ -145,7 +145,14 @@ const TelegramHousingSearch = ({ onBack }) => {
                     showTelegramAlert(`Найдено ${data.data?.total_found || 0} объявлений`);
                 }
             } else {
-                throw new Error('Ошибка поиска');
+                const errorData = await response.json();
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Необходимо войти в систему для поиска жилья');
+                } else if (errorData.detail) {
+                    throw new Error(errorData.detail);
+                } else {
+                    throw new Error('Ошибка поиска');
+                }
             }
         } catch (error) {
             setError('Ошибка поиска жилья. Попробуйте позже.');
