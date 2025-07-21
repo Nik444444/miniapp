@@ -2301,6 +2301,18 @@ async def get_job_search_status():
         status_info = {
             "status": "active",
             "api_source": "arbeitnow.com",
+            "arbeitnow_integration": {
+                "status": "active",
+                "api_endpoint": "https://www.arbeitnow.com/api/job-board-api",
+                "features": ["job_search", "filters", "pagination"],
+                "available": True
+            },
+            "service": {
+                "name": "Job Search Service",
+                "version": "1.0",
+                "provider": "arbeitnow.com",
+                "status": "operational"
+            },
             "features": [
                 "🔍 Job search with filters",
                 "🤖 AI language level estimation", 
