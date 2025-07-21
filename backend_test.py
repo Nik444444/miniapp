@@ -4221,6 +4221,60 @@ class BackendTester:
         
         return job_search_system_ready
 
+async def main():
+    """Main test execution - FINAL JOB SEARCH TESTING"""
+    async with BackendTester() as tester:
+        logger.info("🎯 ФИНАЛЬНОЕ ТЕСТИРОВАНИЕ: Job Search функциональность после всех исправлений")
+        logger.info("=" * 80)
+        
+        # ФОКУС НА КОНКРЕТНЫХ ЗАДАЧАХ ИЗ ЗАПРОСА:
+        # 1. GET /api/job-search-status - убедись что возвращает arbeitnow_integration и service информацию
+        # 2. POST /api/job-search - убедись что работает без аутентификации и возвращает результаты
+        # 3. German Language Levels - протестируй 2-3 уровня (например B1, C1) что они работают
+        # 4. Job search results - убедись что возвращает actual job listings (не 0 results)
+        
+        # Запускаем только критические тесты Job Search
+        await tester.test_arbeitnow_integration_status()
+        await tester.test_job_search_endpoints()
+        await tester.test_german_language_level_filtering_focused()  # Фокус на B1, C1
+        await tester.test_job_search_results_validation()
+        
+        # Выводим результаты
+        logger.info("=" * 80)
+        logger.info("🎯 РЕЗУЛЬТАТЫ ФИНАЛЬНОГО ТЕСТИРОВАНИЯ JOB SEARCH:")
+        
+        total_tests = len(tester.test_results)
+        passed_tests = sum(1 for result in tester.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        logger.info(f"Всего тестов: {total_tests}")
+        logger.info(f"Успешных: {passed_tests}")
+        logger.info(f"Неудачных: {failed_tests}")
+        logger.info(f"Процент успеха: {success_rate:.1f}%")
+        
+        # Выводим детали неудачных тестов
+        if failed_tests > 0:
+            logger.info("\n❌ НЕУДАЧНЫЕ ТЕСТЫ:")
+            for result in tester.test_results:
+                if not result["success"]:
+                    logger.info(f"  - {result['test']}: {result['details']}")
+        
+        # Выводим успешные критические тесты
+        logger.info("\n✅ УСПЕШНЫЕ КРИТИЧЕСКИЕ ТЕСТЫ:")
+        for result in tester.test_results:
+            if result["success"] and "🎯" in result["test"]:
+                logger.info(f"  - {result['test']}: {result['details']}")
+        
+        logger.info("=" * 80)
+        logger.info("🎯 ФИНАЛЬНОЕ ТЕСТИРОВАНИЕ JOB SEARCH ЗАВЕРШЕНО")
+        
+        return success_rate >= 75.0  # Считаем успешным если 75%+ тестов прошли
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+
     async def run_all_tests(self):
         """Run all backend tests with focus on Job Search functionality"""
         logger.info("🎯 STARTING JOB SEARCH FUNCTIONALITY TESTING")
