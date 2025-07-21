@@ -153,19 +153,44 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             });
 
-            const response = await fetch(`${backendUrl}/api/job-search?${queryParams}`);
+            console.log('Searching jobs with params:', queryParams.toString());
+            console.log('Backend URL:', backendUrl);
+            
+            const fullUrl = `${backendUrl}/api/job-search?${queryParams}`;
+            console.log('Full API URL:', fullUrl);
+
+            const response = await fetch(fullUrl);
+            console.log('Response status:', response.status);
+            
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (data.status === 'success') {
-                setJobs(data.data.jobs || []);
+                const jobsData = data.data.jobs || [];
+                console.log('Jobs found:', jobsData.length);
+                
+                setJobs(jobsData);
                 if (isTelegramWebApp()) {
-                    telegramWebApp.showAlert(`Найдено ${data.data.total_found} вакансий!`);
+                    telegramWebApp.showAlert(`✅ Найдено ${data.data.total_found || jobsData.length} вакансий!`);
+                } else {
+                    alert(`✅ Найдено ${data.data.total_found || jobsData.length} вакансий!`);
+                }
+            } else {
+                console.error('API returned non-success status:', data);
+                const errorMessage = data.message || 'Неизвестная ошибка сервера';
+                if (isTelegramWebApp()) {
+                    telegramWebApp.showAlert(`❌ ${errorMessage}`);
+                } else {
+                    alert(`❌ ${errorMessage}`);
                 }
             }
         } catch (error) {
             console.error('Error searching jobs:', error);
+            const errorMessage = `Ошибка поиска: ${error.message || error}`;
             if (isTelegramWebApp()) {
-                telegramWebApp.showAlert('Ошибка поиска вакансий');
+                telegramWebApp.showAlert(`❌ ${errorMessage}`);
+            } else {
+                alert(`❌ ${errorMessage}`);
             }
         } finally {
             setLoading(false);
