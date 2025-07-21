@@ -155,10 +155,29 @@ const TelegramJobSearch = ({ onBack }) => {
     };
 
     const handleCitySelect = (cityName) => {
-        setCitySearchInput(cityName);
-        setSearchFilters(prev => ({...prev, location: cityName}));
-        setShowCityDropdown(false);
-        if (isTelegramWebApp()) hapticFeedback('light');
+        try {
+            // Валидация названия города
+            if (!cityName || typeof cityName !== 'string') {
+                console.warn('Invalid city name:', cityName);
+                return;
+            }
+            
+            const cleanCityName = cityName.trim();
+            if (cleanCityName.length === 0) {
+                console.warn('Empty city name after trim');
+                return;
+            }
+            
+            console.log('Selecting city:', cleanCityName);
+            
+            setCitySearchInput(cleanCityName);
+            setSearchFilters(prev => ({...prev, location: cleanCityName}));
+            setShowCityDropdown(false);
+            
+            if (isTelegramWebApp()) hapticFeedback('light');
+        } catch (error) {
+            console.error('Error selecting city:', error);
+        }
     };
 
     const loadSubscriptions = async () => {
