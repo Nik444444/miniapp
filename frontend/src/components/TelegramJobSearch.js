@@ -36,6 +36,11 @@ const TelegramJobSearch = ({ onBack }) => {
     const [interviewType, setInterviewType] = useState('behavioral');
     const [jobDescription, setJobDescription] = useState('');
     const [coachingResult, setCoachingResult] = useState(null);
+    
+    // City search state
+    const [cities, setCities] = useState([]);
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
+    const [citySearchInput, setCitySearchInput] = useState('');
 
     const languageLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
     const jobCategories = ['tech', 'marketing', 'finance', 'sales', 'design', 'management', 'healthcare', 'education', 'other'];
