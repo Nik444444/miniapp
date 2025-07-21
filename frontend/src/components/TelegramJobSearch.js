@@ -54,25 +54,37 @@ const TelegramJobSearch = ({ onBack }) => {
     };
 
     useEffect(() => {
-        console.log('TelegramJobSearch mounted');
-        console.log('Backend URL:', backendUrl);
-        console.log('Is Telegram WebApp:', isTelegramWebApp());
-        
-        if (isTelegramWebApp()) {
-            if (currentView !== 'main') {
-                showBackButton(handleBackClick);
-            } else {
-                hideBackButton();
+        try {
+            console.log('TelegramJobSearch mounted');
+            console.log('Backend URL:', backendUrl);
+            console.log('Is Telegram WebApp:', isTelegramWebApp());
+            
+            if (isTelegramWebApp()) {
+                if (currentView !== 'main') {
+                    showBackButton(handleBackClick);
+                } else {
+                    hideBackButton();
+                }
             }
+            
+            // Load subscriptions if user is authenticated
+            if (user) {
+                loadSubscriptions();
+            }
+            
+            // Load popular cities
+            loadPopularCities();
+            
+            // Initialize city search input with current location filter
+            const currentLocation = searchFilters.location || '';
+            if (currentLocation !== citySearchInput) {
+                console.log('Initializing city search with:', currentLocation);
+                setCitySearchInput(currentLocation);
+            }
+        } catch (error) {
+            console.error('Error in TelegramJobSearch useEffect:', error);
         }
-
-        // Load user subscriptions on mount
-        loadSubscriptions();
-        loadPopularCities();
-        
-        // Initialize city search input with current location filter
-        setCitySearchInput(searchFilters.location || '');
-    }, [currentView]);
+    }, [currentView, user, searchFilters.location]);
 
     // Search cities when user types
     useEffect(() => {
