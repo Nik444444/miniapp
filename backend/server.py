@@ -1873,6 +1873,465 @@ async def send_push_notification(
         "body": message.body
     }
 
+# =====================================================
+# JOB SEARCH API ENDPOINTS
+# =====================================================
+
+@api_router.get("/job-search")
+async def search_jobs(
+    search_query: Optional[str] = None,
+    location: Optional[str] = None,
+    remote: Optional[bool] = None,
+    visa_sponsorship: Optional[bool] = None,
+    language_level: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 50
+):
+    """
+    🔍 Search for jobs with AI-powered filtering and language level matching
+    """
+    try:
+        logger.info(f"Job search request: query='{search_query}', location='{location}', language_level='{language_level}'")
+        
+        # Search jobs using the job search service
+        results = await job_search_service.search_jobs(
+            search_query=search_query,
+            location=location,
+            remote=remote,
+            visa_sponsorship=visa_sponsorship,
+            language_level=language_level,
+            category=category,
+            limit=limit
+        )
+        
+        return {
+            "status": "success",
+            "data": results,
+            "message": f"Найдено {results.get('total_found', 0)} вакансий"
+        }
+        
+    except Exception as e:
+        logger.error(f"Job search failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка поиска вакансий: {str(e)}")
+
+@api_router.post("/job-search")
+async def search_jobs_post(
+    search_request: JobSearchRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🔍 Advanced job search with detailed filtering (POST method)
+    """
+    try:
+        logger.info(f"Advanced job search from user {current_user['id']}: {search_request.dict()}")
+        
+        # Search jobs using the job search service
+        results = await job_search_service.search_jobs(
+            search_query=search_request.search_query,
+            location=search_request.location,
+            remote=search_request.remote,
+            visa_sponsorship=search_request.visa_sponsorship,
+            language_level=search_request.language_level,
+            category=search_request.category,
+            limit=search_request.limit
+        )
+        
+        # Add salary estimates for each job
+        if results.get('jobs'):
+            for job in results['jobs']:
+                try:
+                    salary_estimate = job_search_service.estimate_salary_range(job)
+                    job['estimated_salary'] = salary_estimate
+                except Exception as e:
+                    logger.warning(f"Failed to estimate salary for job {job.get('id', 'unknown')}: {e}")
+        
+        return {
+            "status": "success",
+            "data": results,
+            "message": f"Найдено {results.get('total_found', 0)} вакансий с расширенной фильтрацией"
+        }
+        
+    except Exception as e:
+        logger.error(f"Advanced job search failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка расширенного поиска вакансий: {str(e)}")
+
+@api_router.post("/job-subscriptions")
+async def create_job_subscription(
+    subscription_request: JobSubscriptionRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📬 Create job search subscription for Telegram notifications
+    """
+    try:
+        logger.info(f"Creating job subscription for user {current_user['id']}")
+        
+        # Save subscription
+        result = await job_search_service.save_job_subscription(
+            user_id=current_user['id'],
+            search_params=subscription_request.dict()
+        )
+        
+        return {
+            "status": "success",
+            "data": result,
+            "message": "Подписка на вакансии создана! Вы будете получать уведомления о новых подходящих вакансиях в Telegram."
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create job subscription: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка создания подписки на вакансии: {str(e)}")
+
+@api_router.get("/job-subscriptions")
+async def get_job_subscriptions(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📋 Get user's job subscriptions
+    """
+    try:
+        subscriptions = await job_search_service.get_user_subscriptions(current_user['id'])
+        
+        return {
+            "status": "success",
+            "data": subscriptions,
+            "count": len(subscriptions),
+            "message": f"Найдено {len(subscriptions)} активных подписок на вакансии"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get job subscriptions: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения подписок: {str(e)}")
+
+@api_router.put("/job-subscriptions/{subscription_id}")
+async def update_job_subscription(
+    subscription_id: str,
+    updates: JobSubscriptionUpdate,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    ✏️ Update job subscription
+    """
+    try:
+        result = await job_search_service.update_subscription(
+            subscription_id=subscription_id,
+            user_id=current_user['id'],
+            updates=updates.dict(exclude_unset=True)
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to update job subscription: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка обновления подписки: {str(e)}")
+
+@api_router.delete("/job-subscriptions/{subscription_id}")
+async def delete_job_subscription(
+    subscription_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🗑️ Delete job subscription
+    """
+    try:
+        result = await job_search_service.delete_subscription(
+            subscription_id=subscription_id,
+            user_id=current_user['id']
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to delete job subscription: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка удаления подписки: {str(e)}")
+
+# =====================================================
+# RESUME ANALYSIS API ENDPOINTS
+# =====================================================
+
+@api_router.post("/analyze-resume")
+async def analyze_resume(
+    resume_request: ResumeAnalysisRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📄 AI-powered resume analysis with improvement suggestions
+    """
+    try:
+        logger.info(f"Resume analysis request from user {current_user['id']}")
+        
+        # Get user providers for AI analysis
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Analyze resume
+        result = await job_ai_service.analyze_resume(
+            resume_text=resume_request.resume_text,
+            target_position=resume_request.target_position,
+            user_providers=user_providers if user_providers else None,
+            language=resume_request.language
+        )
+        
+        # Save analysis to database if successful
+        if result.get('status') == 'success':
+            try:
+                analysis_id = await db.save_resume_analysis({
+                    'user_id': current_user['id'],
+                    'resume_text': resume_request.resume_text,
+                    'target_position': resume_request.target_position,
+                    'analysis_result': result['analysis'],
+                    'overall_score': result['analysis'].get('overall_score'),
+                    'language': resume_request.language,
+                    'ai_provider': user_providers[0][0] if user_providers else 'demo'
+                })
+                result['analysis_id'] = analysis_id
+            except Exception as e:
+                logger.warning(f"Failed to save resume analysis: {e}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Resume analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка анализа резюме: {str(e)}")
+
+@api_router.post("/improve-resume")
+async def improve_resume(
+    improvement_request: ResumeImprovementRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    ✨ Generate improved version of resume based on analysis
+    """
+    try:
+        logger.info(f"Resume improvement request from user {current_user['id']}")
+        
+        # Get original analysis
+        analysis = await db.get_resume_analysis(improvement_request.resume_analysis_id, current_user['id'])
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Анализ резюме не найден")
+        
+        # Get user providers for AI improvement
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Generate improved resume
+        result = await job_ai_service.generate_improved_resume(
+            original_resume=analysis['resume_text'],
+            analysis_results=analysis['analysis_result'],
+            target_position=improvement_request.target_position or analysis.get('target_position'),
+            user_providers=user_providers if user_providers else None,
+            language=analysis.get('language', 'ru')
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Resume improvement failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка улучшения резюме: {str(e)}")
+
+@api_router.get("/resume-analyses")
+async def get_resume_analyses(
+    limit: int = 20,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📋 Get user's resume analyses history
+    """
+    try:
+        analyses = await db.get_user_resume_analyses(current_user['id'], limit)
+        
+        return {
+            "status": "success",
+            "data": analyses,
+            "count": len(analyses),
+            "message": f"Найдено {len(analyses)} анализов резюме"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get resume analyses: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения анализов резюме: {str(e)}")
+
+@api_router.get("/resume-analyses/{analysis_id}")
+async def get_resume_analysis(
+    analysis_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📄 Get specific resume analysis
+    """
+    try:
+        analysis = await db.get_resume_analysis(analysis_id, current_user['id'])
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Анализ резюме не найден")
+        
+        return {
+            "status": "success",
+            "data": analysis
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get resume analysis: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения анализа резюме: {str(e)}")
+
+# =====================================================
+# INTERVIEW PREPARATION API ENDPOINTS
+# =====================================================
+
+@api_router.post("/prepare-interview")
+async def prepare_interview(
+    prep_request: InterviewPrepRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🎤 AI-powered interview preparation and coaching
+    """
+    try:
+        logger.info(f"Interview preparation request from user {current_user['id']}")
+        
+        # Get user providers for AI coaching
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Prepare interview coaching
+        result = await job_ai_service.prepare_for_interview(
+            job_description=prep_request.job_description,
+            resume_text=prep_request.resume_text,
+            interview_type=prep_request.interview_type,
+            user_providers=user_providers if user_providers else None,
+            language=prep_request.language
+        )
+        
+        # Save preparation to database if successful
+        if result.get('status') == 'success':
+            try:
+                prep_id = await db.save_interview_preparation({
+                    'user_id': current_user['id'],
+                    'job_description': prep_request.job_description,
+                    'resume_text': prep_request.resume_text,
+                    'interview_type': prep_request.interview_type,
+                    'coaching_result': result['coaching'],
+                    'language': prep_request.language,
+                    'ai_provider': user_providers[0][0] if user_providers else 'demo'
+                })
+                result['preparation_id'] = prep_id
+            except Exception as e:
+                logger.warning(f"Failed to save interview preparation: {e}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Interview preparation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка подготовки к собеседованию: {str(e)}")
+
+@api_router.get("/interview-preparations")
+async def get_interview_preparations(
+    limit: int = 20,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📋 Get user's interview preparations history
+    """
+    try:
+        preparations = await db.get_user_interview_preparations(current_user['id'], limit)
+        
+        return {
+            "status": "success",
+            "data": preparations,
+            "count": len(preparations),
+            "message": f"Найдено {len(preparations)} подготовок к собеседованию"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get interview preparations: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения подготовок к собеседованию: {str(e)}")
+
+@api_router.get("/interview-preparations/{prep_id}")
+async def get_interview_preparation(
+    prep_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🎤 Get specific interview preparation
+    """
+    try:
+        preparation = await db.get_interview_preparation(prep_id, current_user['id'])
+        if not preparation:
+            raise HTTPException(status_code=404, detail="Подготовка к собеседованию не найдена")
+        
+        return {
+            "status": "success",
+            "data": preparation
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get interview preparation: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения подготовки к собеседованию: {str(e)}")
+
+# =====================================================
+# JOB SEARCH STATUS ENDPOINTS
+# =====================================================
+
+@api_router.get("/job-search-status")
+async def get_job_search_status():
+    """
+    📊 Get job search service status and statistics
+    """
+    try:
+        # Get service status
+        status_info = {
+            "status": "active",
+            "api_source": "arbeitnow.com",
+            "features": [
+                "🔍 Job search with filters",
+                "🤖 AI language level estimation", 
+                "📊 Job categorization",
+                "💰 Salary estimation",
+                "📬 Job subscriptions with Telegram notifications",
+                "📄 AI resume analysis",
+                "✨ Resume improvement suggestions",
+                "🎤 AI interview coaching"
+            ],
+            "language_levels": job_search_service.language_levels,
+            "job_categories": list(job_search_service.job_categories.keys()),
+            "interview_types": job_ai_service.interview_types,
+            "supported_languages": ["ru", "en", "de", "uk"],
+            "demo_mode": False
+        }
+        
+        return {
+            "status": "success",
+            "data": status_info,
+            "message": "Job Search сервис активен и готов к работе"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get job search status: {e}")
+        return {
+            "status": "error",
+            "message": f"Ошибка получения статуса Job Search сервиса: {str(e)}"
+        }
+
 # Include the router in the main app
 app.include_router(api_router)
 
