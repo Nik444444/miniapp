@@ -2289,7 +2289,87 @@ async def get_interview_preparation(
         raise HTTPException(status_code=500, detail=f"Ошибка получения подготовки к собеседованию: {str(e)}")
 
 # =====================================================
-# JOB SEARCH STATUS ENDPOINTS
+# GERMAN CITIES SEARCH ENDPOINTS
+# =====================================================
+
+@api_router.get("/cities/search")
+async def search_german_cities(
+    q: Optional[str] = None,
+    limit: int = 20
+):
+    """
+    🏙️ Search German cities for job search location filter
+    """
+    try:
+        logger.info(f"Searching cities with query: {q}")
+        
+        cities = german_cities_service.search_cities(
+            query=q or "",
+            limit=limit
+        )
+        
+        return {
+            "status": "success",
+            "data": {
+                "cities": cities,
+                "total": len(cities),
+                "query": q or "",
+                "popular_cities": german_cities_service.get_popular_cities(10) if not q else []
+            },
+            "message": f"Найдено {len(cities)} городов"
+        }
+        
+    except Exception as e:
+        logger.error(f"City search failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка поиска городов: {str(e)}")
+
+@api_router.get("/cities/popular")
+async def get_popular_cities():
+    """
+    ⭐ Get popular German cities for job search
+    """
+    try:
+        popular_cities = german_cities_service.get_popular_cities(15)
+        
+        return {
+            "status": "success", 
+            "data": {
+                "cities": popular_cities,
+                "total": len(popular_cities),
+                "note": "Популярные города для поиска работы в Германии"
+            },
+            "message": f"Получено {len(popular_cities)} популярных городов"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get popular cities: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения популярных городов: {str(e)}")
+
+@api_router.get("/cities/info/{city_name}")
+async def get_city_info(city_name: str):
+    """
+    ℹ️ Get detailed information about a specific German city
+    """
+    try:
+        city_info = german_cities_service.get_city_info(city_name)
+        
+        if not city_info:
+            raise HTTPException(status_code=404, detail=f"Город '{city_name}' не найден")
+        
+        return {
+            "status": "success",
+            "data": city_info,
+            "message": f"Информация о городе {city_info['name']}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get city info: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения информации о городе: {str(e)}")
+
+# =====================================================
+# JOB SEARCH STATUS ENDPOINTS  
 # =====================================================
 
 @api_router.get("/job-search-status")
