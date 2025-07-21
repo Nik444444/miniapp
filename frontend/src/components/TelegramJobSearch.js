@@ -77,15 +77,26 @@ const TelegramJobSearch = ({ onBack }) => {
     // Search cities when user types
     useEffect(() => {
         const delayDebounce = setTimeout(() => {
-            if (citySearchInput.length >= 2) {
-                searchCities(citySearchInput);
-            } else if (citySearchInput.length === 0) {
-                loadPopularCities();
+            try {
+                const input = citySearchInput || '';
+                console.log('City search useEffect triggered with input:', input);
+                
+                if (input.length >= 2) {
+                    searchCities(input);
+                } else if (input.length === 0) {
+                    loadPopularCities();
+                } else {
+                    // При вводе менее 2 символов очищаем список
+                    setCities([]);
+                }
+            } catch (error) {
+                console.error('Error in city search useEffect:', error);
+                setCities([]);
             }
         }, 300);
 
         return () => clearTimeout(delayDebounce);
-    }, [citySearchInput]);
+    }, [citySearchInput, backendUrl]);
 
     const handleBackClick = () => {
         if (currentView === 'main') {
