@@ -494,14 +494,50 @@ const TelegramJobSearch = ({ onBack }) => {
                     />
                 </div>
 
-                <div>
+                <div className="relative">
                     <input
                         type="text"
-                        placeholder="Город (например, Berlin)"
-                        value={searchFilters.location}
-                        onChange={(e) => setSearchFilters(prev => ({...prev, location: e.target.value}))}
-                        className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        placeholder="Поиск города (например, Berlin)"
+                        value={citySearchInput}
+                        onChange={(e) => {
+                            setCitySearchInput(e.target.value);
+                            setShowCityDropdown(true);
+                        }}
+                        onFocus={() => setShowCityDropdown(true)}
+                        className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-10"
                     />
+                    <MapPin className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                    
+                    {showCityDropdown && cities.length > 0 && (
+                        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                            <div className="p-2 text-xs text-gray-500 font-medium">
+                                {citySearchInput.length >= 2 ? 'Результаты поиска:' : 'Популярные города:'}
+                            </div>
+                            {cities.map((city, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleCitySelect(city.name)}
+                                    className="w-full text-left p-3 hover:bg-gray-50 border-t border-gray-100 first:border-t-0 flex items-center justify-between"
+                                >
+                                    <div>
+                                        <div className="text-sm font-medium text-gray-900">{city.name}</div>
+                                        <div className="text-xs text-gray-500">{city.state} • {(city.population / 1000).toFixed(0)}k жителей</div>
+                                    </div>
+                                    {city.type === 'major' && (
+                                        <Star className="h-3 w-3 text-yellow-500" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    
+                    {/* Close dropdown when clicking outside */}
+                    {showCityDropdown && (
+                        <div 
+                            className="fixed inset-0 z-5" 
+                            onClick={() => setShowCityDropdown(false)}
+                        />
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
