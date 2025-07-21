@@ -648,6 +648,26 @@ const TelegramJobSearch = ({ onBack }) => {
                 >
                     <Bell className="h-4 w-4" />
                 </button>
+                
+                {/* Debug test button */}
+                <button
+                    onClick={() => {
+                        console.log('Test API connection...');
+                        fetch(`${backendUrl}/api/health`)
+                            .then(r => r.json())
+                            .then(data => {
+                                console.log('Health check:', data);
+                                alert(`API Status: ${data.status}\nDB: ${data.database}\nURL: ${backendUrl}`);
+                            })
+                            .catch(err => {
+                                console.error('Health check failed:', err);
+                                alert(`API Error: ${err.message}`);
+                            });
+                    }}
+                    className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200"
+                >
+                    🔧
+                </button>
             </div>
 
             {/* Results */}
