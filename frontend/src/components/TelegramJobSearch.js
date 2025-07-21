@@ -54,6 +54,10 @@ const TelegramJobSearch = ({ onBack }) => {
     };
 
     useEffect(() => {
+        console.log('TelegramJobSearch mounted');
+        console.log('Backend URL:', backendUrl);
+        console.log('Is Telegram WebApp:', isTelegramWebApp());
+        
         if (isTelegramWebApp()) {
             if (currentView !== 'main') {
                 showBackButton(handleBackClick);
