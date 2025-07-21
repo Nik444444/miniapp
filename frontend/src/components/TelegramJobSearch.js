@@ -97,14 +97,33 @@ const TelegramJobSearch = ({ onBack }) => {
 
     const loadPopularCities = async () => {
         try {
-            const response = await fetch(`${backendUrl}/api/cities/popular`);
+            const url = `${backendUrl}/api/cities/popular`;
+            console.log('Loading popular cities from:', url);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            console.log('Popular cities response:', data);
             
             if (data.status === 'success') {
                 setCities(data.data.cities || []);
+            } else {
+                console.warn('Popular cities returned non-success status:', data);
+                setCities([]);
             }
         } catch (error) {
             console.error('Error loading popular cities:', error);
+            setCities([]);
         }
     };
 
