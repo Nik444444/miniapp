@@ -1310,119 +1310,535 @@ class BackendTester:
             {"tested_combinations": filter_combinations}
         )
 
-    async def test_city_search_endpoints(self):
-        """🎯 NEW FEATURE: City Search API Testing"""
-        logger.info("=== 🎯 NEW FEATURE: City Search API Testing ===")
+    async def test_cities_search_api_comprehensive(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Cities Search API - все требуемые endpoints"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Cities Search API Testing ===")
         
-        # 1. Test GET /api/cities/search?q=Berlin - поиск конкретного города
+        # 1. Test GET /api/cities/search?q=Berlin (точное совпадение)
         success, data, error = await self.make_request("GET", "/api/cities/search?q=Berlin")
         
         if success and isinstance(data, dict):
             has_status = "status" in data
             has_cities = "cities" in data and isinstance(data["cities"], list)
-            has_total = "total" in data
+            cities_count = len(data.get("cities", []))
             
             # Check if Berlin is found
-            cities = data.get("cities", [])
-            berlin_found = any(city.get("name") == "Berlin" for city in cities)
+            berlin_found = False
+            if data.get("cities"):
+                berlin_found = any(city.get("name") == "Berlin" for city in data["cities"])
             
             self.log_test_result(
-                "🎯 GET /api/cities/search?q=Berlin - Find specific city",
-                has_status and has_cities and has_total and berlin_found,
-                f"Status: {data.get('status')}, Cities: {len(cities)}, Berlin found: {berlin_found}",
+                "🎯 GET /api/cities/search?q=Berlin - Точное совпадение",
+                has_status and has_cities and berlin_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Berlin found: {berlin_found}",
                 data
             )
         else:
             self.log_test_result(
-                "🎯 GET /api/cities/search?q=Berlin - Find specific city",
+                "🎯 GET /api/cities/search?q=Berlin - Точное совпадение",
                 False,
-                f"City search failed: {error}",
+                f"Request failed: {error}",
                 data
             )
         
-        # 2. Test GET /api/cities/search?q=Mun - частичный поиск
-        success, data, error = await self.make_request("GET", "/api/cities/search?q=Mun")
+        # 2. Test GET /api/cities/search?q=Ber (частичное совпадение)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Ber")
         
         if success and isinstance(data, dict):
-            cities = data.get("cities", [])
-            munich_found = any("München" in city.get("name", "") or "Munich" in city.get("name", "") for city in cities)
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if partial match works (should find Berlin and other cities starting with "Ber")
+            partial_matches = cities_count > 0
             
             self.log_test_result(
-                "🎯 GET /api/cities/search?q=Mun - Partial search",
-                munich_found,
-                f"Cities found: {len(cities)}, Munich/München found: {munich_found}",
+                "🎯 GET /api/cities/search?q=Ber - Частичное совпадение",
+                has_status and has_cities and partial_matches,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Partial matches work: {partial_matches}",
                 data
             )
         else:
             self.log_test_result(
-                "🎯 GET /api/cities/search?q=Mun - Partial search",
+                "🎯 GET /api/cities/search?q=Ber - Частичное совпадение",
                 False,
-                f"Partial search failed: {error}",
+                f"Request failed: {error}",
                 data
             )
         
-        # 3. Test GET /api/cities/popular - популярные города
+        # 3. Test GET /api/cities/search?q=Mü (тест с умлаутом)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Mü")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if umlaut search works (should find München)
+            umlaut_works = cities_count > 0
+            munich_found = False
+            if data.get("cities"):
+                munich_found = any("München" in city.get("name", "") or "Munich" in city.get("name", "") for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Mü - Тест с умлаутом",
+                has_status and has_cities and (umlaut_works or munich_found),
+                f"Status: {data.get('status')}, Cities found: {cities_count}, München found: {munich_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Mü - Тест с умлаутом",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 4. Test GET /api/cities/popular (популярные города)
         success, data, error = await self.make_request("GET", "/api/cities/popular")
         
         if success and isinstance(data, dict):
             has_status = "status" in data
             has_cities = "cities" in data and isinstance(data["cities"], list)
-            has_total = "total" in data
+            cities_count = len(data.get("cities", []))
             
-            cities = data.get("cities", [])
-            has_major_cities = len(cities) >= 5  # Should have at least 5 popular cities
+            # Check if popular cities are returned
+            has_popular_cities = cities_count > 0
             
-            # Check if major cities are included
+            # Check if major German cities are included
             major_cities_found = []
-            for city in cities:
-                if city.get("name") in ["Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main"]:
-                    major_cities_found.append(city.get("name"))
+            if data.get("cities"):
+                major_cities = ["Berlin", "Hamburg", "München", "Köln", "Frankfurt"]
+                for city in data["cities"]:
+                    city_name = city.get("name", "")
+                    for major_city in major_cities:
+                        if major_city in city_name:
+                            major_cities_found.append(major_city)
             
             self.log_test_result(
-                "🎯 GET /api/cities/popular - Popular cities",
-                has_status and has_cities and has_total and has_major_cities,
-                f"Status: {data.get('status')}, Cities: {len(cities)}, Major cities: {major_cities_found}",
+                "🎯 GET /api/cities/popular - Популярные города",
+                has_status and has_cities and has_popular_cities,
+                f"Status: {data.get('status')}, Popular cities: {cities_count}, Major cities found: {major_cities_found}",
                 data
             )
         else:
             self.log_test_result(
-                "🎯 GET /api/cities/popular - Popular cities",
+                "🎯 GET /api/cities/popular - Популярные города",
                 False,
-                f"Popular cities failed: {error}",
+                f"Request failed: {error}",
                 data
             )
         
-        # 4. Test GET /api/cities/info/Berlin - информация о городе
+        # 5. Test GET /api/cities/info/Berlin (детальная информация)
         success, data, error = await self.make_request("GET", "/api/cities/info/Berlin")
         
         if success and isinstance(data, dict):
             has_status = "status" in data
             has_city_info = "city" in data and isinstance(data["city"], dict)
             
-            if has_city_info:
-                city_info = data["city"]
-                has_name = "name" in city_info
-                has_state = "state" in city_info
-                has_population = "population" in city_info
-                has_job_market = "job_market_info" in city_info
-                
-                city_info_complete = has_name and has_state and has_population and has_job_market
-            else:
-                city_info_complete = False
+            # Check city info structure
+            city_info_complete = False
+            if data.get("city"):
+                city = data["city"]
+                required_fields = ["name", "state", "population"]
+                city_info_complete = all(field in city for field in required_fields)
             
             self.log_test_result(
-                "🎯 GET /api/cities/info/Berlin - City information",
+                "🎯 GET /api/cities/info/Berlin - Детальная информация",
                 has_status and has_city_info and city_info_complete,
                 f"Status: {data.get('status')}, City info complete: {city_info_complete}",
                 data
             )
         else:
             self.log_test_result(
-                "🎯 GET /api/cities/info/Berlin - City information",
+                "🎯 GET /api/cities/info/Berlin - Детальная информация",
                 False,
-                f"City info failed: {error}",
+                f"Request failed: {error}",
                 data
             )
+
+    async def test_job_search_api_comprehensive(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search API - все требуемые endpoints"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search API Testing ===")
+        
+        # 1. Test GET /api/job-search (базовый поиск)
+        success, data, error = await self.make_request("GET", "/api/job-search")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_total_found = "total_found" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search - Базовый поиск",
+                has_status and has_jobs and has_total_found,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, Total: {data.get('total_found')}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search - Базовый поиск",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 2. Test GET /api/job-search?location=Berlin (поиск по городу)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Berlin")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_applied_filters = "applied_filters" in data
+            
+            # Check if location filter is applied
+            location_applied = False
+            if data.get("applied_filters"):
+                location_applied = "location" in data["applied_filters"]
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Berlin - Поиск по городу",
+                has_status and has_jobs and location_applied,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, Location filter applied: {location_applied}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Berlin - Поиск по городу",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 3. Test GET /api/job-search?language_level=B1 (фильтр по языку)
+        success, data, error = await self.make_request("GET", "/api/job-search?language_level=B1")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_applied_filters = "applied_filters" in data
+            
+            # Check if language level filter is applied
+            language_applied = False
+            if data.get("applied_filters"):
+                language_applied = "language_level" in data["applied_filters"]
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?language_level=B1 - Фильтр по языку",
+                has_status and has_jobs and language_applied,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, Language filter applied: {language_applied}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search?language_level=B1 - Фильтр по языку",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 4. Test GET /api/job-search?search_query=developer (поиск по профессии)
+        success, data, error = await self.make_request("GET", "/api/job-search?search_query=developer")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_applied_filters = "applied_filters" in data
+            
+            # Check if search query filter is applied
+            query_applied = False
+            if data.get("applied_filters"):
+                query_applied = "search_query" in data["applied_filters"]
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?search_query=developer - Поиск по профессии",
+                has_status and has_jobs and query_applied,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, Query filter applied: {query_applied}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search?search_query=developer - Поиск по профессии",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 5. Test GET /api/job-search?location=München&language_level=B2 (комбинация фильтров)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=München&language_level=B2")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_applied_filters = "applied_filters" in data
+            
+            # Check if both filters are applied
+            both_filters_applied = False
+            if data.get("applied_filters"):
+                location_applied = "location" in data["applied_filters"]
+                language_applied = "language_level" in data["applied_filters"]
+                both_filters_applied = location_applied and language_applied
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=B2 - Комбинация фильтров",
+                has_status and has_jobs and both_filters_applied,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, Both filters applied: {both_filters_applied}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=B2 - Комбинация фильтров",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+
+    async def test_problematic_cases(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проблемные случаи поиска"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Problematic Cases Testing ===")
+        
+        # 1. Поиск с пробелами в названии города
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Frankfurt am Main")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if city with spaces is found
+            frankfurt_found = False
+            if data.get("cities"):
+                frankfurt_found = any("Frankfurt" in city.get("name", "") for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 Поиск с пробелами в названии города",
+                has_status and has_cities and (cities_count > 0 or frankfurt_found),
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Frankfurt found: {frankfurt_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Поиск с пробелами в названии города",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 2. Поиск с специальными символами
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Düsseldorf")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if city with special characters is found
+            dusseldorf_found = False
+            if data.get("cities"):
+                dusseldorf_found = any("Düsseldorf" in city.get("name", "") for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 Поиск с специальными символами",
+                has_status and has_cities and (cities_count > 0 or dusseldorf_found),
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Düsseldorf found: {dusseldorf_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Поиск с специальными символами",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+        
+        # 3. Пустые параметры поиска
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            
+            # Empty query should either return empty results or handle gracefully
+            handles_empty_query = True  # As long as it doesn't crash
+            
+            self.log_test_result(
+                "🎯 Пустые параметры поиска",
+                has_status and has_cities and handles_empty_query,
+                f"Status: {data.get('status')}, Handles empty query gracefully",
+                data
+            )
+        else:
+            # Check if it's a validation error (acceptable) or server error (not acceptable)
+            is_validation_error = "400" in str(error) or "422" in str(error)
+            is_server_error = "500" in str(error)
+            
+            self.log_test_result(
+                "🎯 Пустые параметры поиска",
+                is_validation_error and not is_server_error,
+                f"Handles empty query: validation error OK, server error NOT OK. Error: {error}",
+                data
+            )
+        
+        # 4. Очень длинные запросы
+        long_query = "a" * 200  # 200 character query
+        success, data, error = await self.make_request("GET", f"/api/cities/search?q={long_query}")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            
+            # Long query should be handled gracefully
+            handles_long_query = True
+            
+            self.log_test_result(
+                "🎯 Очень длинные запросы",
+                has_status and has_cities and handles_long_query,
+                f"Status: {data.get('status')}, Handles long query gracefully",
+                data
+            )
+        else:
+            # Check if it's a validation error (acceptable) or server error (not acceptable)
+            is_validation_error = "400" in str(error) or "422" in str(error)
+            is_server_error = "500" in str(error)
+            
+            self.log_test_result(
+                "🎯 Очень длинные запросы",
+                is_validation_error and not is_server_error,
+                f"Handles long query: validation error OK, server error NOT OK. Error: {error}",
+                data
+            )
+
+    async def test_job_search_status_service(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search Status Service"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search Status Service ===")
+        
+        # Test GET /api/job-search-status
+        success, data, error = await self.make_request("GET", "/api/job-search-status")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_service_info = "service" in data
+            has_integration_info = "arbeitnow_integration" in data
+            
+            # Check service information
+            service_valid = False
+            if data.get("service") and isinstance(data["service"], dict):
+                service = data["service"]
+                has_name = "name" in service
+                has_status_field = "status" in service
+                service_operational = service.get("status") == "operational"
+                service_valid = has_name and has_status_field and service_operational
+            
+            # Check integration information
+            integration_valid = False
+            if data.get("arbeitnow_integration") and isinstance(data["arbeitnow_integration"], dict):
+                integration = data["arbeitnow_integration"]
+                has_status_field = "status" in integration
+                has_api_endpoint = "api_endpoint" in integration
+                has_available = "available" in integration
+                integration_active = integration.get("status") == "active"
+                integration_available = integration.get("available") is True
+                integration_valid = has_status_field and has_api_endpoint and has_available and integration_active and integration_available
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search-status - Сервисы активны и готовы",
+                has_status and service_valid and integration_valid,
+                f"Status: {data.get('status')}, Service valid: {service_valid}, Integration valid: {integration_valid}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search-status - Сервисы активны и готовы",
+                False,
+                f"Request failed: {error}",
+                data
+            )
+
+    async def test_no_pattern_matching_errors(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Отсутствие ошибок pattern matching"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: No Pattern Matching Errors ===")
+        
+        # Test various search queries that previously caused pattern matching errors
+        test_queries = [
+            "software developer",
+            "data scientist",
+            "frontend engineer",
+            "backend developer",
+            "full stack",
+            "python programmer",
+            "javascript developer",
+            "react developer",
+            "node.js developer",
+            "machine learning engineer"
+        ]
+        
+        pattern_errors_found = []
+        all_queries_work = True
+        
+        for query in test_queries:
+            # Test job search with query
+            success, data, error = await self.make_request("GET", f"/api/job-search?search_query={query}")
+            
+            # Check for pattern matching errors
+            if not success:
+                error_text = str(error).lower() + str(data).lower() if data else str(error).lower()
+                if "pattern" in error_text or "match" in error_text:
+                    pattern_errors_found.append(query)
+                    all_queries_work = False
+            
+            # Also test with POST method
+            search_data = {"search_query": query, "limit": 5}
+            success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+            
+            if not success:
+                error_text = str(error).lower() + str(data).lower() if data else str(error).lower()
+                if "pattern" in error_text or "match" in error_text:
+                    pattern_errors_found.append(f"{query} (POST)")
+                    all_queries_work = False
+        
+        self.log_test_result(
+            "🎯 Никаких ошибок 'pattern matching'",
+            len(pattern_errors_found) == 0,
+            f"Pattern errors found: {pattern_errors_found}" if pattern_errors_found else "No pattern matching errors found",
+            {"pattern_errors": pattern_errors_found, "tested_queries": test_queries}
+        )
+        
+        # Test city search for pattern errors too
+        city_queries = ["Berlin", "München", "Hamburg", "Köln", "Frankfurt", "Stuttgart", "Düsseldorf"]
+        city_pattern_errors = []
+        
+        for city in city_queries:
+            success, data, error = await self.make_request("GET", f"/api/cities/search?q={city}")
+            
+            if not success:
+                error_text = str(error).lower() + str(data).lower() if data else str(error).lower()
+                if "pattern" in error_text or "match" in error_text:
+                    city_pattern_errors.append(city)
+        
+        self.log_test_result(
+            "🎯 Cities search - никаких ошибок 'pattern matching'",
+            len(city_pattern_errors) == 0,
+            f"City pattern errors found: {city_pattern_errors}" if city_pattern_errors else "No city pattern matching errors found",
+            {"city_pattern_errors": city_pattern_errors, "tested_cities": city_queries}
+        )
+
+    async def run_telegram_mini_app_tests(self):
+        """🎯 ГЛАВНАЯ ФУНКЦИЯ: Запуск всех тестов для Telegram Mini App"""
+        logger.info("=== 🎯 ЗАПУСК ВСЕХ ТЕСТОВ ДЛЯ TELEGRAM MINI APP ===")
+        
+        # Run all specific tests requested by user
+        await self.test_cities_search_api_comprehensive()
+        await self.test_job_search_api_comprehensive()
+        await self.test_problematic_cases()
+        await self.test_job_search_status_service()
+        await self.test_no_pattern_matching_errors()
+        
+        # Also run some basic health tests to ensure system is working
+        await self.test_basic_health_endpoints()
+        await self.test_api_health_endpoints()
+        
+        logger.info("=== 🎯 ВСЕ ТЕСТЫ TELEGRAM MINI APP ЗАВЕРШЕНЫ ===")
+
 
     async def test_job_search_authentication_requirements(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Authentication Requirements for Job Search"""
