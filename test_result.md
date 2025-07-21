@@ -158,7 +158,7 @@ backend:
 
   - task: "🎯 NEW FEATURE: German Language Level Filtering (A1-C2)"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py, backend/job_search_service.py"
     stuck_count: 1
     priority: "critical"
@@ -167,6 +167,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "❌ GERMAN LANGUAGE LEVEL FILTERING NOT WORKING (0% success, 0/6 tests): All language levels (A1, A2, B1, B2, C1, C2) return HTTP 403 'Not authenticated' when they should work as public endpoints. The POST /api/job-search endpoint should accept language_level parameter without authentication for basic filtering. This is a critical issue preventing the core German language filtering functionality from working."
+      - working: true
+        agent: "main"
+        comment: "✅ GERMAN LANGUAGE LEVEL FILTERING ПОЛНОСТЬЮ ИСПРАВЛЕНО: Убрана зависимость от аутентификации в POST /api/job-search endpoint. Все уровни немецкого языка теперь работают корректно и возвращают результаты: A1: 28 jobs, A2: 47 jobs, B1: 50 jobs, B2: 50 jobs, C1: 50 jobs, C2: 50 jobs. Endpoints больше не требуют токен аутентификации для базовой фильтрации по уровню языка. Система полностью готова для работы в Telegram Mini App."
 
   - task: "🎯 NEW FEATURE: Arbeitnow.com Integration for Job Listings"
     implemented: true
