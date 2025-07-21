@@ -227,6 +227,48 @@ class LandlordContactRequest(BaseModel):
     user_occupation: Optional[str] = "Fachkraft"
     user_income: Optional[str] = "stabiles Einkommen"
 
+# Job Search Models
+class JobSearchRequest(BaseModel):
+    search_query: Optional[str] = None
+    location: Optional[str] = None
+    remote: Optional[bool] = None
+    visa_sponsorship: Optional[bool] = None
+    language_level: Optional[str] = None  # A1, A2, B1, B2, C1, C2
+    category: Optional[str] = None
+    limit: int = 50
+
+class JobSubscriptionRequest(BaseModel):
+    search_query: Optional[str] = None
+    location: Optional[str] = None
+    remote: Optional[bool] = None
+    visa_sponsorship: Optional[bool] = None
+    language_level: Optional[str] = None
+    category: Optional[str] = None
+
+class JobSubscriptionUpdate(BaseModel):
+    search_query: Optional[str] = None
+    location: Optional[str] = None
+    remote: Optional[bool] = None
+    visa_sponsorship: Optional[bool] = None
+    language_level: Optional[str] = None
+    category: Optional[str] = None
+    active: Optional[bool] = None
+
+class ResumeAnalysisRequest(BaseModel):
+    resume_text: str
+    target_position: Optional[str] = None
+    language: str = "ru"
+
+class ResumeImprovementRequest(BaseModel):
+    resume_analysis_id: str
+    target_position: Optional[str] = None
+
+class InterviewPrepRequest(BaseModel):
+    job_description: str
+    resume_text: Optional[str] = None
+    interview_type: str = "behavioral"  # behavioral, technical, case_study, cultural_fit
+    language: str = "ru"
+
 # Utility functions
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
