@@ -3329,13 +3329,419 @@ class BackendTester:
         logger.info("=" * 80)
         logger.info("🎯 ТЕСТИРОВАНИЕ ПРОИЗВОДИТЕЛЬНОСТИ OCR СИСТЕМЫ ЗАВЕРШЕНО")
 
+    async def test_job_search_endpoints(self):
+        """🎯 NEW FEATURE TESTING: Job Search Functionality in Telegram Mini App"""
+        logger.info("=== 🎯 NEW FEATURE TESTING: Job Search Functionality ===")
+        
+        # Test 1: GET /api/job-search-status - Public endpoint (no auth required)
+        success, data, error = await self.make_request("GET", "/api/job-search-status")
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_service_info = "service" in data
+            has_integration_info = "arbeitnow_integration" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search-status - Job search service status",
+                has_status and has_service_info and has_integration_info,
+                f"Status: {data.get('status')}, Service: {data.get('service')}, Integration: {data.get('arbeitnow_integration')}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 GET /api/job-search-status - Job search service status", False, f"Error: {error}", data)
+        
+        # Test 2: GET /api/job-search - Public job search with filters (no auth required)
+        search_params = "?search_query=developer&location=Berlin&language_level=B2&limit=10"
+        success, data, error = await self.make_request("GET", f"/api/job-search{search_params}")
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_total = "total_found" in data
+            has_filters = "applied_filters" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search - Job search with filters",
+                has_status and has_jobs and has_total and has_filters,
+                f"Status: {data.get('status')}, Jobs found: {len(data.get('jobs', []))}, Total: {data.get('total_found')}, Filters: {data.get('applied_filters')}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 GET /api/job-search - Job search with filters", False, f"Error: {error}", data)
+        
+        # Test 3: POST /api/job-search - Advanced job search (no auth required)
+        advanced_search_data = {
+            "search_query": "Python developer",
+            "location": "Munich",
+            "remote": True,
+            "visa_sponsorship": True,
+            "language_level": "C1",
+            "category": "IT",
+            "limit": 20
+        }
+        success, data, error = await self.make_request("POST", "/api/job-search", json=advanced_search_data)
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_ai_filtering = "ai_filtered" in data
+            has_language_analysis = "language_analysis" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/job-search - Advanced job search with AI filtering",
+                has_status and has_jobs and has_ai_filtering and has_language_analysis,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, AI filtered: {data.get('ai_filtered')}, Language analysis: {data.get('language_analysis')}",
+                data
+            )
+        else:
+            self.log_test_result("🎯 POST /api/job-search - Advanced job search with AI filtering", False, f"Error: {error}", data)
+    
+    async def test_job_subscriptions_endpoints(self):
+        """🎯 NEW FEATURE TESTING: Job Subscriptions for Telegram Notifications"""
+        logger.info("=== 🎯 NEW FEATURE TESTING: Job Subscriptions ===")
+        
+        # Test 1: POST /api/job-subscriptions - Create subscription (requires auth)
+        subscription_data = {
+            "search_query": "React developer",
+            "location": "Hamburg",
+            "remote": False,
+            "visa_sponsorship": True,
+            "language_level": "B2",
+            "category": "Frontend"
+        }
+        success, data, error = await self.make_request("POST", "/api/job-subscriptions", json=subscription_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 POST /api/job-subscriptions - Create job subscription (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test 2: GET /api/job-subscriptions - Get user subscriptions (requires auth)
+        success, data, error = await self.make_request("GET", "/api/job-subscriptions")
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 GET /api/job-subscriptions - Get user subscriptions (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test 3: PUT /api/job-subscriptions/{id} - Update subscription (requires auth)
+        test_subscription_id = "test-subscription-123"
+        update_data = {
+            "search_query": "Updated query",
+            "location": "Frankfurt",
+            "active": True
+        }
+        success, data, error = await self.make_request("PUT", f"/api/job-subscriptions/{test_subscription_id}", json=update_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 PUT /api/job-subscriptions/{id} - Update subscription (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test 4: DELETE /api/job-subscriptions/{id} - Delete subscription (requires auth)
+        success, data, error = await self.make_request("DELETE", f"/api/job-subscriptions/{test_subscription_id}")
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 DELETE /api/job-subscriptions/{id} - Delete subscription (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+    
+    async def test_resume_analysis_endpoints(self):
+        """🎯 NEW FEATURE TESTING: AI Resume Analysis"""
+        logger.info("=== 🎯 NEW FEATURE TESTING: AI Resume Analysis ===")
+        
+        # Test 1: POST /api/analyze-resume - AI resume analysis (requires auth)
+        resume_data = {
+            "resume_text": "John Doe\nSoftware Developer\n5 years experience in Python, React, and Node.js\nEducation: Computer Science degree\nExperience: Senior Developer at Tech Company",
+            "target_position": "Senior Full Stack Developer",
+            "language": "en"
+        }
+        success, data, error = await self.make_request("POST", "/api/analyze-resume", json=resume_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 POST /api/analyze-resume - AI resume analysis (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test 2: POST /api/improve-resume - Resume improvement based on analysis (requires auth)
+        improvement_data = {
+            "resume_analysis_id": "test-analysis-123",
+            "target_position": "Lead Developer"
+        }
+        success, data, error = await self.make_request("POST", "/api/improve-resume", json=improvement_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 POST /api/improve-resume - Resume improvement (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test 3: GET /api/resume-analyses - Get resume analysis history (requires auth)
+        success, data, error = await self.make_request("GET", "/api/resume-analyses")
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 GET /api/resume-analyses - Resume analysis history (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+    
+    async def test_interview_preparation_endpoints(self):
+        """🎯 NEW FEATURE TESTING: AI Interview Preparation"""
+        logger.info("=== 🎯 NEW FEATURE TESTING: AI Interview Preparation ===")
+        
+        # Test 1: POST /api/prepare-interview - AI interview preparation (requires auth)
+        interview_data = {
+            "job_description": "We are looking for a Senior Python Developer with 5+ years experience in Django, REST APIs, and cloud technologies. Must have experience with AWS, Docker, and microservices architecture.",
+            "resume_text": "Senior Python Developer with 6 years experience in Django, Flask, REST APIs, AWS, Docker, and microservices.",
+            "interview_type": "technical",
+            "language": "en"
+        }
+        success, data, error = await self.make_request("POST", "/api/prepare-interview", json=interview_data)
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 POST /api/prepare-interview - AI interview preparation (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+        
+        # Test 2: GET /api/interview-preparations - Get interview preparation history (requires auth)
+        success, data, error = await self.make_request("GET", "/api/interview-preparations")
+        
+        is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+        
+        self.log_test_result(
+            "🎯 GET /api/interview-preparations - Interview preparation history (requires auth)",
+            is_auth_required,
+            f"Correctly requires authentication" if is_auth_required else f"Unexpected response: {error}",
+            data
+        )
+    
+    async def test_job_search_integration_features(self):
+        """🎯 NEW FEATURE TESTING: Job Search Integration Features"""
+        logger.info("=== 🎯 NEW FEATURE TESTING: Job Search Integration Features ===")
+        
+        # Test 1: Verify arbeitnow.com integration status
+        success, data, error = await self.make_request("GET", "/api/job-search-status")
+        if success and isinstance(data, dict):
+            integration_info = data.get("arbeitnow_integration", {})
+            has_integration = isinstance(integration_info, dict)
+            has_status = integration_info.get("status") if has_integration else None
+            has_api_info = integration_info.get("api_endpoint") if has_integration else None
+            
+            self.log_test_result(
+                "🎯 Arbeitnow.com Integration - Status check",
+                has_integration and has_status and has_api_info,
+                f"Integration status: {has_status}, API endpoint: {has_api_info}" if has_integration else "Integration info missing",
+                integration_info
+            )
+        else:
+            self.log_test_result("🎯 Arbeitnow.com Integration - Status check", False, f"Error: {error}", data)
+        
+        # Test 2: Test German language level filtering (A1-C2)
+        language_levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+        for level in language_levels:
+            search_data = {
+                "search_query": "developer",
+                "location": "Berlin",
+                "language_level": level,
+                "limit": 5
+            }
+            success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+            
+            if success and isinstance(data, dict):
+                has_language_filter = data.get("applied_filters", {}).get("language_level") == level
+                has_ai_filtering = "ai_filtered" in data
+                
+                self.log_test_result(
+                    f"🎯 German Language Level Filtering - {level}",
+                    has_language_filter and has_ai_filtering,
+                    f"Language level {level} filter applied: {has_language_filter}, AI filtering: {has_ai_filtering}",
+                    {"level": level, "filter_applied": has_language_filter}
+                )
+            else:
+                self.log_test_result(f"🎯 German Language Level Filtering - {level}", False, f"Error: {error}", data)
+        
+        # Test 3: Test user API keys integration for AI analysis
+        # This should work without auth for basic search, but require auth for AI features
+        ai_search_data = {
+            "search_query": "AI engineer",
+            "location": "Munich",
+            "language_level": "C1",
+            "limit": 10
+        }
+        success, data, error = await self.make_request("POST", "/api/job-search", json=ai_search_data)
+        
+        if success and isinstance(data, dict):
+            has_ai_analysis = "ai_filtered" in data or "language_analysis" in data
+            works_without_auth = success  # Should work for basic search
+            
+            self.log_test_result(
+                "🎯 AI Analysis Integration - Works without auth for basic search",
+                works_without_auth,
+                f"Basic AI search works: {works_without_auth}, Has AI features: {has_ai_analysis}",
+                {"ai_features": has_ai_analysis}
+            )
+        else:
+            self.log_test_result("🎯 AI Analysis Integration - Works without auth for basic search", False, f"Error: {error}", data)
+    
+    async def test_job_search_system_readiness(self):
+        """🎯 FINAL TEST: Job Search System Production Readiness"""
+        logger.info("=== 🎯 FINAL TEST: Job Search System Production Readiness ===")
+        
+        # Test 1: All job search endpoints exist and respond correctly
+        job_search_endpoints = [
+            ("GET", "/api/job-search-status", "public"),
+            ("GET", "/api/job-search", "public"),
+            ("POST", "/api/job-search", "public"),
+            ("POST", "/api/job-subscriptions", "protected"),
+            ("GET", "/api/job-subscriptions", "protected"),
+            ("POST", "/api/analyze-resume", "protected"),
+            ("POST", "/api/improve-resume", "protected"),
+            ("GET", "/api/resume-analyses", "protected"),
+            ("POST", "/api/prepare-interview", "protected"),
+            ("GET", "/api/interview-preparations", "protected")
+        ]
+        
+        all_endpoints_working = True
+        endpoint_results = []
+        
+        for method, endpoint, auth_type in job_search_endpoints:
+            if method == "GET" and "?" not in endpoint:
+                if "job-search" in endpoint and endpoint != "/api/job-search-status":
+                    # Add query params for job search
+                    test_endpoint = f"{endpoint}?search_query=test&limit=5"
+                else:
+                    test_endpoint = endpoint
+                success, data, error = await self.make_request(method, test_endpoint)
+            else:
+                # POST endpoints need data
+                test_data = {"test": "data"}
+                if "job-search" in endpoint:
+                    test_data = {"search_query": "test", "limit": 5}
+                elif "resume" in endpoint:
+                    test_data = {"resume_text": "test resume", "language": "en"}
+                elif "interview" in endpoint:
+                    test_data = {"job_description": "test job", "language": "en"}
+                elif "subscription" in endpoint:
+                    test_data = {"search_query": "test", "location": "Berlin"}
+                
+                success, data, error = await self.make_request(method, endpoint, json=test_data)
+            
+            if auth_type == "public":
+                endpoint_working = success
+            else:  # protected
+                # Should fail with auth error, not 404 or 500
+                endpoint_working = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+            
+            endpoint_results.append({
+                "endpoint": f"{method} {endpoint}",
+                "working": endpoint_working,
+                "auth_type": auth_type
+            })
+            
+            if not endpoint_working:
+                all_endpoints_working = False
+                logger.warning(f"Endpoint {method} {endpoint} not working properly: {error}")
+        
+        self.log_test_result(
+            "🎯 Job Search Endpoints - All endpoints functional",
+            all_endpoints_working,
+            f"All {len(job_search_endpoints)} job search endpoints working correctly" if all_endpoints_working else f"Some endpoints have issues",
+            endpoint_results
+        )
+        
+        # Test 2: Integration with external services ready
+        success, data, error = await self.make_request("GET", "/api/job-search-status")
+        if success and isinstance(data, dict):
+            service_ready = data.get("status") == "operational"
+            has_integration = "arbeitnow_integration" in data
+            
+            integration_ready = service_ready and has_integration
+        else:
+            integration_ready = False
+        
+        self.log_test_result(
+            "🎯 External Integration - Arbeitnow.com ready",
+            integration_ready,
+            f"External integration ready: {integration_ready}",
+            {"service_ready": service_ready if 'service_ready' in locals() else False}
+        )
+        
+        # Test 3: AI features integration ready
+        success, data, error = await self.make_request("GET", "/api/modern-llm-status")
+        if success and isinstance(data, dict):
+            ai_ready = data.get("modern") is True and data.get("status") == "success"
+        else:
+            ai_ready = False
+        
+        self.log_test_result(
+            "🎯 AI Features - Modern LLM integration ready",
+            ai_ready,
+            f"AI features ready for job search: {ai_ready}",
+            {"ai_ready": ai_ready}
+        )
+        
+        # Overall job search system readiness
+        job_search_system_ready = all([
+            all_endpoints_working,
+            integration_ready,
+            ai_ready
+        ])
+        
+        self.log_test_result(
+            "🎯 JOB SEARCH SYSTEM - Production Ready",
+            job_search_system_ready,
+            f"Endpoints: {all_endpoints_working}, Integration: {integration_ready}, AI: {ai_ready}",
+            {
+                "endpoints_working": all_endpoints_working,
+                "integration_ready": integration_ready,
+                "ai_ready": ai_ready,
+                "overall_ready": job_search_system_ready
+            }
+        )
+        
+        return job_search_system_ready
+
     async def run_all_tests(self):
-        """Run all backend tests with focus on Housing Search functionality"""
-        logger.info("🏠 STARTING HOUSING SEARCH FUNCTIONALITY TESTING")
+        """Run all backend tests with focus on Job Search functionality"""
+        logger.info("🎯 STARTING JOB SEARCH FUNCTIONALITY TESTING")
         logger.info("=" * 80)
         
         try:
-            # 🏠 HOUSING SEARCH TESTS (NEW FUNCTIONALITY)
+            # 🎯 JOB SEARCH TESTS (NEW FUNCTIONALITY)
+            await self.test_job_search_endpoints()
+            await self.test_job_subscriptions_endpoints()
+            await self.test_resume_analysis_endpoints()
+            await self.test_interview_preparation_endpoints()
+            await self.test_job_search_integration_features()
+            
+            # 🏠 HOUSING SEARCH TESTS (EXISTING)
             await self.test_housing_search_endpoints()
             await self.test_housing_services_integration()
             await self.test_housing_authentication()
@@ -3361,15 +3767,19 @@ class BackendTester:
             await self.test_analyze_file_performance_ready()
             await self.test_ocr_performance_optimization()
             
-            system_ready = True
+            # Final system readiness checks
+            system_ready = await self.test_system_readiness_for_production()
+            job_search_ready = await self.test_job_search_system_readiness()
+            
+            overall_ready = system_ready and job_search_ready
             
         except Exception as e:
             logger.error(f"Critical error during testing: {e}")
             self.log_test_result("Test Execution", False, f"Critical error: {e}", None)
-            system_ready = False
+            overall_ready = False
         
         # Generate comprehensive test summary
-        return self.generate_housing_search_summary(system_ready)
+        return self.generate_job_search_summary(overall_ready)
     
     def generate_housing_search_summary(self, system_ready=False):
         """Generate and display comprehensive test summary for Housing Search functionality"""
