@@ -5765,40 +5765,40 @@ if __name__ == "__main__":
             )
 
 async def main():
-    """🎯 ГЛАВНАЯ ФУНКЦИЯ: Тестирование Job Search функциональности"""
-    logger.info("🎯 НАЧАЛО КРИТИЧЕСКОГО ТЕСТИРОВАНИЯ JOB SEARCH ФУНКЦИОНАЛЬНОСТИ")
+    """🎯 ГЛАВНАЯ ФУНКЦИЯ: Тестирование исправленной функциональности Job Search и Cities Search в Telegram Mini App"""
+    print("🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Job Search и Cities Search функциональность в Telegram Mini App")
+    print("=" * 100)
     
     async with BackendTester() as tester:
-        # Run Job Search specific tests
-        await tester.run_job_search_tests()
+        # Run the comprehensive Telegram Mini App tests
+        await tester.run_telegram_mini_app_tests()
         
         # Print summary
-        logger.info("=== 🎯 ИТОГОВЫЙ ОТЧЕТ ===")
+        print("\n" + "=" * 100)
+        print("🎯 ИТОГОВЫЙ ОТЧЕТ ТЕСТИРОВАНИЯ")
+        print("=" * 100)
         
         total_tests = len(tester.test_results)
         passed_tests = sum(1 for result in tester.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
         
-        logger.info(f"Всего тестов: {total_tests}")
-        logger.info(f"Успешных: {passed_tests}")
-        logger.info(f"Неудачных: {failed_tests}")
-        logger.info(f"Процент успеха: {success_rate:.1f}%")
+        print(f"📊 Общая статистика:")
+        print(f"   Всего тестов: {total_tests}")
+        print(f"   ✅ Прошли: {passed_tests}")
+        print(f"   ❌ Не прошли: {failed_tests}")
+        print(f"   📈 Процент успеха: {success_rate:.1f}%")
         
-        # Print failed tests details
-        if failed_tests > 0:
-            logger.info("=== ❌ НЕУДАЧНЫЕ ТЕСТЫ ===")
-            for result in tester.test_results:
-                if not result["success"]:
-                    logger.error(f"❌ {result['test']}: {result['details']}")
-        
-        # Print successful tests summary
-        logger.info("=== ✅ УСПЕШНЫЕ ТЕСТЫ ===")
+        print(f"\n🎯 Детальные результаты:")
         for result in tester.test_results:
-            if result["success"]:
-                logger.info(f"✅ {result['test']}")
+            status = "✅" if result["success"] else "❌"
+            print(f"   {status} {result['test']}")
+            if result["details"]:
+                print(f"      └─ {result['details']}")
         
-        logger.info("🎯 ТЕСТИРОВАНИЕ JOB SEARCH ФУНКЦИОНАЛЬНОСТИ ЗАВЕРШЕНО")
+        print("\n" + "=" * 100)
+        print("🎯 ТЕСТИРОВАНИЕ ЗАВЕРШЕНО")
+        print("=" * 100)
         
         return 0 if success_rate > 80 else 1  # Consider successful if >80% tests pass
 
