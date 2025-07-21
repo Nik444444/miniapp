@@ -1025,6 +1025,135 @@ class BackendTester:
             level_results
         )
 
+    async def test_german_language_level_filtering_focused(self):
+        """🎯 ФОКУСИРОВАННЫЙ ТЕСТ: German Language Level Filtering (B1, C1) - как запрошено"""
+        logger.info("=== 🎯 ФОКУСИРОВАННЫЙ ТЕСТ: German Language Level Filtering (B1, C1) ===")
+        
+        # Test только 2-3 уровня как запрошено: B1, C1
+        focus_levels = ["B1", "C1"]
+        level_results = {}
+        all_focus_levels_work = True
+        
+        for level in focus_levels:
+            search_data = {
+                "search_query": "software engineer",
+                "location": "Berlin", 
+                "language_level": level,
+                "limit": 15
+            }
+            
+            success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+            
+            if success and isinstance(data, dict):
+                jobs_count = len(data.get("jobs", []))
+                total_found = data.get("total_found", 0)
+                level_results[level] = {"jobs": jobs_count, "total": total_found, "success": True}
+                
+                self.log_test_result(
+                    f"🎯 ФОКУС: German Language Level {level} - Works without authentication",
+                    True,
+                    f"Level {level}: {jobs_count} jobs found, Total available: {total_found}",
+                    data
+                )
+            else:
+                # Check if it's an authentication error (which would be wrong)
+                is_auth_error = "401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", ""))))
+                level_results[level] = {"success": False, "auth_error": is_auth_error}
+                all_focus_levels_work = False
+                
+                self.log_test_result(
+                    f"🎯 ФОКУС: German Language Level {level} - Works without authentication",
+                    False,
+                    f"Level {level} failed: {error}. Auth error: {is_auth_error}",
+                    data
+                )
+        
+        # Summary test for focus levels
+        working_levels = [level for level, result in level_results.items() if result.get("success")]
+        
+        self.log_test_result(
+            "🎯 ФОКУС: German Language Levels (B1, C1) work without authentication",
+            all_focus_levels_work,
+            f"Working focus levels: {working_levels} out of {focus_levels}",
+            level_results
+        )
+
+    async def test_job_search_results_validation(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job search results - убедись что возвращает actual job listings (не 0 results)"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search Results Validation ===")
+        
+        # Test that search returns actual job data (not just empty results)
+        search_data = {
+            "search_query": "python developer",
+            "location": "Berlin",
+            "limit": 20
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+        
+        if success and isinstance(data, dict):
+            jobs = data.get("jobs", [])
+            total_found = data.get("total_found", 0)
+            total_available = data.get("total_available", 0)
+            
+            # Check if we get actual job data (not 0 results)
+            has_jobs = len(jobs) > 0
+            has_realistic_totals = total_found > 0 or total_available > 0
+            
+            # Check job structure if jobs exist
+            job_structure_valid = True
+            if jobs:
+                first_job = jobs[0]
+                required_job_fields = ["id", "title", "company"]
+                job_structure_valid = all(field in first_job for field in required_job_fields)
+            
+            self.log_test_result(
+                "🎯 Job search returns actual job listings (не 0 results)",
+                has_jobs or has_realistic_totals,
+                f"Jobs: {len(jobs)}, Total found: {total_found}, Total available: {total_available}, Structure valid: {job_structure_valid}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Job search returns actual job listings (не 0 results)",
+                False,
+                f"Job search failed: {error}",
+                data
+            )
+        
+        # Test different search queries to ensure system returns varied results
+        test_queries = [
+            {"search_query": "data scientist", "location": "Munich"},
+            {"search_query": "frontend developer", "location": "Hamburg"},
+            {"search_query": "backend engineer", "remote": True}
+        ]
+        
+        results_vary = True
+        for i, query in enumerate(test_queries):
+            success, data, error = await self.make_request("POST", "/api/job-search", json=query)
+            
+            if success and isinstance(data, dict):
+                jobs_count = len(data.get("jobs", []))
+                total_found = data.get("total_found", 0)
+                
+                # Log individual query results
+                self.log_test_result(
+                    f"🎯 Query {i+1}: {query.get('search_query', 'N/A')} - Returns results",
+                    jobs_count > 0 or total_found > 0,
+                    f"Query: {query}, Jobs: {jobs_count}, Total: {total_found}",
+                    data
+                )
+            else:
+                results_vary = False
+                logger.warning(f"Query {i+1} failed: {error}")
+        
+        self.log_test_result(
+            "🎯 Various job search queries return results",
+            results_vary,
+            f"All test queries return results: {results_vary}",
+            {"tested_queries": test_queries}
+        )
+
     async def test_arbeitnow_integration_status(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Arbeitnow.com Integration Status"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Arbeitnow.com Integration Status ===")
