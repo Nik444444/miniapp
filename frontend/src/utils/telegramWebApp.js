@@ -209,3 +209,22 @@ export const hapticFeedback = (type = 'light') => {
         }
     }
 };
+
+export const showBackButton = (callback) => {
+    const webApp = getTelegramWebApp();
+    if (webApp && webApp.BackButton) {
+        webApp.BackButton.show();
+        if (callback) {
+            webApp.BackButton.onClick(callback);
+        }
+    }
+};
+
+export const hideBackButton = () => {
+    const webApp = getTelegramWebApp();
+    if (webApp && webApp.BackButton) {
+        webApp.BackButton.hide();
+    }
+};
+
+export const telegramWebApp = getTelegramWebApp();
