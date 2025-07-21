@@ -142,6 +142,57 @@ class SQLiteDatabase:
             )
         ''')
 
+        # Создание таблицы для подписок на вакансии
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS job_subscriptions (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                search_query TEXT,
+                location TEXT,
+                remote BOOLEAN,
+                visa_sponsorship BOOLEAN,
+                language_level TEXT,
+                category TEXT,
+                active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_check TIMESTAMP,
+                notification_count INTEGER DEFAULT 0,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+
+        # Создание таблицы для анализов резюме
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS resume_analyses (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                resume_text TEXT NOT NULL,
+                target_position TEXT,
+                analysis_result TEXT NOT NULL,
+                overall_score INTEGER,
+                language TEXT DEFAULT 'ru',
+                ai_provider TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+
+        # Создание таблицы для подготовки к собеседованиям
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS interview_preparations (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                job_description TEXT NOT NULL,
+                resume_text TEXT,
+                interview_type TEXT DEFAULT 'behavioral',
+                coaching_result TEXT NOT NULL,
+                language TEXT DEFAULT 'ru',
+                ai_provider TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+
         # Заполним начальные тексты
         cursor.execute('''
             INSERT OR IGNORE INTO app_texts (id, key_name, text_value, description, category)
