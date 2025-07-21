@@ -150,21 +150,58 @@ const TelegramJobSearch = ({ onBack }) => {
         if (isTelegramWebApp()) hapticFeedback('light');
 
         try {
-            const queryParams = new URLSearchParams();
+            // Валидация и очистка параметров поиска
+            const cleanFilters = {};
             Object.entries(searchFilters).forEach(([key, value]) => {
-                if (value !== null && value !== '') {
-                    queryParams.append(key, value);
+                if (value !== null && value !== undefined && value !== '') {
+                    // Особая обработка строковых значений
+                    if (typeof value === 'string') {
+                        const cleanValue = value.trim();
+                        if (cleanValue.length > 0) {
+                            cleanFilters[key] = cleanValue;
+                        }
+                    } else {
+                        cleanFilters[key] = value;
+                    }
                 }
             });
 
-            console.log('Searching jobs with params:', queryParams.toString());
-            console.log('Backend URL:', backendUrl);
+            // Построение URL без потенциальных проблем с encode
+            let url = `${backendUrl}/api/job-search`;
+            const paramParts = [];
             
-            const fullUrl = `${backendUrl}/api/job-search?${queryParams}`;
-            console.log('Full API URL:', fullUrl);
+            Object.entries(cleanFilters).forEach(([key, value]) => {
+                try {
+                    paramParts.push(`${key}=${encodeURIComponent(value)}`);
+                } catch (encodeError) {
+                    console.warn('Failed to encode parameter:', key, value, encodeError);
+                    // Fallback без специального encoding
+                    paramParts.push(`${key}=${value}`);
+                }
+            });
 
-            const response = await fetch(fullUrl);
+            if (paramParts.length > 0) {
+                url += '?' + paramParts.join('&');
+            }
+
+            console.log('Searching jobs with clean filters:', cleanFilters);
+            console.log('Backend URL:', backendUrl);
+            console.log('Full API URL:', url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
             console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
             const data = await response.json();
             console.log('Response data:', data);
@@ -190,7 +227,18 @@ const TelegramJobSearch = ({ onBack }) => {
             }
         } catch (error) {
             console.error('Error searching jobs:', error);
-            const errorMessage = `Ошибка поиска: ${error.message || error}`;
+            let errorMessage = 'Ошибка поиска работы';
+            
+            if (error.message) {
+                if (error.message.includes('pattern') || error.message.includes('match')) {
+                    errorMessage = 'Ошибка валидации параметров поиска. Пожалуйста, проверьте введенные данные.';
+                } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+                    errorMessage = 'Ошибка сетевого соединения. Проверьте интернет-соединение.';
+                } else {
+                    errorMessage = `Ошибка поиска: ${error.message}`;
+                }
+            }
+            
             if (isTelegramWebApp()) {
                 telegramWebApp.showAlert(`❌ ${errorMessage}`);
             } else {
