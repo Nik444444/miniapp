@@ -296,13 +296,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "🎯 NEW FEATURE: Job Search API Endpoints Testing"
-    - "🎯 NEW FEATURE: German Language Level Filtering (A1-C2)"
-    - "🎯 NEW FEATURE: Arbeitnow.com Integration for Job Listings"
-  stuck_tasks:
-    - "🎯 NEW FEATURE: Job Search API Endpoints Testing"
-    - "🎯 NEW FEATURE: German Language Level Filtering (A1-C2)"
-    - "🎯 NEW FEATURE: Arbeitnow.com Integration for Job Listings"
+    - "🎯 NEW FEATURE: German Cities Search API with Autocomplete"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
