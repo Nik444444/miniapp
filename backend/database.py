@@ -830,5 +830,254 @@ class SQLiteDatabase:
         conn.commit()
         conn.close()
 
+    # =====================================================
+    # МЕТОДЫ ДЛЯ РАБОТЫ С JOB SEARCH
+    # =====================================================
+
+    async def save_job_subscription(self, subscription_data: Dict[str, Any]) -> str:
+        """Сохранение подписки на вакансии"""
+        subscription_id = subscription_data.get('id') or str(uuid.uuid4())
+        
+        async with self.get_connection() as conn:
+            await conn.execute('''
+                INSERT OR REPLACE INTO job_subscriptions 
+                (id, user_id, search_query, location, remote, visa_sponsorship,
+                 language_level, category, active, created_at, last_check, notification_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                subscription_id,
+                subscription_data['user_id'],
+                subscription_data.get('search_query'),
+                subscription_data.get('location'),
+                subscription_data.get('remote'),
+                subscription_data.get('visa_sponsorship'),
+                subscription_data.get('language_level'),
+                subscription_data.get('category'),
+                subscription_data.get('active', True),
+                subscription_data.get('created_at', datetime.utcnow().isoformat()),
+                subscription_data.get('last_check'),
+                subscription_data.get('notification_count', 0)
+            ))
+            await conn.commit()
+        
+        return subscription_id
+
+    async def get_user_job_subscriptions(self, user_id: str) -> List[Dict[str, Any]]:
+        """Получение подписок пользователя на вакансии"""
+        async with self.get_connection() as conn:
+            async with conn.execute('''
+                SELECT * FROM job_subscriptions 
+                WHERE user_id = ? AND active = TRUE
+                ORDER BY created_at DESC
+            ''', (user_id,)) as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def update_job_subscription(self, subscription_id: str, user_id: str, updates: Dict[str, Any]) -> bool:
+        """Обновление подписки на вакансии"""
+        async with self.get_connection() as conn:
+            # Build dynamic update query
+            set_clauses = []
+            values = []
+            
+            allowed_fields = ['search_query', 'location', 'remote', 'visa_sponsorship', 
+                            'language_level', 'category', 'active']
+            
+            for key, value in updates.items():
+                if key in allowed_fields:
+                    set_clauses.append(f"{key} = ?")
+                    values.append(value)
+            
+            if not set_clauses:
+                return False
+            
+            values.extend([subscription_id, user_id])
+            
+            query = f'''
+                UPDATE job_subscriptions 
+                SET {', '.join(set_clauses)}
+                WHERE id = ? AND user_id = ?
+            '''
+            
+            cursor = await conn.execute(query, values)
+            await conn.commit()
+            
+            return cursor.rowcount > 0
+
+    async def delete_job_subscription(self, subscription_id: str, user_id: str) -> bool:
+        """Удаление подписки на вакансии"""
+        async with self.get_connection() as conn:
+            cursor = await conn.execute('''
+                UPDATE job_subscriptions 
+                SET active = FALSE
+                WHERE id = ? AND user_id = ?
+            ''', (subscription_id, user_id))
+            
+            await conn.commit()
+            return cursor.rowcount > 0
+
+    async def get_all_active_job_subscriptions(self) -> List[Dict[str, Any]]:
+        """Получение всех активных подписок на вакансии для уведомлений"""
+        async with self.get_connection() as conn:
+            async with conn.execute('''
+                SELECT js.*, u.email, u.name 
+                FROM job_subscriptions js
+                JOIN users u ON js.user_id = u.id
+                WHERE js.active = TRUE
+                ORDER BY js.last_check ASC NULLS FIRST
+            ''') as cursor:
+                rows = await cursor.fetchall()
+                return [dict(row) for row in rows]
+
+    async def update_job_subscription_last_check(self, subscription_id: str, notification_count: int = None):
+        """Обновление времени последней проверки подписки на вакансии"""
+        async with self.get_connection() as conn:
+            if notification_count is not None:
+                await conn.execute('''
+                    UPDATE job_subscriptions 
+                    SET last_check = ?, notification_count = ?
+                    WHERE id = ?
+                ''', (datetime.utcnow().isoformat(), notification_count, subscription_id))
+            else:
+                await conn.execute('''
+                    UPDATE job_subscriptions 
+                    SET last_check = ?
+                    WHERE id = ?
+                ''', (datetime.utcnow().isoformat(), subscription_id))
+            
+            await conn.commit()
+
+    # =====================================================
+    # МЕТОДЫ ДЛЯ РАБОТЫ С АНАЛИЗОМ РЕЗЮМЕ
+    # =====================================================
+
+    async def save_resume_analysis(self, analysis_data: Dict[str, Any]) -> str:
+        """Сохранение анализа резюме"""
+        analysis_id = analysis_data.get('id') or str(uuid.uuid4())
+        
+        async with self.get_connection() as conn:
+            await conn.execute('''
+                INSERT INTO resume_analyses 
+                (id, user_id, resume_text, target_position, analysis_result, 
+                 overall_score, language, ai_provider, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                analysis_id,
+                analysis_data['user_id'],
+                analysis_data['resume_text'],
+                analysis_data.get('target_position'),
+                json.dumps(analysis_data['analysis_result']),
+                analysis_data.get('overall_score'),
+                analysis_data.get('language', 'ru'),
+                analysis_data.get('ai_provider'),
+                datetime.utcnow().isoformat()
+            ))
+            await conn.commit()
+        
+        return analysis_id
+
+    async def get_user_resume_analyses(self, user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Получение анализов резюме пользователя"""
+        async with self.get_connection() as conn:
+            async with conn.execute('''
+                SELECT * FROM resume_analyses 
+                WHERE user_id = ? 
+                ORDER BY created_at DESC 
+                LIMIT ?
+            ''', (user_id, limit)) as cursor:
+                rows = await cursor.fetchall()
+                analyses = []
+                for row in rows:
+                    analysis = dict(row)
+                    try:
+                        analysis['analysis_result'] = json.loads(analysis['analysis_result'])
+                    except:
+                        analysis['analysis_result'] = {}
+                    analyses.append(analysis)
+                return analyses
+
+    async def get_resume_analysis(self, analysis_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+        """Получение конкретного анализа резюме"""
+        async with self.get_connection() as conn:
+            async with conn.execute('''
+                SELECT * FROM resume_analyses 
+                WHERE id = ? AND user_id = ?
+            ''', (analysis_id, user_id)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    analysis = dict(row)
+                    try:
+                        analysis['analysis_result'] = json.loads(analysis['analysis_result'])
+                    except:
+                        analysis['analysis_result'] = {}
+                    return analysis
+                return None
+
+    # =====================================================
+    # МЕТОДЫ ДЛЯ РАБОТЫ С ПОДГОТОВКОЙ К СОБЕСЕДОВАНИЯМ
+    # =====================================================
+
+    async def save_interview_preparation(self, prep_data: Dict[str, Any]) -> str:
+        """Сохранение подготовки к собеседованию"""
+        prep_id = prep_data.get('id') or str(uuid.uuid4())
+        
+        async with self.get_connection() as conn:
+            await conn.execute('''
+                INSERT INTO interview_preparations 
+                (id, user_id, job_description, resume_text, interview_type,
+                 coaching_result, language, ai_provider, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                prep_id,
+                prep_data['user_id'],
+                prep_data['job_description'],
+                prep_data.get('resume_text'),
+                prep_data.get('interview_type', 'behavioral'),
+                json.dumps(prep_data['coaching_result']),
+                prep_data.get('language', 'ru'),
+                prep_data.get('ai_provider'),
+                datetime.utcnow().isoformat()
+            ))
+            await conn.commit()
+        
+        return prep_id
+
+    async def get_user_interview_preparations(self, user_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Получение подготовок к собеседованиям пользователя"""
+        async with self.get_connection() as conn:
+            async with conn.execute('''
+                SELECT * FROM interview_preparations 
+                WHERE user_id = ? 
+                ORDER BY created_at DESC 
+                LIMIT ?
+            ''', (user_id, limit)) as cursor:
+                rows = await cursor.fetchall()
+                preparations = []
+                for row in rows:
+                    prep = dict(row)
+                    try:
+                        prep['coaching_result'] = json.loads(prep['coaching_result'])
+                    except:
+                        prep['coaching_result'] = {}
+                    preparations.append(prep)
+                return preparations
+
+    async def get_interview_preparation(self, prep_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+        """Получение конкретной подготовки к собеседованию"""
+        async with self.get_connection() as conn:
+            async with conn.execute('''
+                SELECT * FROM interview_preparations 
+                WHERE id = ? AND user_id = ?
+            ''', (prep_id, user_id)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    prep = dict(row)
+                    try:
+                        prep['coaching_result'] = json.loads(prep['coaching_result'])
+                    except:
+                        prep['coaching_result'] = {}
+                    return prep
+                return None
+
 # Глобальный экземпляр базы данных
 db = SQLiteDatabase()
