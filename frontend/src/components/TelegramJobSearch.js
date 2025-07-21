@@ -110,14 +110,47 @@ const TelegramJobSearch = ({ onBack }) => {
 
     const searchCities = async (query) => {
         try {
-            const response = await fetch(`${backendUrl}/api/cities/search?q=${encodeURIComponent(query)}&limit=10`);
+            // Валидация и очистка query
+            const cleanQuery = query ? query.trim() : '';
+            if (cleanQuery.length < 2) {
+                setCities([]);
+                return;
+            }
+            
+            // Безопасное построение URL
+            const encodedQuery = encodeURIComponent(cleanQuery);
+            const url = `${backendUrl}/api/cities/search?q=${encodedQuery}&limit=10`;
+            
+            console.log('Searching cities with query:', cleanQuery);
+            console.log('Cities search URL:', url);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            console.log('Cities search response:', data);
             
             if (data.status === 'success') {
                 setCities(data.data.cities || []);
+            } else {
+                console.warn('Cities search returned non-success status:', data);
+                setCities([]);
             }
         } catch (error) {
             console.error('Error searching cities:', error);
+            setCities([]);
+            
+            // Не показывать ошибку пользователю для поиска городов,
+            // просто оставить список пустым
         }
     };
 
