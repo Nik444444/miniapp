@@ -134,6 +134,10 @@ const TelegramMainApp = () => {
         return <TelegramHousingSearch onBack={handleBackToMenu} />;
     }
     
+    if (currentView === 'job-search') {
+        return <TelegramJobSearch onBack={handleBackToMenu} />;
+    }
+    
     if (currentView === 'api-key-setup') {
         return <TelegramApiKeySetup onBack={handleBackToMenu} />;
     }
