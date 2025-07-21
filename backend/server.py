@@ -1916,14 +1916,13 @@ async def search_jobs(
 
 @api_router.post("/job-search")
 async def search_jobs_post(
-    search_request: JobSearchRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    search_request: JobSearchRequest
 ):
     """
     🔍 Advanced job search with detailed filtering (POST method)
     """
     try:
-        logger.info(f"Advanced job search from user {current_user['id']}: {search_request.dict()}")
+        logger.info(f"Advanced job search: {search_request.dict()}")
         
         # Search jobs using the job search service
         results = await job_search_service.search_jobs(
