@@ -88,6 +88,39 @@ const TelegramJobSearch = ({ onBack }) => {
         }
     };
 
+    const loadPopularCities = async () => {
+        try {
+            const response = await fetch(`${backendUrl}/api/cities/popular`);
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                setCities(data.data.cities || []);
+            }
+        } catch (error) {
+            console.error('Error loading popular cities:', error);
+        }
+    };
+
+    const searchCities = async (query) => {
+        try {
+            const response = await fetch(`${backendUrl}/api/cities/search?q=${encodeURIComponent(query)}&limit=10`);
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                setCities(data.data.cities || []);
+            }
+        } catch (error) {
+            console.error('Error searching cities:', error);
+        }
+    };
+
+    const handleCitySelect = (cityName) => {
+        setCitySearchInput(cityName);
+        setSearchFilters(prev => ({...prev, location: cityName}));
+        setShowCityDropdown(false);
+        if (isTelegramWebApp()) hapticFeedback('light');
+    };
+
     const loadSubscriptions = async () => {
         try {
             const response = await fetch(`${backendUrl}/api/job-subscriptions`, {
