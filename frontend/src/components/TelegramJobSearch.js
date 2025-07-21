@@ -510,8 +510,11 @@ const TelegramJobSearch = ({ onBack }) => {
         <div className="space-y-4">
             {/* Header */}
             <div className="bg-gradient-to-r from-violet-500 to-purple-600 text-white p-4 rounded-xl">
-                <h2 className="font-bold text-lg mb-1">Поиск вакансий</h2>
-                <p className="text-sm text-white/90">Найдите идеальную работу с ИИ-фильтрами</p>
+                <h2 className="font-bold text-lg mb-1 flex items-center justify-between">
+                    Поиск вакансий 
+                    <span className="text-xs bg-white/20 px-2 py-1 rounded-full">v2.0 🔥</span>
+                </h2>
+                <p className="text-sm text-white/90">Найдите идеальную работу с ИИ-фильтрами + автодополнение городов</p>
             </div>
 
             {/* Search Filters */}
