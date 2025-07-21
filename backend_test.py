@@ -1288,6 +1288,120 @@ class BackendTester:
             {"tested_combinations": filter_combinations}
         )
 
+    async def test_city_search_endpoints(self):
+        """🎯 NEW FEATURE: City Search API Testing"""
+        logger.info("=== 🎯 NEW FEATURE: City Search API Testing ===")
+        
+        # 1. Test GET /api/cities/search?q=Berlin - поиск конкретного города
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Berlin")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            has_total = "total" in data
+            
+            # Check if Berlin is found
+            cities = data.get("cities", [])
+            berlin_found = any(city.get("name") == "Berlin" for city in cities)
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Berlin - Find specific city",
+                has_status and has_cities and has_total and berlin_found,
+                f"Status: {data.get('status')}, Cities: {len(cities)}, Berlin found: {berlin_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Berlin - Find specific city",
+                False,
+                f"City search failed: {error}",
+                data
+            )
+        
+        # 2. Test GET /api/cities/search?q=Mun - частичный поиск
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Mun")
+        
+        if success and isinstance(data, dict):
+            cities = data.get("cities", [])
+            munich_found = any("München" in city.get("name", "") or "Munich" in city.get("name", "") for city in cities)
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Mun - Partial search",
+                munich_found,
+                f"Cities found: {len(cities)}, Munich/München found: {munich_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Mun - Partial search",
+                False,
+                f"Partial search failed: {error}",
+                data
+            )
+        
+        # 3. Test GET /api/cities/popular - популярные города
+        success, data, error = await self.make_request("GET", "/api/cities/popular")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            has_total = "total" in data
+            
+            cities = data.get("cities", [])
+            has_major_cities = len(cities) >= 5  # Should have at least 5 popular cities
+            
+            # Check if major cities are included
+            major_cities_found = []
+            for city in cities:
+                if city.get("name") in ["Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main"]:
+                    major_cities_found.append(city.get("name"))
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/popular - Popular cities",
+                has_status and has_cities and has_total and has_major_cities,
+                f"Status: {data.get('status')}, Cities: {len(cities)}, Major cities: {major_cities_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/popular - Popular cities",
+                False,
+                f"Popular cities failed: {error}",
+                data
+            )
+        
+        # 4. Test GET /api/cities/info/Berlin - информация о городе
+        success, data, error = await self.make_request("GET", "/api/cities/info/Berlin")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_city_info = "city" in data and isinstance(data["city"], dict)
+            
+            if has_city_info:
+                city_info = data["city"]
+                has_name = "name" in city_info
+                has_state = "state" in city_info
+                has_population = "population" in city_info
+                has_job_market = "job_market_info" in city_info
+                
+                city_info_complete = has_name and has_state and has_population and has_job_market
+            else:
+                city_info_complete = False
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/info/Berlin - City information",
+                has_status and has_city_info and city_info_complete,
+                f"Status: {data.get('status')}, City info complete: {city_info_complete}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/info/Berlin - City information",
+                False,
+                f"City info failed: {error}",
+                data
+            )
+
     async def test_job_search_authentication_requirements(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Authentication Requirements for Job Search"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search Authentication Requirements ===")
