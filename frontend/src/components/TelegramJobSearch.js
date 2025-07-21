@@ -5,7 +5,8 @@ import {
     Zap, Globe, CheckCircle, AlertCircle, Clock,
     User, FileText, MessageCircle, TrendingUp, 
     Building2, Euro, Languages, Target, ArrowRight,
-    BookOpen, Brain, Award, MessageSquare, Sparkles
+    BookOpen, Brain, Award, MessageSquare, Sparkles,
+    ChevronDown, X
 } from 'lucide-react';
 import { 
     isTelegramWebApp, 
