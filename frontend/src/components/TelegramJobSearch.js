@@ -65,6 +65,9 @@ const TelegramJobSearch = ({ onBack }) => {
         // Load user subscriptions on mount
         loadSubscriptions();
         loadPopularCities();
+        
+        // Initialize city search input with current location filter
+        setCitySearchInput(searchFilters.location || '');
     }, [currentView]);
 
     // Search cities when user types
