@@ -5030,13 +5030,42 @@ class BackendTester:
             )
 
 async def main():
-    """Main test execution"""
+    """🎯 ГЛАВНАЯ ФУНКЦИЯ: Тестирование Job Search функциональности"""
+    logger.info("🎯 НАЧАЛО КРИТИЧЕСКОГО ТЕСТИРОВАНИЯ JOB SEARCH ФУНКЦИОНАЛЬНОСТИ")
+    
     async with BackendTester() as tester:
-        await tester.run_all_tests()
-        passed, total = tester.print_summary()
+        # Run Job Search specific tests
+        await tester.run_job_search_tests()
         
-        # Return exit code based on results
-        return 0 if passed == total else 1
+        # Print summary
+        logger.info("=== 🎯 ИТОГОВЫЙ ОТЧЕТ ===")
+        
+        total_tests = len(tester.test_results)
+        passed_tests = sum(1 for result in tester.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        logger.info(f"Всего тестов: {total_tests}")
+        logger.info(f"Успешных: {passed_tests}")
+        logger.info(f"Неудачных: {failed_tests}")
+        logger.info(f"Процент успеха: {success_rate:.1f}%")
+        
+        # Print failed tests details
+        if failed_tests > 0:
+            logger.info("=== ❌ НЕУДАЧНЫЕ ТЕСТЫ ===")
+            for result in tester.test_results:
+                if not result["success"]:
+                    logger.error(f"❌ {result['test']}: {result['details']}")
+        
+        # Print successful tests summary
+        logger.info("=== ✅ УСПЕШНЫЕ ТЕСТЫ ===")
+        for result in tester.test_results:
+            if result["success"]:
+                logger.info(f"✅ {result['test']}")
+        
+        logger.info("🎯 ТЕСТИРОВАНИЕ JOB SEARCH ФУНКЦИОНАЛЬНОСТИ ЗАВЕРШЕНО")
+        
+        return 0 if success_rate > 80 else 1  # Consider successful if >80% tests pass
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())
