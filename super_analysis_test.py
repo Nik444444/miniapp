@@ -23,7 +23,7 @@ class SuperAnalysisEngineTest:
     def __init__(self):
         # Get backend URL from frontend .env file
         frontend_env_path = Path("/app/frontend/.env")
-        self.backend_url = "https://4fd42a2b-2c18-485c-8f34-e025dc470124.preview.emergentagent.com"
+        self.backend_url = "https://78747bc4-a121-478c-b6b7-f89a1c54fe2a.preview.emergentagent.com"
         
         if frontend_env_path.exists():
             with open(frontend_env_path, 'r') as f:
