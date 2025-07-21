@@ -3781,6 +3781,90 @@ class BackendTester:
         # Generate comprehensive test summary
         return self.generate_job_search_summary(overall_ready)
     
+    def generate_job_search_summary(self, system_ready=False):
+        """Generate and display comprehensive test summary for Job Search functionality"""
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        logger.info("=" * 80)
+        logger.info("🎯 JOB SEARCH FUNCTIONALITY TESTING COMPLETED")
+        logger.info(f"📊 OVERALL RESULTS: {passed_tests}/{total_tests} tests passed ({success_rate:.1f}% success)")
+        logger.info(f"✅ Passed: {passed_tests}")
+        logger.info(f"❌ Failed: {failed_tests}")
+        logger.info(f"🚀 System ready for production: {'YES' if system_ready else 'NO'}")
+        logger.info("=" * 80)
+        
+        # Job Search specific results
+        job_tests = [result for result in self.test_results if "🎯" in result["test"] and any(keyword in result["test"].lower() for keyword in ["job", "resume", "interview", "subscription"])]
+        job_passed = sum(1 for result in job_tests if result["success"])
+        job_total = len(job_tests)
+        
+        if job_total > 0:
+            job_success_rate = (job_passed / job_total * 100)
+            logger.info(f"🎯 JOB SEARCH TESTS: {job_passed}/{job_total} ({job_success_rate:.1f}% success)")
+            
+            # Show job search test results
+            logger.info("🎯 JOB SEARCH RESULTS:")
+            for result in job_tests:
+                status = "✅" if result["success"] else "❌"
+                logger.info(f"   {status} {result['test']}")
+            
+            # Show failed job search tests
+            failed_job = [result for result in job_tests if not result["success"]]
+            if failed_job:
+                logger.info("❌ FAILED JOB SEARCH TESTS:")
+                for result in failed_job:
+                    logger.info(f"   ❌ {result['test']}: {result['details']}")
+            
+            # Job search functionality conclusion
+            if job_passed == job_total:
+                logger.info("🚀 JOB SEARCH RESULT: ALL TESTS PASSED!")
+                logger.info("✅ Job Search API endpoints working correctly")
+                logger.info("✅ Arbeitnow.com integration successful")
+                logger.info("✅ German language level filtering (A1-C2) operational")
+                logger.info("✅ AI-powered job filtering functional")
+                logger.info("✅ Resume analysis and improvement working")
+                logger.info("✅ Interview preparation system functional")
+                logger.info("✅ Job subscription system for Telegram notifications working")
+                logger.info("✅ User API keys integration for AI analysis operational")
+            else:
+                logger.info("❌ JOB SEARCH ISSUES: NOT ALL TESTS PASSED")
+                logger.info("❌ Some job search functionality requires attention")
+        
+        # Housing Search results (existing functionality)
+        housing_tests = [result for result in self.test_results if "🏠" in result["test"] or "housing" in result["test"].lower()]
+        housing_passed = sum(1 for result in housing_tests if result["success"])
+        housing_total = len(housing_tests)
+        
+        if housing_total > 0:
+            housing_success_rate = (housing_passed / housing_total * 100)
+            logger.info(f"🏠 HOUSING SEARCH TESTS: {housing_passed}/{housing_total} ({housing_success_rate:.1f}% success)")
+        
+        # Document Analysis results (existing functionality)
+        doc_tests = [result for result in self.test_results if "analysis" in result["test"].lower() and "job" not in result["test"].lower()]
+        doc_passed = sum(1 for result in doc_tests if result["success"])
+        doc_total = len(doc_tests)
+        
+        if doc_total > 0:
+            doc_success_rate = (doc_passed / doc_total * 100)
+            logger.info(f"📄 DOCUMENT ANALYSIS TESTS: {doc_passed}/{doc_total} ({doc_success_rate:.1f}% success)")
+        
+        logger.info("=" * 80)
+        
+        return {
+            "success_rate": success_rate,
+            "job_passed": job_passed,
+            "job_total": job_total,
+            "housing_passed": housing_passed,
+            "housing_total": housing_total,
+            "doc_passed": doc_passed,
+            "doc_total": doc_total,
+            "system_ready": system_ready,
+            "job_search_functional": job_passed == job_total if job_total > 0 else False
+        }
+
     def generate_housing_search_summary(self, system_ready=False):
         """Generate and display comprehensive test summary for Housing Search functionality"""
         total_tests = len(self.test_results)
