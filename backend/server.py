@@ -46,6 +46,7 @@ from housing_search_service import housing_search_service
 from housing_ai_service import housing_ai_service
 from job_search_service import job_search_service
 from job_ai_service import job_ai_service
+from german_cities_service import german_cities_service
 
 # Configure logging
 logging.basicConfig(
