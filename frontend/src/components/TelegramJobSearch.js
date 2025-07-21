@@ -64,7 +64,21 @@ const TelegramJobSearch = ({ onBack }) => {
 
         // Load user subscriptions on mount
         loadSubscriptions();
+        loadPopularCities();
     }, [currentView]);
+
+    // Search cities when user types
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            if (citySearchInput.length >= 2) {
+                searchCities(citySearchInput);
+            } else if (citySearchInput.length === 0) {
+                loadPopularCities();
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounce);
+    }, [citySearchInput]);
 
     const handleBackClick = () => {
         if (currentView === 'main') {
