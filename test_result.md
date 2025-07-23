@@ -1168,7 +1168,7 @@ agent_communication:
         -comment: "Comprehensive testing of all corrected functionality for Telegram Mini App integration."
         -working: true
         -agent: "testing"
-        -comment: "✅ COMPREHENSIVE TESTING COMPLETED: All requested functionality working correctly. Backend URL https://76f1c3a7-3724-4912-aac2-1b715c156afa.preview.emergentagent.com responding properly. All API endpoints with /api prefix working. Cities search: exact matches ✅, partial matches ✅, umlaut support ✅, popular cities ✅, detailed info ✅. Job search: basic search ✅, location filters ✅, language level filters ✅, search queries ✅, combined filters ✅. Service status: arbeitnow integration active ✅, all services operational ✅. Pattern matching: no errors found ✅. Edge cases: all handled gracefully ✅. System ready for Telegram Mini App production use."
+        -comment: "✅ COMPREHENSIVE TESTING COMPLETED: All requested functionality working correctly. Backend URL https://bc30c4b4-d215-4027-937f-5ecda143f57d.preview.emergentagent.com responding properly. All API endpoints with /api prefix working. Cities search: exact matches ✅, partial matches ✅, umlaut support ✅, popular cities ✅, detailed info ✅. Job search: basic search ✅, location filters ✅, language level filters ✅, search queries ✅, combined filters ✅. Service status: arbeitnow integration active ✅, all services operational ✅. Pattern matching: no errors found ✅. Edge cases: all handled gracefully ✅. System ready for Telegram Mini App production use."
 
 frontend:
   - task: "Frontend Testing Not Required"
