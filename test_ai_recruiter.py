@@ -109,7 +109,7 @@ class AIRecruiterTester:
             logger.info("🤖 Тестирование запуска AI-рекрутера...")
             
             headers = {"Authorization": f"Bearer {self.auth_token}"}
-            data = {"language": "ru"}
+            data = {"user_language": "ru"}  # Исправлено: user_language вместо language
             
             response = requests.post(
                 f"{self.backend_url}/api/ai-recruiter/start",
@@ -127,7 +127,7 @@ class AIRecruiterTester:
                 else:
                     logger.error(f"❌ Ошибка запуска: {result.get('message')}")
             else:
-                logger.error(f"❌ HTTP ошибка: {response.status_code}")
+                logger.error(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
                 
         except Exception as e:
             logger.error(f"❌ Ошибка тестирования запуска: {e}")
@@ -144,7 +144,10 @@ class AIRecruiterTester:
             for i, message in enumerate(self.test_conversation):
                 logger.info(f"📤 Отправка сообщения {i+1}: {message[:50]}...")
                 
-                data = {"message": message}
+                data = {
+                    "user_message": message,  # Исправлено: user_message вместо message
+                    "conversation_data": {}   # Добавлено обязательное поле
+                }
                 
                 response = requests.post(
                     f"{self.backend_url}/api/ai-recruiter/continue",
@@ -167,7 +170,7 @@ class AIRecruiterTester:
                         logger.error(f"❌ Ошибка в разговоре: {result.get('message')}")
                         return False
                 else:
-                    logger.error(f"❌ HTTP ошибка: {response.status_code}")
+                    logger.error(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
                     return False
                 
                 # Небольшая пауза между сообщениями
