@@ -135,7 +135,7 @@ const TelegramMainApp = () => {
     }
     
     if (currentView === 'job-search') {
-        return <TelegramJobSearch onBack={handleBackToMenu} />;
+        return <EnhancedTelegramJobSearch onBack={handleBackToMenu} />;
     }
     
     if (currentView === 'api-key-setup') {
