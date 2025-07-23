@@ -408,7 +408,66 @@ class JobSearchService:
         if job.get('arbeitsort', {}).get('koordinaten'):
             score += 10
             
-        return min(100, score)
+    async def get_user_location_info(self, coordinates: Dict[str, float]) -> Dict[str, Any]:
+        """
+        🌍 Get location information from coordinates
+        """
+        try:
+            lat = coordinates.get('lat')
+            lon = coordinates.get('lon')
+            
+            if not lat or not lon:
+                return {'status': 'error', 'message': 'Invalid coordinates'}
+            
+            # Simple reverse geocoding (in production, you'd use a real service)
+            # For now, we'll return the coordinates and suggest German cities
+            german_cities = [
+                {'name': 'Berlin', 'lat': 52.5200, 'lon': 13.4050, 'distance': self._calculate_distance(lat, lon, 52.5200, 13.4050)},
+                {'name': 'München', 'lat': 48.1351, 'lon': 11.5820, 'distance': self._calculate_distance(lat, lon, 48.1351, 11.5820)},
+                {'name': 'Hamburg', 'lat': 53.5511, 'lon': 9.9937, 'distance': self._calculate_distance(lat, lon, 53.5511, 9.9937)},
+                {'name': 'Köln', 'lat': 50.9375, 'lon': 6.9603, 'distance': self._calculate_distance(lat, lon, 50.9375, 6.9603)},
+                {'name': 'Frankfurt am Main', 'lat': 50.1109, 'lon': 8.6821, 'distance': self._calculate_distance(lat, lon, 50.1109, 8.6821)},
+                {'name': 'Stuttgart', 'lat': 48.7758, 'lon': 9.1829, 'distance': self._calculate_distance(lat, lon, 48.7758, 9.1829)},
+                {'name': 'Düsseldorf', 'lat': 51.2277, 'lon': 6.7735, 'distance': self._calculate_distance(lat, lon, 51.2277, 6.7735)},
+                {'name': 'Dresden', 'lat': 51.0504, 'lon': 13.7373, 'distance': self._calculate_distance(lat, lon, 51.0504, 13.7373)}
+            ]
+            
+            # Find nearest cities
+            nearest_cities = sorted(german_cities, key=lambda x: x['distance'])[:5]
+            
+            return {
+                'status': 'success',
+                'user_coordinates': {'lat': lat, 'lon': lon},
+                'nearest_cities': nearest_cities,
+                'recommended_radius': [25, 50, 100, 200],
+                'location_detected': nearest_cities[0]['name'] if nearest_cities[0]['distance'] < 50 else 'Unknown',
+                'country': 'Germany' if nearest_cities[0]['distance'] < 500 else 'Unknown'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Location info failed: {e}")
+            return {
+                'status': 'error',
+                'message': f'Location processing failed: {str(e)}'
+            }
+
+    async def get_search_radius_options(self) -> Dict[str, Any]:
+        """
+        📍 Get available search radius options with descriptions
+        """
+        return {
+            'status': 'success',
+            'radius_options': [
+                {'value': 5, 'label': '5 km', 'description': 'Sehr nah - zu Fuß oder mit dem Fahrrad erreichbar'},
+                {'value': 10, 'label': '10 km', 'description': 'Nah - kurze Fahrt mit öffentlichen Verkehrsmitteln'},
+                {'value': 25, 'label': '25 km', 'description': 'Mittel - ca. 30 Minuten Fahrtzeit'},
+                {'value': 50, 'label': '50 km', 'description': 'Erweitert - ca. 1 Stunde Fahrtzeit'},
+                {'value': 100, 'label': '100 km', 'description': 'Weit - größere Region abdecken'},
+                {'value': 200, 'label': '200 km', 'description': 'Sehr weit - mehrere Bundesländer'}
+            ],
+            'default_radius': 50,
+            'recommendation': 'Wir empfehlen 50 km für eine gute Balance zwischen Auswahl und Erreichbarkeit'
+        }
 
     def _filter_jobs(self, 
                      jobs: List[Dict],
