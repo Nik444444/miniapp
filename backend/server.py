@@ -2928,6 +2928,126 @@ async def get_ai_job_recommendations(
         logger.error(f"Failed to get AI job recommendations: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка получения AI-рекомендаций: {str(e)}")
 
+@api_router.post("/job-subscription/create")
+async def create_job_subscription(
+    request: JobSubscriptionCreateRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🔔 Create intelligent job subscription with AI-powered recommendations
+    """
+    try:
+        logger.info(f"Creating job subscription for user {current_user['id']}")
+        
+        # Get user AI recruiter profile for better recommendations
+        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
+        collected_data = user_profile.get('collected_data', {}) if user_profile else {}
+        
+        # Create subscription data
+        subscription_data = {
+            'id': str(uuid.uuid4()),
+            'user_id': current_user['id'],
+            'search_query': request.search_query or collected_data.get('profession'),
+            'location': request.location or collected_data.get('preferred_city', 'Berlin'),
+            'remote': request.remote or collected_data.get('work_format') == 'remote',
+            'visa_sponsorship': request.visa_sponsorship or collected_data.get('needs_visa', False),
+            'language_level': request.language_level or collected_data.get('german_level', 'B1'),
+            'category': request.category,
+            'notification_frequency': request.notification_frequency or 'daily',
+            'active': True,
+            'created_at': datetime.utcnow().isoformat()
+        }
+        
+        # Save subscription to database
+        subscription_id = await db.save_job_subscription(subscription_data)
+        
+        # Send confirmation notification to Telegram if user has telegram_id
+        if current_user.get('telegram_id'):
+            try:
+                await telegram_job_notification_service.send_subscription_confirmation(
+                    user_telegram_id=current_user['telegram_id'],
+                    subscription_data=subscription_data,
+                    user_language=current_user.get('preferred_language', 'ru')
+                )
+            except Exception as e:
+                logger.warning(f"Failed to send subscription confirmation: {e}")
+        
+        return {
+            'status': 'success',
+            'subscription_id': subscription_id,
+            'subscription': subscription_data,
+            'message': 'Подписка на вакансии создана! Вы будете получать персональные уведомления.'
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to create job subscription: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка создания подписки: {str(e)}")
+
+@api_router.get("/job-subscription/list")
+async def get_user_job_subscriptions(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📋 Get user's job subscriptions
+    """
+    try:
+        subscriptions = await db.get_user_job_subscriptions(current_user['id'])
+        
+        return {
+            'status': 'success',
+            'subscriptions': subscriptions,
+            'total': len(subscriptions)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get job subscriptions: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения подписок: {str(e)}")
+
+@api_router.put("/job-subscription/{subscription_id}")
+async def update_job_subscription(
+    subscription_id: str,
+    request: JobSubscriptionUpdateRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    ✏️ Update job subscription
+    """
+    try:
+        # Prepare update data
+        updates = {}
+        if request.search_query is not None:
+            updates['search_query'] = request.search_query
+        if request.location is not None:
+            updates['location'] = request.location
+        if request.remote is not None:
+            updates['remote'] = request.remote
+        if request.visa_sponsorship is not None:
+            updates['visa_sponsorship'] = request.visa_sponsorship
+        if request.language_level is not None:
+            updates['language_level'] = request.language_level
+        if request.category is not None:
+            updates['category'] = request.category
+        if request.active is not None:
+            updates['active'] = request.active
+        
+        # Update subscription
+        success = await db.update_job_subscription(subscription_id, current_user['id'], updates)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="Подписка не найдена")
+        
+        return {
+            'status': 'success',
+            'message': 'Подписка обновлена',
+            'subscription_id': subscription_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update job subscription: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка обновления подписки: {str(e)}")
+
 # =====================================================
 # TELEGRAM NOTIFICATION API ENDPOINTS
 # =====================================================
