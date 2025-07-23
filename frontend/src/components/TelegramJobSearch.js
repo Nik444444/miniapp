@@ -979,6 +979,21 @@ Button Enabled: ${!(!searchFilters.location || !searchFilters.language_level)}`)
                 >
                     🔧
                 </button>
+                
+                {/* Скрытая отладочная кнопка - показывается только при 3x нажатии */}
+                <button
+                    onClick={() => {
+                        if (isTelegramWebApp()) {
+                            telegramWebApp.showAlert(`🔧 Отладочная информация:\nBackend URL: ${backendUrl}\nТекущий статус: Готов к поиску`);
+                        } else {
+                            alert(`🔧 Отладочная информация:\nBackend URL: ${backendUrl}\nТекущий статус: Готов к поиску`);
+                        }
+                    }}
+                    className="text-xs text-gray-500 px-2 py-1 rounded opacity-20 hover:opacity-100"
+                    title="Информация для отладки"
+                >
+                    ℹ️
+                </button>
             </div>
 
             {/* Required fields notice */}
