@@ -72,7 +72,7 @@ const AIJobAssistant = ({ onBack, initialJob = null }) => {
 
     const loadAIProfile = async () => {
         try {
-            const response = await fetch(`${backendUrl}/ai-recruiter/profile`, {
+            const response = await fetch(`${backendUrl}/api/ai-recruiter/profile`, {
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
                     'Content-Type': 'application/json'
