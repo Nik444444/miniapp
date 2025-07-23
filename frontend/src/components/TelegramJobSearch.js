@@ -195,10 +195,23 @@ const TelegramJobSearch = ({ onBack }) => {
             }
         } catch (error) {
             console.error('Error searching cities:', error);
+            console.error('Cities search error details:', {
+                message: error.message,
+                stack: error.stack,
+                url: url,
+                query: cleanQuery
+            });
+            
             setCities([]);
             
-            // Не показывать ошибку пользователю для поиска городов,
-            // просто оставить список пустым
+            // Если есть серьезная ошибка, уведомляем пользователя
+            if (error.message && error.message.includes('pattern')) {
+                console.warn('Pattern matching error in cities search:', error.message);
+                // Можно показать уведомление, если нужно
+                // if (isTelegramWebApp()) {
+                //     telegramWebApp.showAlert(`⚠️ Ошибка поиска городов: ${error.message}`);
+                // }
+            }
         }
     };
 
