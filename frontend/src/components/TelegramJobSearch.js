@@ -328,14 +328,15 @@ const TelegramJobSearch = ({ onBack }) => {
             console.log('Response data:', data);
 
             if (data.status === 'success') {
-                const jobsData = data.data.jobs || [];
+                const jobsData = data.data?.jobs || [];  // Исправление: правильный путь к jobs
                 console.log('Jobs found:', jobsData.length);
                 
                 setJobs(jobsData);
+                const totalFound = data.data?.total_found || jobsData.length;
                 if (isTelegramWebApp()) {
-                    telegramWebApp.showAlert(`✅ Найдено ${data.data.total_found || jobsData.length} вакансий!`);
+                    telegramWebApp.showAlert(`✅ Найдено ${totalFound} вакансий!`);
                 } else {
-                    alert(`✅ Найдено ${data.data.total_found || jobsData.length} вакансий!`);
+                    alert(`✅ Найдено ${totalFound} вакансий!`);
                 }
             } else {
                 console.error('API returned non-success status:', data);
