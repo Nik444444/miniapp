@@ -157,6 +157,7 @@ const TelegramJobSearch = ({ onBack }) => {
     const searchCities = async (query) => {
         // Валидация и очистка query - перенесена наружу для доступности в catch
         const cleanQuery = query ? query.trim() : '';
+        let safeQuery = '';
         
         try {
             if (cleanQuery.length < 2) {
@@ -166,7 +167,7 @@ const TelegramJobSearch = ({ onBack }) => {
             }
             
             // УЛУЧШЕННАЯ валидация и очистка запроса
-            const safeQuery = cleanQuery
+            safeQuery = cleanQuery
                 .replace(/[^\w\säöüÄÖÜß\-]/g, '') // Убираем все кроме букв, цифр, пробелов и немецких символов
                 .substring(0, 50); // Ограничиваем длину
             
