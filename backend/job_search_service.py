@@ -74,39 +74,77 @@ class JobSearchService:
     async def search_jobs(self, 
                          search_query: str = None,
                          location: str = None,
+                         radius: int = 50,
                          remote: bool = None,
                          visa_sponsorship: bool = None,
                          language_level: str = None,
                          category: str = None,
+                         work_time: str = None,
+                         published_since: int = None,
+                         contract_type: str = None,
                          limit: int = 50,
-                         page: int = 1) -> Dict[str, Any]:
+                         page: int = 1,
+                         user_coordinates: Dict[str, float] = None) -> Dict[str, Any]:
         """
-        🔍 Search jobs using Arbeitsagentur API
+        🔍 Enhanced job search using Bundesagentur für Arbeit API with geolocation
+        
+        Args:
+            search_query: Job title or description search
+            location: Location name (city, postal code)
+            radius: Search radius in kilometers (5, 10, 25, 50, 100, 200)
+            remote: Filter for remote jobs
+            visa_sponsorship: Filter for visa sponsorship
+            language_level: German language level (A1-C2)
+            category: Job category filter
+            work_time: Work time filter (vz, tz, ho, mj, snw)
+            published_since: Days since publication (0-100)
+            contract_type: Contract type (1=limited, 2=unlimited)
+            limit: Number of results per page
+            page: Page number
+            user_coordinates: User's current coordinates {'lat': float, 'lon': float}
         """
         try:
             session = await self._get_session()
             
-            # Build query parameters for Arbeitsagentur API
+            # Build enhanced query parameters
             params = {
                 'page': page,
-                'size': min(limit, 100)  # Arbeitsagentur API allows max 100 per page
+                'size': min(limit, 100),  # API allows max 100 per page
             }
             
-            # Map our parameters to Arbeitsagentur API parameters
+            # Enhanced parameter mapping
             if search_query:
-                params['was'] = search_query  # "was" = job title/description search
+                params['was'] = search_query
                 
             if location:
-                params['wo'] = location  # "wo" = location search
+                params['wo'] = location
+                
+            # Enhanced radius support
+            if radius and radius in self.radius_options:
+                params['umkreis'] = radius
+            else:
+                params['umkreis'] = 50  # Default radius
             
-            # Headers required by Arbeitsagentur API
+            # Work time filter
+            if work_time and work_time in self.work_time_filters:
+                params['arbeitszeit'] = work_time
+                
+            # Published since filter
+            if published_since and 0 <= published_since <= 100:
+                params['veroeffentlichtseit'] = published_since
+                
+            # Contract type filter
+            if contract_type in ['1', '2']:
+                params['befristung'] = contract_type
+            
+            # Headers for API request
             headers = {
                 'X-API-Key': self.api_key,
                 'Accept': 'application/json',
-                'User-Agent': 'German-Letter-AI-Assistant/1.0'
+                'User-Agent': 'German-Telegram-Mini-App/2.0'
             }
             
-            logger.info(f"Searching Arbeitsagentur jobs with params: {params}")
+            logger.info(f"🔍 Enhanced job search with params: {params}")
             
             url = f"{self.base_url}/pc/v4/jobs"
             
@@ -115,62 +153,68 @@ class JobSearchService:
                     data = await response.json()
                     jobs_raw = data.get('stellenangebote', [])
                     
-                    logger.info(f"Found {len(jobs_raw)} jobs from Arbeitsagentur API")
+                    logger.info(f"✅ Found {len(jobs_raw)} jobs from enhanced API")
                     
-                    # Convert Arbeitsagentur format to our standard format
-                    jobs = self._convert_arbeitsagentur_jobs(jobs_raw)
+                    # Convert and enhance job data
+                    jobs = self._convert_enhanced_jobs(jobs_raw, user_coordinates)
                     
-                    # Apply additional filters
-                    filtered_jobs = self._filter_jobs(
+                    # Apply enhanced filters
+                    filtered_jobs = self._apply_enhanced_filters(
                         jobs=jobs,
                         remote=remote,
                         language_level=language_level,
-                        category=category
+                        category=category,
+                        visa_sponsorship=visa_sponsorship
                     )
                     
-                    # Categorize jobs
-                    categorized_jobs = self._categorize_jobs(filtered_jobs)
+                    # Categorize and analyze jobs
+                    analysis = self._analyze_jobs(filtered_jobs)
                     
-                    logger.info(f"Returning {len(filtered_jobs)} filtered jobs")
+                    logger.info(f"📊 Returning {len(filtered_jobs)} filtered jobs with analysis")
                     
                     return {
                         'status': 'success',
                         'total_found': len(filtered_jobs),
                         'total_available': data.get('maxErgebnisse', 0),
                         'jobs': filtered_jobs,
-                        'categories': categorized_jobs['categories'],
-                        'facets': data.get('facetten', {}),  # Additional filter options from API
-                        'filters_applied': {
+                        'analysis': analysis,
+                        'facets': self._process_facets(data.get('facetten', {})),
+                        'search_metadata': {
                             'search_query': search_query,
                             'location': location,
-                            'remote': remote,
-                            'visa_sponsorship': visa_sponsorship,
+                            'radius_km': radius,
+                            'work_time': work_time,
                             'language_level': language_level,
-                            'category': category
+                            'published_since_days': published_since,
+                            'contract_type': contract_type,
+                            'user_location': user_coordinates,
+                            'search_center': data.get('woOutput', {})
                         },
-                        'language_levels': self.language_levels,
                         'pagination': {
                             'page': page,
                             'size': params.get('size', 25),
-                            'total': data.get('maxErgebnisse', 0)
+                            'total': data.get('maxErgebnisse', 0),
+                            'has_next': len(filtered_jobs) >= params.get('size', 25)
                         },
-                        'ai_recommendations': self._generate_search_recommendations(search_query, filtered_jobs),
-                        'api_source': 'arbeitsagentur.de',
-                        'source_info': {
-                            'name': 'Bundesagentur für Arbeit',
-                            'description': 'Official German Federal Employment Agency job board',
-                            'website': 'https://www.arbeitsagentur.de'
+                        'recommendations': self._generate_enhanced_recommendations(
+                            search_query, filtered_jobs, analysis
+                        ),
+                        'api_info': {
+                            'source': 'bundesagentur.de',
+                            'name': 'Bundesagentur für Arbeit - Official German Job Board',
+                            'version': 'v4',
+                            'enhanced_features': ['geolocation', 'radius_search', 'advanced_filters']
                         }
                     }
                 else:
-                    logger.error(f"Arbeitsagentur API request failed with status: {response.status}")
+                    logger.error(f"❌ API request failed with status: {response.status}")
                     error_text = await response.text()
                     logger.error(f"Error response: {error_text}")
-                    return await self._get_fallback_jobs()
+                    return await self._get_enhanced_fallback_jobs()
                     
         except Exception as e:
-            logger.error(f"Job search failed: {e}")
-            return await self._get_fallback_jobs()
+            logger.error(f"❌ Enhanced job search failed: {e}")
+            return await self._get_enhanced_fallback_jobs()
 
     def _convert_arbeitsagentur_jobs(self, jobs_raw: List[Dict]) -> List[Dict]:
         """Convert Arbeitsagentur API format to our standard format"""
