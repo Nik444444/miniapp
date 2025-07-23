@@ -2037,6 +2037,8 @@ async def search_jobs_post(
         
     except Exception as e:
         logger.error(f"❌ Advanced enhanced job search failed: {e}")
+        import traceback
+        logger.error(f"❌ Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Ошибка расширенного поиска вакансий: {str(e)}")
 
 @api_router.post("/user-location-info")
