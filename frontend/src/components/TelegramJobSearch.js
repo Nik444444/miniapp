@@ -352,17 +352,26 @@ const TelegramJobSearch = ({ onBack }) => {
             }
         } catch (error) {
             console.error('Error searching jobs:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                response: error.response
+            });
+            
             let errorMessage = 'Ошибка поиска работы';
             
             if (error.message) {
                 if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
                     errorMessage = 'Ошибка сетевого соединения. Проверьте интернет-соединение.';
                 } else if (error.message.includes('HTTP 400') || error.message.includes('Bad Request')) {
-                    errorMessage = 'Неверные параметры поиска. Пожалуйста, проверьте введенные данные.';
+                    errorMessage = 'Ошибка валидации параметров поиска. Пожалуйста, проверьте введенные данные.';
                 } else if (error.message.includes('HTTP 500')) {
                     errorMessage = 'Ошибка сервера. Попробуйте позже.';
+                } else if (error.message.includes('pattern') || error.message.includes('match')) {
+                    errorMessage = 'Ошибка валидации данных. Убедитесь, что поля заполнены корректно.';
                 } else {
-                    errorMessage = `Ошибка поиска: ${error.message}`;
+                    // Не добавляем префикс "Ошибка поиска:" для более ясного сообщения
+                    errorMessage = error.message;
                 }
             }
             
