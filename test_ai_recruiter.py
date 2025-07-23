@@ -226,7 +226,11 @@ class AIRecruiterTester:
             logger.info("📊 Тестирование анализа совместимости...")
             
             headers = {"Authorization": f"Bearer {self.auth_token}"}
-            data = {"job_data": self.test_job}
+            data = {
+                "job_id": "test_job_123",
+                "job_data": self.test_job,
+                "user_profile_id": None
+            }
             
             response = requests.post(
                 f"{self.backend_url}/api/job-compatibility",
@@ -253,7 +257,7 @@ class AIRecruiterTester:
                 else:
                     logger.error(f"❌ Ошибка анализа: {result.get('message')}")
             else:
-                logger.error(f"❌ HTTP ошибка: {response.status_code}")
+                logger.error(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
                 
         except Exception as e:
             logger.error(f"❌ Ошибка тестирования совместимости: {e}")
@@ -266,7 +270,10 @@ class AIRecruiterTester:
             logger.info("🎯 Тестирование персональных рекомендаций...")
             
             headers = {"Authorization": f"Bearer {self.auth_token}"}
-            data = {"max_jobs": 5}
+            data = {
+                "user_profile_id": "test_profile",
+                "max_jobs": 5
+            }
             
             response = requests.post(
                 f"{self.backend_url}/api/ai-job-recommendations",
@@ -294,7 +301,7 @@ class AIRecruiterTester:
                 else:
                     logger.error(f"❌ Ошибка рекомендаций: {result.get('message')}")
             else:
-                logger.error(f"❌ HTTP ошибка: {response.status_code}")
+                logger.error(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
                 
         except Exception as e:
             logger.error(f"❌ Ошибка тестирования рекомендаций: {e}")
@@ -308,6 +315,7 @@ class AIRecruiterTester:
             
             headers = {"Authorization": f"Bearer {self.auth_token}"}
             data = {
+                "job_id": "test_job_123",
                 "job_data": self.test_job,
                 "target_language": "ru"
             }
@@ -332,7 +340,7 @@ class AIRecruiterTester:
                 else:
                     logger.error(f"❌ Ошибка перевода: {result.get('message')}")
             else:
-                logger.error(f"❌ HTTP ошибка: {response.status_code}")
+                logger.error(f"❌ HTTP ошибка: {response.status_code} - {response.text}")
                 
         except Exception as e:
             logger.error(f"❌ Ошибка тестирования перевода: {e}")
