@@ -6,7 +6,10 @@ import {
     User, FileText, MessageCircle, TrendingUp, 
     Building2, Euro, Languages, Target, ArrowRight,
     BookOpen, Brain, Award, MessageSquare, Sparkles,
-    ChevronDown, X
+    ChevronDown, X, Navigation, Radar, Settings,
+    Plus, Minus, RotateCcw, Smartphone, Wifi,
+    Calendar, Briefcase as BriefcaseIcon, Home,
+    Clock3, Coffee, Moon, Sun
 } from 'lucide-react';
 import { 
     isTelegramWebApp, 
@@ -16,34 +19,84 @@ import {
     hideBackButton 
 } from '../utils/telegramWebApp';
 
-const TelegramJobSearch = ({ onBack }) => {
+const EnhancedTelegramJobSearch = ({ onBack }) => {
     const { user, backendUrl } = useContext(AuthContext);
-    const [currentView, setCurrentView] = useState('main'); // main, search, resume-analysis, interview-prep
+    const [currentView, setCurrentView] = useState('main');
     const [loading, setLoading] = useState(false);
     const [jobs, setJobs] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
+    
+    // Enhanced search filters with geolocation
     const [searchFilters, setSearchFilters] = useState({
         search_query: '',
         location: '',
+        radius: 50,
         remote: null,
         visa_sponsorship: null,
         language_level: '',
-        category: ''
+        category: '',
+        work_time: '',
+        published_since: null,
+        contract_type: null
     });
+    
+    // Geolocation state
+    const [userLocation, setUserLocation] = useState(null);
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [nearestCities, setNearestCities] = useState([]);
+    const [radiusOptions, setRadiusOptions] = useState([]);
+    
+    // Enhanced UI state
+    const [searchResults, setSearchResults] = useState(null);
+    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [viewMode, setViewMode] = useState('grid'); // grid, list
+    
+    // City search state (enhanced)
+    const [cities, setCities] = useState([]);
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
+    const [citySearchInput, setCitySearchInput] = useState('');
+    
+    // Resume and interview prep state
     const [resumeText, setResumeText] = useState('');
     const [targetPosition, setTargetPosition] = useState('');
     const [analysisResult, setAnalysisResult] = useState(null);
     const [interviewType, setInterviewType] = useState('behavioral');
     const [jobDescription, setJobDescription] = useState('');
     const [coachingResult, setCoachingResult] = useState(null);
-    
-    // City search state
-    const [cities, setCities] = useState([]);
-    const [showCityDropdown, setShowCityDropdown] = useState(false);
-    const [citySearchInput, setCitySearchInput] = useState('');
 
-    const languageLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const jobCategories = ['tech', 'marketing', 'finance', 'sales', 'design', 'management', 'healthcare', 'education', 'other'];
+    // Enhanced options
+    const languageLevels = [
+        { value: 'A1', label: 'A1 - Anfänger', description: 'Basic everyday expressions' },
+        { value: 'A2', label: 'A2 - Grundlagen', description: 'Simple routine matters' },
+        { value: 'B1', label: 'B1 - Mittelstufe', description: 'Work and study topics' },
+        { value: 'B2', label: 'B2 - Gehobene Mittelstufe', description: 'Complex texts' },
+        { value: 'C1', label: 'C1 - Fortgeschritten', description: 'Professional fluency' },
+        { value: 'C2', label: 'C2 - Muttersprachlich', description: 'Native-like proficiency' }
+    ];
+    
+    const workTimeOptions = [
+        { value: 'vz', label: 'Vollzeit', icon: <Sun className="w-4 h-4" />, description: 'Full-time positions' },
+        { value: 'tz', label: 'Teilzeit', icon: <Clock3 className="w-4 h-4" />, description: 'Part-time positions' },
+        { value: 'ho', label: 'Homeoffice', icon: <Home className="w-4 h-4" />, description: 'Remote/home office work' },
+        { value: 'mj', label: 'Minijob', icon: <Coffee className="w-4 h-4" />, description: 'Mini jobs (450€ basis)' },
+        { value: 'snw', label: 'Schicht/Nacht/Wochenende', icon: <Moon className="w-4 h-4" />, description: 'Shift, night or weekend work' }
+    ];
+    
+    const jobCategories = [
+        { value: 'tech', label: '💻 Tech & IT', description: 'Software, Hardware, IT-Services' },
+        { value: 'healthcare', label: '🏥 Gesundheitswesen', description: 'Medizin, Pflege, Pharma' },
+        { value: 'finance', label: '💰 Finanzen', description: 'Banking, Versicherung, Controlling' },
+        { value: 'marketing', label: '📈 Marketing', description: 'Digital Marketing, PR, Werbung' },
+        { value: 'sales', label: '🤝 Vertrieb', description: 'Verkauf, Account Management' },
+        { value: 'education', label: '📚 Bildung', description: 'Lehrer, Ausbildung, Training' },
+        { value: 'construction', label: '🏗️ Bau & Handwerk', description: 'Bauwesen, Elektrik, Installation' },
+        { value: 'logistics', label: '🚛 Logistik', description: 'Transport, Lagerwirtschaft' },
+        { value: 'gastronomy', label: '🍽️ Gastronomie', description: 'Restaurant, Hotel, Küche' },
+        { value: 'retail', label: '🛍️ Einzelhandel', description: 'Verkauf, Handel' },
+        { value: 'other', label: '🔧 Sonstige', description: 'Andere Bereiche' }
+    ];
+
     const interviewTypes = {
         'behavioral': 'Поведенческое интервью',
         'technical': 'Техническое интервью',
