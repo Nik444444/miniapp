@@ -845,20 +845,23 @@ const TelegramJobSearch = ({ onBack }) => {
                     <Bell className="h-4 w-4" />
                 </button>
                 
-                {/* Debug test button */}
+                {/* Debug info button */}
                 <button
                     onClick={() => {
-                        console.log('Test API connection...');
-                        fetch(`${backendUrl}/api/health`)
-                            .then(r => r.json())
-                            .then(data => {
-                                console.log('Health check:', data);
-                                alert(`API Status: ${data.status}\nDB: ${data.database}\nURL: ${backendUrl}`);
-                            })
-                            .catch(err => {
-                                console.error('Health check failed:', err);
-                                alert(`API Error: ${err.message}`);
-                            });
+                        console.log('DEBUG INFO:');
+                        console.log('searchFilters:', searchFilters);
+                        console.log('citySearchInput:', citySearchInput);
+                        console.log('location valid:', !!searchFilters.location);
+                        console.log('language_level valid:', !!searchFilters.language_level);
+                        console.log('Button should be enabled:', !(!searchFilters.location || !searchFilters.language_level));
+                        
+                        alert(`DEBUG INFO:
+Location: '${searchFilters.location}'
+Language: '${searchFilters.language_level}'  
+City Input: '${citySearchInput}'
+Location Valid: ${!!searchFilters.location}
+Language Valid: ${!!searchFilters.language_level}
+Button Enabled: ${!(!searchFilters.location || !searchFilters.language_level)}`);
                     }}
                     className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200"
                 >
