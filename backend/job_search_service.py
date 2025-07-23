@@ -216,18 +216,27 @@ class JobSearchService:
             logger.error(f"❌ Enhanced job search failed: {e}")
             return await self._get_enhanced_fallback_jobs()
 
-    def _convert_arbeitsagentur_jobs(self, jobs_raw: List[Dict]) -> List[Dict]:
-        """Convert Arbeitsagentur API format to our standard format"""
+    def _convert_enhanced_jobs(self, jobs_raw: List[Dict], user_coordinates: Dict[str, float] = None) -> List[Dict]:
+        """Convert API format to enhanced format with distance calculations"""
         converted_jobs = []
         
         for job in jobs_raw:
             try:
                 arbeitsort = job.get('arbeitsort', {})
+                job_coords = arbeitsort.get('koordinaten', {})
+                
+                # Calculate distance if user coordinates provided
+                distance_km = None
+                if user_coordinates and job_coords.get('lat') and job_coords.get('lon'):
+                    distance_km = self._calculate_distance(
+                        user_coordinates['lat'], user_coordinates['lon'],
+                        job_coords['lat'], job_coords['lon']
+                    )
                 
                 converted_job = {
                     'id': job.get('refnr', ''),
                     'title': job.get('titel', ''),
-                    'beruf': job.get('beruf', ''),  # Keep original German profession
+                    'profession': job.get('beruf', ''),
                     'company_name': job.get('arbeitgeber', ''),
                     'location': {
                         'city': arbeitsort.get('ort', ''),
@@ -235,33 +244,37 @@ class JobSearchService:
                         'country': arbeitsort.get('land', 'Deutschland'),
                         'postal_code': arbeitsort.get('plz', ''),
                         'street': arbeitsort.get('strasse'),
-                        'coordinates': arbeitsort.get('koordinaten', {}),
-                        'distance_km': arbeitsort.get('entfernung')
+                        'coordinates': job_coords,
+                        'distance_km': distance_km or arbeitsort.get('entfernung')
                     },
                     'location_string': f"{arbeitsort.get('ort', '')}, {arbeitsort.get('region', '')}",
-                    'published_date': job.get('aktuelleVeroeffentlichungsdatum', ''),
-                    'start_date': job.get('eintrittsdatum', ''),
-                    'modified_date': job.get('modifikationsTimestamp', ''),
+                    'dates': {
+                        'published': job.get('aktuelleVeroeffentlichungsdatum', ''),
+                        'start_date': job.get('eintrittsdatum', ''),
+                        'modified': job.get('modifikationsTimestamp', '')
+                    },
                     'external_url': job.get('externeUrl'),
                     'reference_number': job.get('refnr', ''),
                     'employer_hash': job.get('kundennummerHash', ''),
-                    'job_type': 'full-time',  # Default for German jobs
-                    'remote': False,  # Most Arbeitsagentur jobs are on-site
-                    'visa_sponsorship': False,  # Usually not specified
-                    'tags': [job.get('beruf', '')],
-                    'salary': None,  # Not usually provided in basic search
-                    'description': f"Position: {job.get('beruf', '')}\nTitle: {job.get('titel', '')}\nEmployer: {job.get('arbeitgeber', '')}",
-                    'requirements': [],
-                    'benefits': [],
-                    'source': 'arbeitsagentur.de',
-                    'language_requirement': 'German required',  # Most German jobs require German
-                    'created_at': datetime.now().isoformat()
+                    'job_type': self._determine_job_type(job),
+                    'work_time': self._extract_work_time(job),
+                    'remote_possible': self._check_remote_possibility(job),
+                    'visa_sponsorship': False,  # Usually not specified in German job ads
+                    'tags': self._extract_job_tags(job),
+                    'salary_info': self._extract_salary_info(job),
+                    'description': self._build_job_description(job),
+                    'requirements': self._extract_requirements(job),
+                    'benefits': self._extract_benefits(job),
+                    'source': 'bundesagentur.de',
+                    'language_requirement': self._estimate_language_requirement_enhanced(job),
+                    'created_at': datetime.now().isoformat(),
+                    'match_score': self._calculate_match_score(job)
                 }
                 
                 converted_jobs.append(converted_job)
                 
             except Exception as e:
-                logger.warning(f"Failed to convert job {job.get('refnr', 'unknown')}: {e}")
+                logger.warning(f"⚠️ Failed to convert job {job.get('refnr', 'unknown')}: {e}")
                 continue
         
         return converted_jobs
