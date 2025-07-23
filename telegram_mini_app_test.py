@@ -118,13 +118,13 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status = data.get("status") == "success"
-            has_cities = "cities" in data and isinstance(data["cities"], list)
-            cities_count = len(data.get("cities", []))
+            has_cities = "data" in data and "cities" in data["data"] and isinstance(data["data"]["cities"], list)
+            cities_count = len(data.get("data", {}).get("cities", []))
             
             # Check if cities starting with "Ber" are found
             ber_cities_found = False
-            if data.get("cities"):
-                ber_cities_found = any(city.get("name", "").lower().startswith("ber") for city in data["cities"])
+            if data.get("data", {}).get("cities"):
+                ber_cities_found = any(city.get("name", "").lower().startswith("ber") for city in data["data"]["cities"])
             
             self.log_test_result(
                 "GET /api/cities/search?q=Ber - поиск городов начинающихся с 'Ber'",
