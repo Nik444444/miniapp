@@ -2751,7 +2751,7 @@ async def continue_ai_recruiter(
         # Continue conversation using Advanced AI Recruiter
         result = await advanced_ai_recruiter.continue_conversation(
             user_id=current_user['id'],
-            user_message=request.message,
+            user_message=request.user_message,
             user_providers=user_providers if user_providers else None
         )
         
