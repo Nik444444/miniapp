@@ -2580,31 +2580,39 @@ async def get_job_search_status():
         # Get service status
         status_info = {
             "status": "active",
-            "api_source": "arbeitnow.com",
-            "arbeitnow_integration": {
+            "api_source": "bundesagentur.de",
+            "bundesagentur_integration": {
                 "status": "active",
-                "api_endpoint": "https://www.arbeitnow.com/api/job-board-api",
-                "features": ["job_search", "filters", "pagination"],
-                "available": True
+                "api_endpoint": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service",
+                "api_version": "v4",
+                "official_name": "Bundesagentur für Arbeit - Official German Job Board",
+                "features": ["job_search", "geolocation", "radius_search", "advanced_filters", "work_time_filters"],
+                "available": True,
+                "api_key": "jobboerse-jobsuche"
             },
             "service": {
-                "name": "Job Search Service",
-                "version": "1.0",
-                "provider": "arbeitnow.com",
-                "status": "operational"
+                "name": "German Job Search Service",
+                "version": "2.0",
+                "provider": "bundesagentur.de",
+                "status": "operational",
+                "description": "Official German Federal Employment Agency API"
             },
             "features": [
-                "🔍 Job search with filters",
-                "🤖 AI language level estimation", 
-                "📊 Job categorization",
-                "💰 Salary estimation",
+                "🔍 Job search with enhanced filters",
+                "🌍 Geolocation-based search with radius",
+                "🤖 AI language level estimation (A1-C2)", 
+                "📊 Job categorization and analysis",
+                "💰 Salary estimation and insights",
+                "⏰ Work time filters (Vollzeit, Teilzeit, Homeoffice, Minijob)",
                 "📬 Job subscriptions with Telegram notifications",
                 "📄 AI resume analysis",
-                "✨ Resume improvement suggestions",
+                "✅ Resume improvement suggestions",
                 "🎤 AI interview coaching"
             ],
             "language_levels": job_search_service.language_levels,
             "job_categories": list(job_search_service.job_categories.keys()),
+            "work_time_filters": job_search_service.work_time_filters,
+            "radius_options": job_search_service.radius_options,
             "interview_types": job_ai_service.interview_types,
             "supported_languages": ["ru", "en", "de", "uk"],
             "demo_mode": False
