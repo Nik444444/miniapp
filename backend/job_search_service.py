@@ -626,7 +626,7 @@ class JobSearchService:
                 categories[category] = {
                     'count': len(matching_jobs),
                     'percentage': round((len(matching_jobs) / len(jobs)) * 100, 1),
-                    'average_match_score': round(sum(job.get('match_score', 50) for job in matching_jobs) / len(matching_jobs), 1)
+                    'average_match_score': round(sum((job.get('match_score') or 50) for job in matching_jobs) / len(matching_jobs), 1)
                 }
         
         # Location analysis
