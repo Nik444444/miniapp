@@ -342,15 +342,17 @@ const TelegramJobSearch = ({ onBack }) => {
             
             Object.entries(cleanFilters).forEach(([key, value]) => {
                 try {
-                    // Дополнительная валидация специальных символов
-                    const safeValue = String(value).replace(/[^\w\säöüÄÖÜß\-+.,]/g, '');
-                    paramParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(safeValue)}`);
-                    console.log(`Encoded parameter: ${key} = "${value}" -> "${safeValue}"`);
+                    // Безопасное кодирование без удаления символов
+                    const encodedKey = encodeURIComponent(key);
+                    const encodedValue = encodeURIComponent(String(value));
+                    paramParts.push(`${encodedKey}=${encodedValue}`);
+                    console.log(`Encoded parameter: ${key} = "${value}" -> "${encodedValue}"`);
                 } catch (encodeError) {
                     console.warn('Failed to encode parameter:', key, value, encodeError);
-                    // Fallback с еще более безопасным encoding
-                    const safeFallback = String(value).replace(/[^\w\s]/g, '');
-                    paramParts.push(`${key}=${safeFallback}`);
+                    // Fallback с очисткой только проблематичных символов
+                    const safeFallback = String(value).replace(/[<>\"'&]/g, '');
+                    const encodedFallback = encodeURIComponent(safeFallback);
+                    paramParts.push(`${encodeURIComponent(key)}=${encodedFallback}`);
                 }
             });
 
