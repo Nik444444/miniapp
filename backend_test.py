@@ -1216,15 +1216,15 @@ class BackendTester:
         working_levels = [level for level, result in level_results.items() if result.get("success")]
         
     async def test_telegram_authentication(self):
-        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Authentication for AI Features"""
-        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Authentication ===")
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Authentication for AI Recruiter"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Authentication for AI Recruiter ===")
         
-        # Test Telegram authentication with sample data
+        # Test Telegram authentication with user data from the request
         telegram_auth_data = {
             "telegram_user": {
                 "id": 123456789,
                 "first_name": "Test",
-                "last_name": "User",
+                "last_name": "User", 
                 "username": "testuser",
                 "language_code": "ru"
             }
@@ -1237,21 +1237,22 @@ class BackendTester:
             has_user_data = "user" in data and isinstance(data["user"], dict)
             token_type_correct = data.get("token_type") == "bearer"
             
-            # Store auth token for subsequent tests
+            # Store auth token for subsequent AI recruiter tests
             if has_access_token:
                 self.auth_token = data["access_token"]
+                logger.info(f"✅ Telegram authentication successful, token stored for AI recruiter tests")
             
             self.log_test_result(
-                "🎯 POST /api/auth/telegram/verify - Telegram authentication",
+                "🎯 POST /api/auth/telegram/verify - Telegram authentication for AI recruiter",
                 has_access_token and has_user_data and token_type_correct,
-                f"Token: {'✅' if has_access_token else '❌'}, User data: {'✅' if has_user_data else '❌'}, Token type: {data.get('token_type')}",
+                f"Token: {'✅' if has_access_token else '❌'}, User data: {'✅' if has_user_data else '❌'}, Token type: {data.get('token_type')}, User ID: {data.get('user', {}).get('id', 'N/A')}",
                 data
             )
         else:
             self.log_test_result(
-                "🎯 POST /api/auth/telegram/verify - Telegram authentication",
+                "🎯 POST /api/auth/telegram/verify - Telegram authentication for AI recruiter",
                 False,
-                f"Authentication failed: {error}",
+                f"❌ КРИТИЧЕСКАЯ ОШИБКА: Telegram authentication failed: {error}",
                 data
             )
     
