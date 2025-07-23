@@ -2697,16 +2697,12 @@ async def start_ai_recruiter(
         if current_user.get("anthropic_api_key"):
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
-        # Start AI recruiter conversation
-        result = {
-            "status": "error",
-            "message": "AI Assistant service is currently unavailable",
-            "error": "Service temporarily disabled"
-        }
-        
-        # Save conversation state to database
-        if result.get('status') == 'success':
-            await db.save_ai_recruiter_profile(current_user['id'], result['profile'])
+        # Start AI recruiter conversation using Advanced AI Recruiter
+        result = await advanced_ai_recruiter.start_conversation(
+            user_id=current_user['id'],
+            user_language=request.language,
+            user_providers=user_providers if user_providers else None
+        )
         
         return result
         
@@ -2734,16 +2730,12 @@ async def continue_ai_recruiter(
         if current_user.get("anthropic_api_key"):
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
-        # Continue conversation
-        result = {
-            "status": "error",
-            "message": "AI Assistant service is currently unavailable",
-            "error": "Service temporarily disabled"
-        }
-        
-        # Update conversation state in database
-        if result.get('status') == 'success':
-            await db.save_ai_recruiter_profile(current_user['id'], result['profile'])
+        # Continue conversation using Advanced AI Recruiter
+        result = await advanced_ai_recruiter.continue_conversation(
+            user_id=current_user['id'],
+            user_message=request.message,
+            user_providers=user_providers if user_providers else None
+        )
         
         return result
         
