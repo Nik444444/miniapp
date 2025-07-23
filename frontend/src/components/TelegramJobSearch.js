@@ -108,12 +108,11 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
 
     useEffect(() => {
         try {
-            console.log('TelegramJobSearch mounted');
+            console.log('🔍 Enhanced TelegramJobSearch mounted');
             console.log('Backend URL:', backendUrl);
             console.log('Is Telegram WebApp:', isTelegramWebApp());
             
-            // Проверка корректности backend URL - смягченная версия
-            console.log('Checking backend URL:', backendUrl);
+            // Enhanced backend URL validation
             if (!backendUrl) {
                 console.error('❌ BACKEND URL НЕ ОПРЕДЕЛЕН:', backendUrl);
                 if (isTelegramWebApp()) {
@@ -124,33 +123,137 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
             
             if (backendUrl.includes('preview.emergentagent.com')) {
                 console.warn('⚠️ ИСПОЛЬЗУЕТСЯ СТАРЫЙ PREVIEW URL:', backendUrl);
-                // Не блокируем, но предупреждаем
             }
             
+            // Enhanced Telegram WebApp integration
             if (isTelegramWebApp()) {
                 if (currentView !== 'main') {
                     showBackButton(handleBackClick);
                 } else {
                     hideBackButton();
                 }
+                
+                // Enable haptic feedback for better UX
+                telegramWebApp.ready();
             }
             
-            // Load subscriptions if user is authenticated
+            // Load enhanced data
             if (user) {
                 loadSubscriptions();
             }
             
-            // Load popular cities
             loadPopularCities();
+            loadRadiusOptions();
             
-            // Initialize city search input with current location filter
+            // Initialize enhanced location features
             const currentLocation = searchFilters.location || '';
             if (currentLocation !== citySearchInput) {
-                console.log('Initializing city search with:', currentLocation);
+                console.log('🌍 Initializing city search with:', currentLocation);
                 setCitySearchInput(currentLocation);
             }
+            
         } catch (error) {
-            console.error('Error in TelegramJobSearch useEffect:', error);
+            console.error('❌ Error in Enhanced TelegramJobSearch useEffect:', error);
+            if (isTelegramWebApp()) {
+                telegramWebApp.showAlert('❌ Ошибка инициализации. Попробуйте перезагрузить.');
+            }
+        }
+    }, [currentView, user, searchFilters.location, citySearchInput, backendUrl]);
+
+    // Enhanced geolocation functions
+    const getCurrentLocation = async () => {
+        setLocationLoading(true);
+        hapticFeedback('light');
+        
+        try {
+            if (!navigator.geolocation) {
+                throw new Error('Geolocation не поддерживается вашим браузером');
+            }
+            
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // 5 minutes
+                });
+            });
+            
+            const coordinates = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            };
+            
+            console.log('📍 User coordinates:', coordinates);
+            setUserLocation(coordinates);
+            
+            // Get location info from backend
+            const response = await fetch(`${backendUrl}/api/user-location-info`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': user?.token ? `Bearer ${user.token}` : ''
+                },
+                body: JSON.stringify(coordinates)
+            });
+            
+            if (response.ok) {
+                const locationData = await response.json();
+                console.log('🌍 Location data:', locationData);
+                
+                setNearestCities(locationData.data.nearest_cities || []);
+                
+                // Auto-suggest nearest city
+                if (locationData.data.nearest_cities?.length > 0) {
+                    const nearestCity = locationData.data.nearest_cities[0];
+                    if (nearestCity.distance < 50) { // If within 50km
+                        setSearchFilters(prev => ({
+                            ...prev,
+                            location: nearestCity.name
+                        }));
+                        setCitySearchInput(nearestCity.name);
+                    }
+                }
+                
+                if (isTelegramWebApp()) {
+                    telegramWebApp.showAlert(`📍 Standort gefunden: ${locationData.data.location_detected || 'Deutschland'}`);
+                }
+            }
+            
+            hapticFeedback('success');
+            
+        } catch (error) {
+            console.error('❌ Geolocation error:', error);
+            
+            let errorMessage = 'Standort konnte nicht ermittelt werden';
+            if (error.code === 1) {
+                errorMessage = 'Standortzugriff verweigert. Bitte aktivieren Sie die Berechtigung.';
+            } else if (error.code === 2) {
+                errorMessage = 'Standort nicht verfügbar. Bitte versuchen Sie es später erneut.';
+            } else if (error.code === 3) {
+                errorMessage = 'Standortabfrage Timeout. Bitte versuchen Sie es erneut.';
+            }
+            
+            if (isTelegramWebApp()) {
+                telegramWebApp.showAlert(`❌ ${errorMessage}`);
+            }
+            
+            hapticFeedback('error');
+        } finally {
+            setLocationLoading(false);
+        }
+    };
+
+    const loadRadiusOptions = async () => {
+        try {
+            const response = await fetch(`${backendUrl}/api/search-radius-options`);
+            if (response.ok) {
+                const data = await response.json();
+                setRadiusOptions(data.data.radius_options || []);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load radius options:', error);
+        }
+    };
         }
     }, [currentView, user, searchFilters.location]);
 
