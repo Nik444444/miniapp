@@ -155,9 +155,10 @@ const TelegramJobSearch = ({ onBack }) => {
     };
 
     const searchCities = async (query) => {
+        // Валидация и очистка query - перенесена наружу для доступности в catch
+        const cleanQuery = query ? query.trim() : '';
+        
         try {
-            // Валидация и очистка query
-            const cleanQuery = query ? query.trim() : '';
             if (cleanQuery.length < 2) {
                 console.log('Query too short, loading popular cities instead');
                 loadPopularCities();
