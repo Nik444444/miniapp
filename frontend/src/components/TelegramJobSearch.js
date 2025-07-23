@@ -254,7 +254,15 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
             console.error('❌ Failed to load radius options:', error);
         }
     };
+
+    const handleBackClick = () => {
+        hapticFeedback('light');
+        if (currentView === 'main') {
+            onBack();
+        } else {
+            setCurrentView('main');
         }
+    };
     }, [currentView, user, searchFilters.location]);
 
     // Search cities when user types
