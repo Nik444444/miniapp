@@ -96,8 +96,8 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status = data.get("status") == "success"
-            has_cities = "cities" in data and isinstance(data["cities"], list)
-            cities_count = len(data.get("cities", []))
+            has_cities = "data" in data and "cities" in data["data"] and isinstance(data["data"]["cities"], list)
+            cities_count = len(data.get("data", {}).get("cities", []))
             
             self.log_test_result(
                 "GET /api/cities/popular - популярные города",
