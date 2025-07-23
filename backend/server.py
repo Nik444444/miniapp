@@ -1892,6 +1892,26 @@ async def search_jobs(
     🔍 Search for jobs with AI-powered filtering and language level matching
     """
     try:
+        # Валидация входных параметров
+        if location:
+            location = location.strip()
+            if not location:
+                location = None
+        
+        if search_query:
+            search_query = search_query.strip()
+            if not search_query:
+                search_query = None
+        
+        if language_level:
+            language_level = language_level.strip().upper()
+            valid_levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+            if language_level not in valid_levels:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Недопустимый уровень языка: {language_level}. Допустимые значения: {', '.join(valid_levels)}"
+                )
+        
         logger.info(f"Job search request: query='{search_query}', location='{location}', language_level='{language_level}'")
         
         # Search jobs using the job search service
@@ -1911,6 +1931,8 @@ async def search_jobs(
             "message": f"Найдено {results.get('total_found', 0)} вакансий"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Job search failed: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка поиска вакансий: {str(e)}")
