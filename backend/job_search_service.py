@@ -21,27 +21,43 @@ class JobSearchService:
         self.api_key = "jobboerse-jobsuche"  # Official API key for Bundesagentur
         self.session = None
         
-        # Language level mappings for German proficiency
+        # Enhanced language level mappings for German proficiency
         self.language_levels = {
-            'A1': {'min_score': 0, 'max_score': 20, 'description': 'Beginner'},
-            'A2': {'min_score': 21, 'max_score': 35, 'description': 'Elementary'},
-            'B1': {'min_score': 36, 'max_score': 50, 'description': 'Intermediate'},
-            'B2': {'min_score': 51, 'max_score': 65, 'description': 'Upper-Intermediate'},
-            'C1': {'min_score': 66, 'max_score': 80, 'description': 'Advanced'},
-            'C2': {'min_score': 81, 'max_score': 100, 'description': 'Proficiency'}
+            'A1': {'min_score': 0, 'max_score': 20, 'description': 'Anfänger - Basic everyday expressions'},
+            'A2': {'min_score': 21, 'max_score': 35, 'description': 'Grundlagen - Simple routine matters'},
+            'B1': {'min_score': 36, 'max_score': 50, 'description': 'Mittelstufe - Work and study topics'},
+            'B2': {'min_score': 51, 'max_score': 65, 'description': 'Gehobene Mittelstufe - Complex texts'},
+            'C1': {'min_score': 66, 'max_score': 80, 'description': 'Fortgeschritten - Professional fluency'},
+            'C2': {'min_score': 81, 'max_score': 100, 'description': 'Muttersprachlich - Native-like proficiency'}
         }
         
-        # Job categories for better organization
+        # Enhanced job categories with German terms
         self.job_categories = {
-            'tech': ['software', 'developer', 'engineer', 'programmer', 'data', 'it', 'tech'],
-            'marketing': ['marketing', 'seo', 'content', 'social media', 'advertising'],
-            'finance': ['finance', 'accounting', 'controller', 'analyst', 'banking'],
-            'sales': ['sales', 'account manager', 'business development', 'customer'],
-            'design': ['design', 'ui', 'ux', 'graphic', 'creative'],
-            'management': ['manager', 'director', 'lead', 'head', 'chief'],
-            'healthcare': ['medical', 'nurse', 'doctor', 'healthcare', 'pharma'],
-            'education': ['teacher', 'education', 'training', 'instructor'],
+            'tech': ['software', 'developer', 'engineer', 'programmer', 'data', 'it', 'tech', 'informatik', 'entwickler'],
+            'marketing': ['marketing', 'seo', 'content', 'social media', 'advertising', 'werbung'],
+            'finance': ['finance', 'accounting', 'controller', 'analyst', 'banking', 'finanzen', 'buchhaltung'],
+            'sales': ['sales', 'account manager', 'business development', 'customer', 'verkauf', 'vertrieb'],
+            'design': ['design', 'ui', 'ux', 'graphic', 'creative', 'gestaltung'],
+            'management': ['manager', 'director', 'lead', 'head', 'chief', 'leitung', 'führung'],
+            'healthcare': ['medical', 'nurse', 'doctor', 'healthcare', 'pharma', 'krankenpflege', 'medizin', 'pflege'],
+            'education': ['teacher', 'education', 'training', 'instructor', 'lehrer', 'bildung', 'erzieher'],
+            'gastronomy': ['restaurant', 'hotel', 'gastronomy', 'koch', 'kellner', 'hotelfach', 'gastronomie'],
+            'construction': ['construction', 'bau', 'handwerk', 'bauleiter', 'elektriker', 'installateur'],
+            'logistics': ['logistics', 'transport', 'lagerwirtschaft', 'spedition', 'fahrzeugführung'],
+            'retail': ['retail', 'einzelhandel', 'verkauf', 'handel', 'verkäufer'],
             'other': []
+        }
+        
+        # Radius options for location search (in kilometers)
+        self.radius_options = [5, 10, 25, 50, 100, 200]
+        
+        # Work time filters
+        self.work_time_filters = {
+            'vz': {'name': 'Vollzeit', 'description': 'Full-time positions'},
+            'tz': {'name': 'Teilzeit', 'description': 'Part-time positions'},
+            'ho': {'name': 'Homeoffice', 'description': 'Remote/home office work'},
+            'mj': {'name': 'Minijob', 'description': 'Mini jobs (450€ basis)'},
+            'snw': {'name': 'Schicht/Nacht/Wochenende', 'description': 'Shift, night or weekend work'}
         }
 
     async def _get_session(self):
