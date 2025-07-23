@@ -254,17 +254,18 @@ class GermanPatternTester:
             return False
             
         data_str = str(data).lower()
-        pattern_keywords = [
-            "pattern",
-            "match",
-            "matching", 
-            "expected pattern",
-            "string did not match",
-            "regex",
-            "regular expression"
+        
+        # Look for specific error messages that indicate pattern matching issues
+        pattern_error_phrases = [
+            "string did not match the expected pattern",
+            "pattern matching error",
+            "regex error",
+            "regular expression error",
+            "invalid pattern",
+            "pattern compilation failed"
         ]
         
-        return any(keyword in data_str for keyword in pattern_keywords)
+        return any(phrase in data_str for phrase in pattern_error_phrases)
     
     async def test_encoding_issues(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проблемы с encoding немецких символов"""
