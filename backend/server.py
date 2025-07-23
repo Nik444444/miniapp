@@ -2735,12 +2735,11 @@ async def continue_ai_recruiter(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Continue conversation
-        result = await job_ai_assistant_service.continue_ai_recruiter_conversation(
-            user_id=current_user['id'],
-            user_message=request.user_message,
-            current_profile=request.conversation_data,
-            user_providers=user_providers if user_providers else None
-        )
+        result = {
+            "status": "error",
+            "message": "AI Assistant service is currently unavailable",
+            "error": "Service temporarily disabled"
+        }
         
         # Update conversation state in database
         if result.get('status') == 'success':
