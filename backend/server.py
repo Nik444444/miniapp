@@ -2802,11 +2802,11 @@ async def analyze_job_compatibility(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Generate compatibility score
-        result = await job_ai_assistant_service.generate_job_compatibility_score(
-            job_data=request.job_data,
-            user_profile=user_profile,
-            user_providers=user_providers if user_providers else None
-        )
+        result = {
+            "status": "error",
+            "message": "AI Assistant service is currently unavailable",
+            "error": "Service temporarily disabled"
+        }
         
         return result
         
