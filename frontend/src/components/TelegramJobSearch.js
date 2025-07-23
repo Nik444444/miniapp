@@ -212,6 +212,7 @@ const TelegramJobSearch = ({ onBack }) => {
             
             console.log('Selecting city:', cleanCityName);
             
+            // ИСПРАВЛЕНИЕ: Устанавливаем город в оба места - в input И в фильтры поиска
             setCitySearchInput(cleanCityName);
             setSearchFilters(prev => ({...prev, location: cleanCityName}));
             setShowCityDropdown(false);
