@@ -244,6 +244,29 @@ const TelegramJobSearch = ({ onBack }) => {
         if (isTelegramWebApp()) hapticFeedback('light');
 
         try {
+            // Проверка минимальных требований: город и уровень немецкого ОБЯЗАТЕЛЬНЫ
+            const requiredFields = [];
+            
+            if (!searchFilters.location || searchFilters.location.trim() === '') {
+                requiredFields.push('Город');
+            }
+            
+            if (!searchFilters.language_level || searchFilters.language_level.trim() === '') {
+                requiredFields.push('Уровень немецкого языка');
+            }
+            
+            if (requiredFields.length > 0) {
+                const errorMessage = `Пожалуйста, заполните обязательные поля: ${requiredFields.join(', ')}`;
+                
+                if (isTelegramWebApp()) {
+                    telegramWebApp.showAlert(`❌ ${errorMessage}`);
+                } else {
+                    alert(`❌ ${errorMessage}`);
+                }
+                setLoading(false);
+                return;
+            }
+
             // Валидация и очистка параметров поиска
             const cleanFilters = {};
             Object.entries(searchFilters).forEach(([key, value]) => {
@@ -260,13 +283,13 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             });
 
-            // Построение URL без потенциальных проблем с encode
+            // Безопасное построение URL
             let url = `${backendUrl}/api/job-search`;
             const paramParts = [];
             
             Object.entries(cleanFilters).forEach(([key, value]) => {
                 try {
-                    paramParts.push(`${key}=${encodeURIComponent(value)}`);
+                    paramParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
                 } catch (encodeError) {
                     console.warn('Failed to encode parameter:', key, value, encodeError);
                     // Fallback без специального encoding
@@ -324,10 +347,12 @@ const TelegramJobSearch = ({ onBack }) => {
             let errorMessage = 'Ошибка поиска работы';
             
             if (error.message) {
-                if (error.message.includes('pattern') || error.message.includes('match')) {
-                    errorMessage = 'Ошибка валидации параметров поиска. Пожалуйста, проверьте введенные данные.';
-                } else if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+                if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
                     errorMessage = 'Ошибка сетевого соединения. Проверьте интернет-соединение.';
+                } else if (error.message.includes('HTTP 400') || error.message.includes('Bad Request')) {
+                    errorMessage = 'Неверные параметры поиска. Пожалуйста, проверьте введенные данные.';
+                } else if (error.message.includes('HTTP 500')) {
+                    errorMessage = 'Ошибка сервера. Попробуйте позже.';
                 } else {
                     errorMessage = `Ошибка поиска: ${error.message}`;
                 }
