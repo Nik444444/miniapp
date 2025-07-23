@@ -5539,6 +5539,11 @@ if __name__ == "__main__":
             await self.test_parameter_validation_and_error_handling()
             await self.test_special_characters_and_spaces_handling()
             
+            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ: Telegram Mini App Pattern Errors
+            logger.info("📱 ТЕСТИРОВАНИЕ TELEGRAM MINI APP PATTERN ERRORS")
+            await self.test_telegram_mini_app_job_search_pattern_errors()
+            await self.test_parameter_validation_edge_cases()
+            
             # 🎯 ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ: German Language Level Filtering
             logger.info("🇩🇪 ТЕСТИРОВАНИЕ GERMAN LANGUAGE LEVEL FILTERING")
             await self.test_german_language_level_filtering()
