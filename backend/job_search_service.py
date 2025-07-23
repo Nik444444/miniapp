@@ -150,6 +150,7 @@ class JobSearchService:
             logger.info(f"🌐 Making request to: {url}")
             
             async with session.get(url, params=params, headers=headers) as response:
+                logger.info(f"🌐 API Response status: {response.status}")
                 if response.status == 200:
                     data = await response.json()
                     jobs_raw = data.get('stellenangebote', [])
