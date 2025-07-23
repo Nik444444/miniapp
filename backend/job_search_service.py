@@ -147,6 +147,7 @@ class JobSearchService:
             logger.info(f"🔍 Enhanced job search with params: {params}")
             
             url = f"{self.base_url}/pc/v4/jobs"
+            logger.info(f"🌐 Making request to: {url}")
             
             async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
