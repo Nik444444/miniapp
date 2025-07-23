@@ -64,15 +64,15 @@ class AIRecruiterTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if data.get('status') == 'success':
-                    self.auth_token = data.get('access_token')
+                self.auth_token = data.get('access_token')
+                if self.auth_token:
                     logger.info("✅ Авторизация Telegram пользователя успешна")
                     
                     # Сохраняем Gemini API ключ
                     self.update_api_keys()
                     return True
             
-            logger.error(f"❌ Ошибка авторизации: {response.status_code}")
+            logger.error(f"❌ Ошибка авторизации: {response.status_code} - {response.text}")
             return False
             
         except Exception as e:
