@@ -2718,7 +2718,7 @@ async def start_ai_recruiter(
         # Start AI recruiter conversation using Advanced AI Recruiter
         result = await advanced_ai_recruiter.start_conversation(
             user_id=current_user['id'],
-            user_language=request.language,
+            user_language=request.user_language,
             user_providers=user_providers if user_providers else None
         )
         
