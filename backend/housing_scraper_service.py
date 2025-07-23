@@ -102,10 +102,18 @@ class GermanHousingScraper:
             return None
             
     def _clean_text(self, text: str) -> str:
-        """Clean and normalize text"""
-        if not text:
+        """Clean and normalize text with better error handling"""
+        if not text or not isinstance(text, str):
             return ""
-        return re.sub(r'\s+', ' ', text.strip())
+        try:
+            # Remove extra whitespace and normalize
+            cleaned = re.sub(r'\s+', ' ', str(text).strip())
+            # Remove any problematic characters that could cause pattern matching issues
+            cleaned = re.sub(r'[^\w\s\-.,äöüÄÖÜß€$]', '', cleaned)
+            return cleaned
+        except (re.error, AttributeError) as e:
+            logger.debug(f"Text cleaning failed for '{text}': {e}")
+            return str(text).strip() if text else ""
 
     def scrape_immoscout24(self, city: str, max_price: int = None, property_type: str = "wohnung") -> List[Dict[str, Any]]:
         """Scrape ImmoScout24.de"""
