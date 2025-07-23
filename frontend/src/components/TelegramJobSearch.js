@@ -764,11 +764,14 @@ const TelegramJobSearch = ({ onBack }) => {
                         </div>
                     )}
                     
-                    {/* Close dropdown when clicking outside */}
+                    {/* Close dropdown when clicking outside - ИСПРАВЛЕНИЕ z-index */}
                     {showCityDropdown && (
                         <div 
-                            className="fixed inset-0 z-40" 
-                            onClick={() => setShowCityDropdown(false)}
+                            className="fixed inset-0 z-30" 
+                            onClick={() => {
+                                console.log('Закрытие dropdown');
+                                setShowCityDropdown(false);
+                            }}
                         />
                     )}
                 </div>
