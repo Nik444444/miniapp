@@ -2887,27 +2887,6 @@ async def get_ai_job_recommendations(
     try:
         logger.info(f"Getting AI job recommendations for user {current_user['id']}")
         
-        # Get user AI recruiter profile
-        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
-        if not user_profile:
-            raise HTTPException(status_code=400, detail="AI-рекрутер профиль не найден. Сначала пройдите анкетирование.")
-        
-        # Extract search parameters from user profile
-        collected_data = user_profile.get('collected_data', {})
-        
-        # Build search request based on profile
-        search_params = {
-            'search_query': collected_data.get('job_titles', [''])[0] if collected_data.get('job_titles') else None,
-            'location': collected_data.get('preferred_location', 'Berlin'),
-            'remote': collected_data.get('remote_preference', False),
-            'visa_sponsorship': collected_data.get('needs_visa', False),
-            'language_level': collected_data.get('german_level', 'B1'),
-            'limit': request.max_jobs
-        }
-        
-        # Search for jobs
-        job_results = await job_search_service.search_jobs(**search_params)
-        
         # Get user providers for AI analysis
         user_providers = []
         if current_user.get("gemini_api_key"):
@@ -2917,30 +2896,13 @@ async def get_ai_job_recommendations(
         if current_user.get("anthropic_api_key"):
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
-        # Analyze each job for compatibility
-        recommended_jobs = []
-        for job in job_results.get('jobs', [])[:request.max_jobs]:
-            compatibility = await job_ai_assistant_service.generate_job_compatibility_score(
-                job_data=job,
-                user_profile=user_profile,
-                user_providers=user_providers if user_providers else None
-            )
-            
-            if compatibility.get('status') == 'success':
-                job['compatibility_score'] = compatibility['compatibility']['overall_score']
-                job['compatibility_analysis'] = compatibility['compatibility']
-                recommended_jobs.append(job)
+        # Get recommendations using Advanced AI Recruiter
+        result = await advanced_ai_recruiter.get_job_recommendations(
+            user_id=current_user['id'],
+            user_providers=user_providers if user_providers else None
+        )
         
-        # Sort by compatibility score
-        recommended_jobs.sort(key=lambda x: x.get('compatibility_score', 0), reverse=True)
-        
-        return {
-            'status': 'success',
-            'recommendations': recommended_jobs[:request.max_jobs],
-            'total_analyzed': len(recommended_jobs),
-            'user_profile_completeness': user_profile.get('progress', 0),
-            'search_parameters': search_params
-        }
+        return result
         
     except HTTPException:
         raise
