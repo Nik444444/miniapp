@@ -272,8 +272,10 @@ class SQLiteDatabase:
         async with self.get_connection() as conn:
             await conn.execute('''
                 INSERT OR REPLACE INTO users 
-                (id, email, name, picture, oauth_provider, google_id, created_at, last_login, gemini_api_key, openai_api_key, anthropic_api_key)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (id, email, name, picture, oauth_provider, google_id, telegram_id, 
+                 telegram_username, telegram_first_name, telegram_last_name, telegram_language_code,
+                 created_at, last_login, gemini_api_key, openai_api_key, anthropic_api_key, preferred_language)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 user_data['id'],
                 user_data['email'],
@@ -281,11 +283,17 @@ class SQLiteDatabase:
                 user_data.get('picture'),
                 user_data['oauth_provider'],
                 user_data.get('google_id'),
+                user_data.get('telegram_id'),
+                user_data.get('telegram_username'),
+                user_data.get('telegram_first_name'),
+                user_data.get('telegram_last_name'),
+                user_data.get('telegram_language_code'),
                 user_data.get('created_at', datetime.utcnow().isoformat()),
                 user_data.get('last_login'),
                 user_data.get('gemini_api_key'),
                 user_data.get('openai_api_key'),
-                user_data.get('anthropic_api_key')
+                user_data.get('anthropic_api_key'),
+                user_data.get('preferred_language', 'ru')
             ))
             await conn.commit()
 
