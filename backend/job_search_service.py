@@ -159,6 +159,7 @@ class JobSearchService:
                     
                     # Convert and enhance job data
                     jobs = self._convert_enhanced_jobs(jobs_raw, user_coordinates)
+                    logger.info(f"✅ Converted {len(jobs)} jobs successfully")
                     
                     # Apply enhanced filters
                     filtered_jobs = self._apply_enhanced_filters(
