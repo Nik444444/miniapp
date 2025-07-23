@@ -68,17 +68,37 @@ class GermanHousingScraper:
         return None
         
     def _extract_price(self, text: str) -> Optional[float]:
-        """Extract price from German text"""
-        if not text:
+        """Extract price from German text with improved error handling"""
+        if not text or not isinstance(text, str):
             return None
             
-        # Remove common German currency formatting
-        text = re.sub(r'[^\d,.]', '', text)
-        text = text.replace('.', '').replace(',', '.')
-        
         try:
-            return float(text)
-        except:
+            # Remove common German currency formatting safely
+            # First, remove currency symbols and non-numeric characters except comma and period
+            cleaned = re.sub(r'[^\d,.\s]', '', str(text))
+            
+            # Handle German number formatting (1.234,56 -> 1234.56)
+            if ',' in cleaned and '.' in cleaned:
+                # If both comma and period, assume German format
+                cleaned = cleaned.replace('.', '').replace(',', '.')
+            elif ',' in cleaned:
+                # Only comma, could be decimal separator
+                parts = cleaned.split(',')
+                if len(parts) == 2 and len(parts[1]) <= 2:
+                    # Likely decimal separator
+                    cleaned = cleaned.replace(',', '.')
+                else:
+                    # Likely thousands separator
+                    cleaned = cleaned.replace(',', '')
+            
+            # Extract first number from the cleaned string
+            number_match = re.search(r'\d+\.?\d*', cleaned)
+            if number_match:
+                return float(number_match.group())
+                
+            return None
+        except (ValueError, AttributeError, re.error) as e:
+            logger.debug(f"Price extraction failed for '{text}': {e}")
             return None
             
     def _clean_text(self, text: str) -> str:
