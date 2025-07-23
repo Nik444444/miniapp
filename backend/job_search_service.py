@@ -415,6 +415,19 @@ class JobSearchService:
             score += 10
         if job.get('arbeitsort', {}).get('koordinaten'):
             score += 10
+        
+        # Add points for location details
+        arbeitsort = job.get('arbeitsort', {})
+        if arbeitsort.get('ort'):
+            score += 5
+        if arbeitsort.get('plz'):
+            score += 5
+            
+        # Add points for recent publication
+        if job.get('aktuelleVeroeffentlichungsdatum'):
+            score += 5
+            
+        return min(100, max(0, score))  # Keep score between 0-100
             
     async def get_user_location_info(self, coordinates: Dict[str, float]) -> Dict[str, Any]:
         """
