@@ -1,6 +1,6 @@
 """
-🔍 Job Search Service - Integration with Arbeitsagentur API (Official German Job Board)
-Интеграция с официальным API Bundesagentur für Arbeit Германии
+🔍 Job Search Service - Enhanced Integration with Bundesagentur für Arbeit API
+Интеграция с официальным API Bundesagentur für Arbeit с геолокацией и радиусом поиска
 """
 
 import aiohttp
@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 class JobSearchService:
     def __init__(self):
-        # New Arbeitsagentur API
+        # Enhanced Bundesagentur für Arbeit API
         self.base_url = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
-        self.api_key = "jobboerse-jobsuche"  # Official API key for Arbeitsagentur
+        self.api_key = "jobboerse-jobsuche"  # Official API key for Bundesagentur
         self.session = None
         
         # Language level mappings for German proficiency
