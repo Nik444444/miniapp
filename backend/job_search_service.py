@@ -691,48 +691,25 @@ class JobSearchService:
         
         return recommendations[:5]  # Limit to 5 recommendations
 
+    def _filter_jobs(self, 
+                     jobs: List[Dict],
+                     search_query: str = None,
+                     location: str = None,
+                     remote: bool = None,
+                     language_level: str = None,
+                     category: str = None) -> List[Dict]:
+        """Legacy filter method for backward compatibility"""
+        return self._apply_enhanced_filters(
+            jobs=jobs,
+            remote=remote,
+            language_level=language_level,
+            category=category
+        )
+
     def _estimate_language_requirement(self, job: Dict) -> int:
-        """
-        🤖 AI-based estimation of German language requirement (0-100)
-        """
-        title = job.get('title', '').lower()
-        description = job.get('description', '').lower()
-        location = job.get('location', '').lower()
-        
-        score = 30  # Base score
-        
-        # Keywords indicating higher German requirement
-        high_german_keywords = [
-            'kundenkontakt', 'kundenbetreuung', 'vertrieb', 'sales', 'beratung',
-            'kommunikation', 'präsentation', 'führung', 'management', 'teamleitung',
-            'öffentlicher dienst', 'behörde', 'verwaltung', 'sozial'
-        ]
-        
-        # Keywords indicating lower German requirement  
-        low_german_keywords = [
-            'english', 'international', 'startup', 'tech', 'developer',
-            'programmer', 'data scientist', 'remote', 'freelance'
-        ]
-        
-        # Check for high German requirement indicators
-        for keyword in high_german_keywords:
-            if keyword in title or keyword in description:
-                score += 15
-        
-        # Check for low German requirement indicators
-        for keyword in low_german_keywords:
-            if keyword in title or keyword in description:
-                score -= 10
-        
-        # Location factor
-        if 'berlin' in location or 'munich' in location or 'hamburg' in location:
-            score -= 5  # International cities, potentially lower requirement
-        
-        # Remote jobs typically have lower language requirements
-        if job.get('remote', False):
-            score -= 10
-        
-        return max(10, min(90, score))  # Keep score between 10-90
+        """Legacy method for backward compatibility"""
+        enhanced_result = self._estimate_language_requirement_enhanced(job)
+        return enhanced_result.get('score', 50)
 
     def _categorize_jobs(self, jobs: List[Dict]) -> Dict[str, Any]:
         """Categorize jobs by type"""
