@@ -1229,6 +1229,455 @@ class BackendTester:
         # Summary test for all levels
         working_levels = [level for level, result in level_results.items() if result.get("success")]
         
+    async def test_telegram_authentication(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Authentication for AI Features"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Authentication ===")
+        
+        # Test Telegram authentication with sample data
+        telegram_auth_data = {
+            "telegram_user": {
+                "id": 123456789,
+                "first_name": "Test",
+                "last_name": "User",
+                "username": "testuser",
+                "language_code": "ru"
+            }
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/auth/telegram/verify", json=telegram_auth_data)
+        
+        if success and isinstance(data, dict):
+            has_access_token = "access_token" in data
+            has_user_data = "user" in data and isinstance(data["user"], dict)
+            token_type_correct = data.get("token_type") == "bearer"
+            
+            # Store auth token for subsequent tests
+            if has_access_token:
+                self.auth_token = data["access_token"]
+            
+            self.log_test_result(
+                "🎯 POST /api/auth/telegram/verify - Telegram authentication",
+                has_access_token and has_user_data and token_type_correct,
+                f"Token: {'✅' if has_access_token else '❌'}, User data: {'✅' if has_user_data else '❌'}, Token type: {data.get('token_type')}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/auth/telegram/verify - Telegram authentication",
+                False,
+                f"Authentication failed: {error}",
+                data
+            )
+    
+    async def test_ai_recruiter_endpoints(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: AI Recruiter Endpoints"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: AI Recruiter Endpoints ===")
+        
+        # 1. Test AI Recruiter Start
+        start_data = {
+            "user_language": "ru"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/ai-recruiter/start", json=start_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_conversation_data = "conversation_data" in data
+            has_message = "message" in data or "response" in data
+            
+            # Store conversation data for continue test
+            conversation_data = data.get("conversation_data", {})
+            
+            self.log_test_result(
+                "🎯 POST /api/ai-recruiter/start - Start AI recruiter conversation",
+                has_status and has_conversation_data,
+                f"Status: {data.get('status')}, Has conversation data: {has_conversation_data}, Has message: {has_message}",
+                data
+            )
+            
+            # 2. Test AI Recruiter Continue (if start was successful)
+            if has_conversation_data:
+                continue_data = {
+                    "user_message": "Я ищу работу разработчика в Берлине",
+                    "conversation_data": conversation_data
+                }
+                
+                success, data, error = await self.make_request("POST", "/api/ai-recruiter/continue", json=continue_data)
+                
+                if success and isinstance(data, dict):
+                    has_status = "status" in data
+                    has_response = "response" in data or "message" in data
+                    has_updated_conversation = "conversation_data" in data
+                    
+                    self.log_test_result(
+                        "🎯 POST /api/ai-recruiter/continue - Continue AI recruiter conversation",
+                        has_status and has_response,
+                        f"Status: {data.get('status')}, Has response: {has_response}, Updated conversation: {has_updated_conversation}",
+                        data
+                    )
+                else:
+                    self.log_test_result(
+                        "🎯 POST /api/ai-recruiter/continue - Continue AI recruiter conversation",
+                        False,
+                        f"Continue conversation failed: {error}",
+                        data
+                    )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/ai-recruiter/start - Start AI recruiter conversation",
+                False,
+                f"Start conversation failed: {error}",
+                data
+            )
+        
+        # 3. Test AI Recruiter Profile
+        success, data, error = await self.make_request("GET", "/api/ai-recruiter/profile")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_profile = "profile" in data or "user_profile" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/ai-recruiter/profile - Get user profile",
+                has_status and has_profile,
+                f"Status: {data.get('status')}, Has profile: {has_profile}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/ai-recruiter/profile - Get user profile",
+                False,
+                f"Get profile failed: {error}",
+                data
+            )
+    
+    async def test_job_analysis_endpoints(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Analysis AI Endpoints"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Analysis AI Endpoints ===")
+        
+        # Sample job data for testing
+        sample_job_data = {
+            "id": "test_job_123",
+            "title": "Software Developer",
+            "company": "Tech Company GmbH",
+            "location": "Berlin",
+            "description": "We are looking for a skilled software developer with experience in Python and JavaScript.",
+            "requirements": ["Python", "JavaScript", "Git", "German B1"],
+            "salary": "50000-70000 EUR",
+            "employment_type": "full-time"
+        }
+        
+        # 1. Test Job Compatibility Analysis
+        compatibility_data = {
+            "job_id": "test_job_123",
+            "job_data": sample_job_data,
+            "user_profile_id": "test_user_profile"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-compatibility", json=compatibility_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_compatibility_score = "compatibility_score" in data or "score" in data
+            has_analysis = "analysis" in data or "compatibility_analysis" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/job-compatibility - Job compatibility analysis",
+                has_status and (has_compatibility_score or has_analysis),
+                f"Status: {data.get('status')}, Score: {has_compatibility_score}, Analysis: {has_analysis}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/job-compatibility - Job compatibility analysis",
+                False,
+                f"Compatibility analysis failed: {error}",
+                data
+            )
+        
+        # 2. Test Job Translation
+        translation_data = {
+            "job_id": "test_job_123",
+            "job_data": sample_job_data,
+            "target_language": "ru"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/translate-job", json=translation_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_translated_job = "translated_job" in data or "translation" in data
+            has_original_language = "original_language" in data or "source_language" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/translate-job - Job translation to Russian",
+                has_status and has_translated_job,
+                f"Status: {data.get('status')}, Translated: {has_translated_job}, Original lang: {has_original_language}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/translate-job - Job translation to Russian",
+                False,
+                f"Job translation failed: {error}",
+                data
+            )
+        
+        # 3. Test Cover Letter Generation
+        cover_letter_data = {
+            "job_id": "test_job_123",
+            "job_data": sample_job_data,
+            "user_profile_id": "test_user_profile"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/generate-cover-letter", json=cover_letter_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cover_letter = "cover_letter" in data or "letter" in data
+            has_language = "language" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/generate-cover-letter - Cover letter generation",
+                has_status and has_cover_letter,
+                f"Status: {data.get('status')}, Cover letter: {has_cover_letter}, Language: {has_language}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/generate-cover-letter - Cover letter generation",
+                False,
+                f"Cover letter generation failed: {error}",
+                data
+            )
+        
+        # 4. Test AI Job Recommendations
+        recommendations_data = {
+            "user_profile_id": "test_user_profile",
+            "max_jobs": 5
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/ai-job-recommendations", json=recommendations_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_recommendations = "recommendations" in data or "jobs" in data
+            has_count = "count" in data or "total" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/ai-job-recommendations - AI job recommendations",
+                has_status and has_recommendations,
+                f"Status: {data.get('status')}, Recommendations: {has_recommendations}, Count: {has_count}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/ai-job-recommendations - AI job recommendations",
+                False,
+                f"AI recommendations failed: {error}",
+                data
+            )
+    
+    async def test_telegram_notifications_endpoints(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Notifications Endpoints"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Notifications Endpoints ===")
+        
+        # 1. Test Send Telegram Notification
+        notification_data = {
+            "user_telegram_id": "123456789",
+            "notification_type": "job_match",
+            "job_data": {
+                "title": "Software Developer",
+                "company": "Tech Company GmbH",
+                "location": "Berlin"
+            },
+            "user_language": "ru"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/telegram-notifications/send", json=notification_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_message_sent = "message_sent" in data or "sent" in data
+            has_telegram_response = "telegram_response" in data or "response" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/telegram-notifications/send - Send Telegram notification",
+                has_status,
+                f"Status: {data.get('status')}, Message sent: {has_message_sent}, Telegram response: {has_telegram_response}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/telegram-notifications/send - Send Telegram notification",
+                False,
+                f"Send notification failed: {error}",
+                data
+            )
+        
+        # 2. Test Job Digest Notification
+        digest_data = {
+            "user_telegram_id": "123456789",
+            "user_language": "ru",
+            "additional_data": {
+                "digest_type": "daily",
+                "job_count": 5
+            }
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/telegram-notifications/job-digest", json=digest_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_digest_sent = "digest_sent" in data or "sent" in data
+            has_job_count = "job_count" in data or "jobs_included" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/telegram-notifications/job-digest - Send job digest",
+                has_status,
+                f"Status: {data.get('status')}, Digest sent: {has_digest_sent}, Job count: {has_job_count}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/telegram-notifications/job-digest - Send job digest",
+                False,
+                f"Send job digest failed: {error}",
+                data
+            )
+    
+    async def test_job_search_integration_with_ai(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search Integration with AI Features"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search Integration with AI Features ===")
+        
+        # First, search for jobs to get real job data
+        search_data = {
+            "location": "Berlin",
+            "language_level": "B1",
+            "search_query": "developer",
+            "limit": 3
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+        
+        if success and isinstance(data, dict) and data.get("jobs"):
+            jobs = data.get("jobs", [])
+            if jobs:
+                # Use first job for AI testing
+                first_job = jobs[0]
+                job_id = first_job.get("id", "test_job_from_search")
+                
+                self.log_test_result(
+                    "🎯 Job Search for AI Integration - Get real job data",
+                    True,
+                    f"Found {len(jobs)} jobs, using job: {first_job.get('title', 'Unknown')} at {first_job.get('company', 'Unknown')}",
+                    {"job_count": len(jobs), "first_job_title": first_job.get("title")}
+                )
+                
+                # Test AI features with real job data
+                # 1. Test compatibility with real job
+                compatibility_data = {
+                    "job_id": job_id,
+                    "job_data": first_job,
+                    "user_profile_id": "test_user_profile"
+                }
+                
+                success, ai_data, ai_error = await self.make_request("POST", "/api/job-compatibility", json=compatibility_data)
+                
+                self.log_test_result(
+                    "🎯 AI Compatibility with Real Job Data",
+                    success and isinstance(ai_data, dict),
+                    f"Compatibility analysis: {'✅' if success else '❌'} - {ai_data.get('status', ai_error)}",
+                    ai_data
+                )
+                
+                # 2. Test translation with real job
+                translation_data = {
+                    "job_id": job_id,
+                    "job_data": first_job,
+                    "target_language": "ru"
+                }
+                
+                success, trans_data, trans_error = await self.make_request("POST", "/api/translate-job", json=translation_data)
+                
+                self.log_test_result(
+                    "🎯 AI Translation with Real Job Data",
+                    success and isinstance(trans_data, dict),
+                    f"Translation: {'✅' if success else '❌'} - {trans_data.get('status', trans_error)}",
+                    trans_data
+                )
+            else:
+                self.log_test_result(
+                    "🎯 Job Search for AI Integration - Get real job data",
+                    False,
+                    "No jobs found in search results",
+                    data
+                )
+        else:
+            self.log_test_result(
+                "🎯 Job Search for AI Integration - Get real job data",
+                False,
+                f"Job search failed: {error}",
+                data
+            )
+    
+    async def test_error_handling_and_fallbacks(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Error Handling and Fallback Responses"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Error Handling and Fallback Responses ===")
+        
+        # Test AI endpoints with invalid data to check error handling
+        
+        # 1. Test AI recruiter with missing data
+        success, data, error = await self.make_request("POST", "/api/ai-recruiter/start", json={})
+        
+        # Should handle gracefully (either work with defaults or return proper error)
+        handles_missing_data = success or ("422" in str(error) or "validation" in str(data).lower())
+        
+        self.log_test_result(
+            "🎯 Error Handling - AI Recruiter missing data",
+            handles_missing_data,
+            f"Handles missing data: {'✅' if handles_missing_data else '❌'} - {error if not success else 'Success with defaults'}",
+            data
+        )
+        
+        # 2. Test job compatibility with invalid job data
+        invalid_job_data = {
+            "job_id": "invalid_job",
+            "job_data": {"invalid": "data"},
+            "user_profile_id": "invalid_profile"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-compatibility", json=invalid_job_data)
+        
+        # Should handle gracefully
+        handles_invalid_job = success or ("400" in str(error) or "422" in str(error))
+        
+        self.log_test_result(
+            "🎯 Error Handling - Invalid job data",
+            handles_invalid_job,
+            f"Handles invalid job data: {'✅' if handles_invalid_job else '❌'} - {error if not success else 'Success with fallback'}",
+            data
+        )
+        
+        # 3. Test Telegram notifications with invalid user ID
+        invalid_notification_data = {
+            "user_telegram_id": "invalid_user",
+            "notification_type": "invalid_type",
+            "user_language": "invalid_lang"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/telegram-notifications/send", json=invalid_notification_data)
+        
+        # Should handle gracefully
+        handles_invalid_notification = success or ("400" in str(error) or "422" in str(error))
+        
+        self.log_test_result(
+            "🎯 Error Handling - Invalid notification data",
+            handles_invalid_notification,
+            f"Handles invalid notification: {'✅' if handles_invalid_notification else '❌'} - {error if not success else 'Success with fallback'}",
+            data
+        )
+    
     async def test_bundesagentur_api_integration_critical(self):
         """🎯 КРИТИЧЕСКАЯ ПРОВЕРКА: Убедиться что все вакансии теперь идут с правильного официального API"""
         logger.info("=== 🎯 КРИТИЧЕСКАЯ ПРОВЕРКА: Bundesagentur.de API Integration ===")
