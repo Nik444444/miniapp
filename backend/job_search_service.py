@@ -62,39 +62,55 @@ class JobSearchService:
                          visa_sponsorship: bool = None,
                          language_level: str = None,
                          category: str = None,
-                         limit: int = 50) -> Dict[str, Any]:
+                         limit: int = 50,
+                         page: int = 1) -> Dict[str, Any]:
         """
-        🔍 Search jobs with filters
+        🔍 Search jobs using Arbeitsagentur API
         """
         try:
             session = await self._get_session()
             
-            # Build query parameters
-            params = {}
-            if visa_sponsorship is not None:
-                params['visa_sponsorship'] = str(visa_sponsorship).lower()
+            # Build query parameters for Arbeitsagentur API
+            params = {
+                'page': page,
+                'size': min(limit, 100)  # Arbeitsagentur API allows max 100 per page
+            }
             
-            logger.info(f"Searching jobs with params: {params}")
+            # Map our parameters to Arbeitsagentur API parameters
+            if search_query:
+                params['was'] = search_query  # "was" = job title/description search
+                
+            if location:
+                params['wo'] = location  # "wo" = location search
             
-            async with session.get(self.base_url, params=params) as response:
+            # Headers required by Arbeitsagentur API
+            headers = {
+                'X-API-Key': self.api_key,
+                'Accept': 'application/json',
+                'User-Agent': 'German-Letter-AI-Assistant/1.0'
+            }
+            
+            logger.info(f"Searching Arbeitsagentur jobs with params: {params}")
+            
+            url = f"{self.base_url}/pc/v4/jobs"
+            
+            async with session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
-                    jobs = data.get('data', [])
+                    jobs_raw = data.get('stellenangebote', [])
                     
-                    logger.info(f"Found {len(jobs)} jobs from API")
+                    logger.info(f"Found {len(jobs_raw)} jobs from Arbeitsagentur API")
                     
-                    # Apply filters
+                    # Convert Arbeitsagentur format to our standard format
+                    jobs = self._convert_arbeitsagentur_jobs(jobs_raw)
+                    
+                    # Apply additional filters
                     filtered_jobs = self._filter_jobs(
                         jobs=jobs,
-                        search_query=search_query,
-                        location=location,
                         remote=remote,
                         language_level=language_level,
                         category=category
                     )
-                    
-                    # Limit results
-                    filtered_jobs = filtered_jobs[:limit]
                     
                     # Categorize jobs
                     categorized_jobs = self._categorize_jobs(filtered_jobs)
@@ -104,9 +120,10 @@ class JobSearchService:
                     return {
                         'status': 'success',
                         'total_found': len(filtered_jobs),
-                        'total_available': len(jobs),
+                        'total_available': data.get('maxErgebnisse', 0),
                         'jobs': filtered_jobs,
                         'categories': categorized_jobs['categories'],
+                        'facets': data.get('facetten', {}),  # Additional filter options from API
                         'filters_applied': {
                             'search_query': search_query,
                             'location': location,
@@ -116,16 +133,78 @@ class JobSearchService:
                             'category': category
                         },
                         'language_levels': self.language_levels,
-                        'pagination': data.get('links', {}),
-                        'ai_recommendations': self._generate_search_recommendations(search_query, filtered_jobs)
+                        'pagination': {
+                            'page': page,
+                            'size': params.get('size', 25),
+                            'total': data.get('maxErgebnisse', 0)
+                        },
+                        'ai_recommendations': self._generate_search_recommendations(search_query, filtered_jobs),
+                        'api_source': 'arbeitsagentur.de',
+                        'source_info': {
+                            'name': 'Bundesagentur für Arbeit',
+                            'description': 'Official German Federal Employment Agency job board',
+                            'website': 'https://www.arbeitsagentur.de'
+                        }
                     }
                 else:
-                    logger.error(f"API request failed with status: {response.status}")
+                    logger.error(f"Arbeitsagentur API request failed with status: {response.status}")
+                    error_text = await response.text()
+                    logger.error(f"Error response: {error_text}")
                     return await self._get_fallback_jobs()
                     
         except Exception as e:
             logger.error(f"Job search failed: {e}")
             return await self._get_fallback_jobs()
+
+    def _convert_arbeitsagentur_jobs(self, jobs_raw: List[Dict]) -> List[Dict]:
+        """Convert Arbeitsagentur API format to our standard format"""
+        converted_jobs = []
+        
+        for job in jobs_raw:
+            try:
+                arbeitsort = job.get('arbeitsort', {})
+                
+                converted_job = {
+                    'id': job.get('refnr', ''),
+                    'title': job.get('titel', ''),
+                    'beruf': job.get('beruf', ''),  # Keep original German profession
+                    'company_name': job.get('arbeitgeber', ''),
+                    'location': {
+                        'city': arbeitsort.get('ort', ''),
+                        'state': arbeitsort.get('region', ''),
+                        'country': arbeitsort.get('land', 'Deutschland'),
+                        'postal_code': arbeitsort.get('plz', ''),
+                        'street': arbeitsort.get('strasse'),
+                        'coordinates': arbeitsort.get('koordinaten', {}),
+                        'distance_km': arbeitsort.get('entfernung')
+                    },
+                    'location_string': f"{arbeitsort.get('ort', '')}, {arbeitsort.get('region', '')}",
+                    'published_date': job.get('aktuelleVeroeffentlichungsdatum', ''),
+                    'start_date': job.get('eintrittsdatum', ''),
+                    'modified_date': job.get('modifikationsTimestamp', ''),
+                    'external_url': job.get('externeUrl'),
+                    'reference_number': job.get('refnr', ''),
+                    'employer_hash': job.get('kundennummerHash', ''),
+                    'job_type': 'full-time',  # Default for German jobs
+                    'remote': False,  # Most Arbeitsagentur jobs are on-site
+                    'visa_sponsorship': False,  # Usually not specified
+                    'tags': [job.get('beruf', '')],
+                    'salary': None,  # Not usually provided in basic search
+                    'description': f"Position: {job.get('beruf', '')}\nTitle: {job.get('titel', '')}\nEmployer: {job.get('arbeitgeber', '')}",
+                    'requirements': [],
+                    'benefits': [],
+                    'source': 'arbeitsagentur.de',
+                    'language_requirement': 'German required',  # Most German jobs require German
+                    'created_at': datetime.now().isoformat()
+                }
+                
+                converted_jobs.append(converted_job)
+                
+            except Exception as e:
+                logger.warning(f"Failed to convert job {job.get('refnr', 'unknown')}: {e}")
+                continue
+        
+        return converted_jobs
 
     def _filter_jobs(self, 
                      jobs: List[Dict],
