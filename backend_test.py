@@ -1,60 +1,51 @@
 #!/usr/bin/env python3
 """
-🎯 ENHANCED JOB SEARCH FUNCTIONALITY TESTING: German Job Search API Integration
+🎯 AI JOB SEARCH FUNCTIONALITY TESTING: Telegram Mini App AI Features
 
 КОНТЕКСТ:
-Test the enhanced job search functionality with the new German job search API integration.
-This includes testing the integration with https://rest.arbeitsagentur.de/jobboerse/jobsuche-service
-and enhanced features like geolocation, advanced filtering, and real API integration.
+Test all new AI functions for job search in Telegram Mini App including AI recruiter,
+job compatibility analysis, translation, cover letter generation, and Telegram notifications.
 
 ЗАДАЧИ ДЛЯ ТЕСТИРОВАНИЯ:
 
-1. **Enhanced Job Search Endpoints:**
-   - GET /api/job-search with new parameters (radius, work_time, published_since, contract_type, page)
-   - POST /api/job-search with EnhancedJobSearchRequest body including geolocation
-   - POST /api/user-location-info with coordinates
-   - GET /api/search-radius-options 
-   - GET /api/job-search-status for enhanced service status
+1. **AI-рекрутер endpoints:**
+   - POST /api/ai-recruiter/start - запуск беседы с AI-рекрутером
+   - POST /api/ai-recruiter/continue - продолжение беседы
+   - GET /api/ai-recruiter/profile - получение профиля пользователя
 
-2. **Geolocation Features:**
-   - Test user location info endpoint with sample German coordinates (Berlin: lat: 52.5200, lon: 13.4050)
-   - Verify radius options are returned correctly
-   - Test job search with user coordinates and different radius values
+2. **AI-анализ вакансий:**
+   - POST /api/job-compatibility - анализ совместимости вакансии с профилем пользователя
+   - POST /api/translate-job - перевод вакансии на выбранный язык  
+   - POST /api/generate-cover-letter - генерация сопроводительного письма
+   - POST /api/ai-job-recommendations - получение AI-рекомендаций вакансий
 
-3. **Advanced Filtering:**
-   - Test work_time filters: vz, tz, ho, mj, snw
-   - Test language_level filters: A1, A2, B1, B2, C1, C2
-   - Test category filters: tech, healthcare, finance, marketing, sales, education, construction, logistics, gastronomy, retail, other
-   - Test published_since filter (0-100 days)
-   - Test contract_type filter (1=limited, 2=unlimited)
+3. **Telegram уведомления:**
+   - POST /api/telegram-notifications/send - отправка уведомлений в Telegram
+   - POST /api/telegram-notifications/job-digest - отправка дайджеста вакансий
 
-4. **Real API Integration:**
-   - Verify the integration with https://rest.arbeitsagentur.de/jobboerse/jobsuche-service
-   - Test that real job data is being returned (not demo data)
-   - Test pagination with different page numbers
-   - Test with German cities: Berlin, München, Hamburg, Köln
+4. **Telegram Authentication:**
+   - POST /api/auth/telegram/verify - авторизация через Telegram
 
-5. **Enhanced Response Format:**
-   - Verify the new enhanced response structure with analysis, facets, search_metadata
-   - Check that distance calculations work when user coordinates are provided
-   - Verify language level estimation is working for German jobs
-   - Test that job categories are properly analyzed
+СЦЕНАРИЙ ТЕСТИРОВАНИЯ:
+1. Сначала авторизуйся как пользователь через Telegram
+2. Запусти AI-рекрутера и проведи короткую беседу (2-3 сообщения)
+3. Найди несколько вакансий через поисковый API
+4. Протестируй анализ совместимости вакансии с профилем
+5. Протестируй перевод вакансии на русский язык
+6. Протестируй генерацию сопроводительного письма
+7. Протестируй получение AI-рекомендаций
+8. Протестируй отправку Telegram уведомлений (если возможно)
 
-6. **Error Handling:**
-   - Test with invalid coordinates
-   - Test with invalid radius values
-   - Test with invalid language levels
-   - Test API failure scenarios
+ВАЖНО:
+- Используй только демо/fallback ответы если API ключи не настроены
+- Проверь правильность сохранения данных в базе
+- Проверь обработку ошибок
+- Убедись что все endpoints возвращают корректные JSON ответы
 
-ОЖИДАЕМЫЕ РЕЗУЛЬТАТЫ:
-- All enhanced endpoints should return 200 OK with proper structure
-- Real job data from arbeitsagentur.de API should be returned
-- Geolocation features should work with German coordinates
-- Advanced filtering should work correctly
-- Enhanced response format should include analysis and metadata
-- Error handling should be robust
+Backend URL: http://localhost:8001
+Telegram Bot Token: 8003539432:AAFJkAYdEhM6i77va_JFo5Z_OlCiDJX3BC4
 
-ФОКУС: Test the enhanced German job search functionality with real API integration.
+ФОКУС: Test all AI-powered job search features for Telegram Mini App.
 """
 
 import asyncio
