@@ -708,49 +708,62 @@ const TelegramJobSearch = ({ onBack }) => {
                                 const value = e.target.value || '';
                                 console.log('City input changed to:', value);
                                 setCitySearchInput(value);
+                                // ИСПРАВЛЕНИЕ: Также обновляем location в searchFilters при прямом вводе
+                                setSearchFilters(prev => ({...prev, location: value}));
                                 setShowCityDropdown(true);
                             } catch (error) {
                                 console.error('Error handling city input change:', error);
                             }
                         }}
                         onFocus={() => {
-                            console.log('City input focused');
+                            console.log('City input focused, loading cities...');
                             setShowCityDropdown(true);
+                            // Загружаем популярные города если поле пустое
+                            if (!citySearchInput || citySearchInput.length < 2) {
+                                loadPopularCities();
+                            }
                         }}
                         className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-10"
                         required
                     />
                     <MapPin className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                     
-                    {showCityDropdown && cities.length > 0 && (
-                        <div className="absolute z-20 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
-                            <div className="p-2 text-xs text-gray-500 font-medium">
+                    {/* ИСПРАВЛЕНИЕ: Показываем dropdown всегда когда нужно И есть города */}
+                    {showCityDropdown && (cities.length > 0 || (!citySearchInput || citySearchInput.length < 2)) && (
+                        <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
+                            <div className="p-2 text-xs text-gray-500 font-medium bg-gray-50">
                                 {(citySearchInput || '').length >= 2 ? 'Результаты поиска:' : 'Популярные города:'}
                             </div>
-                            {cities.map((city, index) => (
-                                <button
-                                    key={`${city.name}-${index}`}
-                                    onClick={() => handleCitySelect(city.name)}
-                                    className="w-full text-left p-3 hover:bg-gray-50 border-t border-gray-100 first:border-t-0 flex items-center justify-between"
-                                >
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-900">{city.name || 'Неизвестный город'}</div>
-                                        <div className="text-xs text-gray-500">
-                                            {city.state || 'Неизвестный регион'} • {city.population ? `${(city.population / 1000).toFixed(0)}k жителей` : 'Население неизвестно'}
+                            {cities.length > 0 ? (
+                                cities.map((city, index) => (
+                                    <button
+                                        key={`${city.name}-${index}`}
+                                        onClick={() => handleCitySelect(city.name)}
+                                        className="w-full text-left p-3 hover:bg-violet-50 border-t border-gray-100 first:border-t-0 flex items-center justify-between transition-colors"
+                                    >
+                                        <div>
+                                            <div className="text-sm font-medium text-gray-900">{city.name || 'Неизвестный город'}</div>
+                                            <div className="text-xs text-gray-500">
+                                                {city.state || 'Неизвестный регион'} • {city.population ? `${(city.population / 1000).toFixed(0)}k жителей` : 'Население неизвестно'}
+                                            </div>
                                         </div>
-                                    </div>
-                                    {city.type === 'major' && (
-                                        <Star className="h-3 w-3 text-yellow-500" />
-                                    )}
-                                </button>
-                            ))}
+                                        {city.type === 'major' && (
+                                            <Star className="h-3 w-3 text-yellow-500" />
+                                        )}
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="p-3 text-sm text-gray-500 text-center">
+                                    {(citySearchInput || '').length >= 2 ? 'Городов не найдено...' : 'Загрузка городов...'}
+                                </div>
+                            )}
                         </div>
                     )}
                     
                     {/* Close dropdown when clicking outside */}
                     {showCityDropdown && (
                         <div 
-                            className="fixed inset-0 z-10" 
+                            className="fixed inset-0 z-40" 
                             onClick={() => setShowCityDropdown(false)}
                         />
                     )}
