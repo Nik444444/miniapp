@@ -211,7 +211,10 @@ class JobSearchService:
                 else:
                     logger.error(f"❌ API request failed with status: {response.status}")
                     error_text = await response.text()
-                    logger.error(f"Error response: {error_text}")
+                    logger.error(f"❌ Error response: {error_text}")
+                    logger.error(f"❌ Request URL was: {url}")
+                    logger.error(f"❌ Request params were: {params}")
+                    logger.error(f"❌ Request headers were: {headers}")
                     return await self._get_enhanced_fallback_jobs()
                     
         except Exception as e:
