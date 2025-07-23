@@ -5,7 +5,7 @@ import TelegramDocumentAnalysis from './TelegramDocumentAnalysis';
 import TelegramLetterComposer from './TelegramLetterComposer';
 import TelegramApiKeySetup from './TelegramApiKeySetup';
 import TelegramComingSoon from './TelegramComingSoon';
-import TelegramJobSearch from './TelegramJobSearch';
+import EnhancedTelegramJobSearch from './EnhancedTelegramJobSearch';
 import TelegramLanguageSelector from './TelegramLanguageSelector';
 import SpectacularDocumentAnalysis from './SpectacularDocumentAnalysis';
 import SpectacularAnalysisResult from './SpectacularAnalysisResult';
