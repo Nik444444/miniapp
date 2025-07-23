@@ -1232,6 +1232,136 @@ class BackendTester:
             level_results
         )
 
+    async def test_parameter_validation_and_error_handling(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Parameter Validation and Error Handling"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Parameter Validation and Error Handling ===")
+        
+        # 1. Test search_query is truly optional
+        search_data_no_query = {
+            "location": "Berlin",
+            "language_level": "B1"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_no_query)
+        
+        search_query_optional = success and isinstance(data, dict) and "status" in data
+        
+        self.log_test_result(
+            "🎯 search_query parameter is OPTIONAL",
+            search_query_optional,
+            f"Search without search_query works: {search_query_optional}. Status: {data.get('status') if success else error}",
+            data
+        )
+        
+        # 2. Test location parameter works correctly
+        search_data_location_only = {
+            "location": "München",
+            "limit": 5
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_location_only)
+        
+        location_works = success and isinstance(data, dict) and "status" in data
+        
+        self.log_test_result(
+            "🎯 location parameter works correctly",
+            location_works,
+            f"Search with only location works: {location_works}. Status: {data.get('status') if success else error}",
+            data
+        )
+        
+        # 3. Test language_level parameter works correctly
+        search_data_language_only = {
+            "language_level": "C1",
+            "limit": 5
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_language_only)
+        
+        language_level_works = success and isinstance(data, dict) and "status" in data
+        
+        self.log_test_result(
+            "🎯 language_level parameter works correctly",
+            language_level_works,
+            f"Search with only language_level works: {language_level_works}. Status: {data.get('status') if success else error}",
+            data
+        )
+        
+        # 4. Test response structure has required fields
+        search_data_full = {
+            "search_query": "developer",
+            "location": "Berlin",
+            "language_level": "B2",
+            "limit": 10
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_full)
+        
+        if success and isinstance(data, dict):
+            has_total_found = "total_found" in data
+            has_jobs_array = "jobs" in data and isinstance(data["jobs"], list)
+            has_applied_filters = "applied_filters" in data
+            has_status = "status" in data
+            
+            response_structure_valid = has_total_found and has_jobs_array and has_applied_filters and has_status
+            
+            self.log_test_result(
+                "🎯 Response structure contains required fields",
+                response_structure_valid,
+                f"total_found: {has_total_found}, jobs: {has_jobs_array}, applied_filters: {has_applied_filters}, status: {has_status}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Response structure contains required fields",
+                False,
+                f"Failed to get valid response: {error}",
+                data
+            )
+        
+        # 5. Test invalid language_level handling
+        search_data_invalid_lang = {
+            "location": "Berlin",
+            "language_level": "X9",  # Invalid language level
+            "limit": 5
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_invalid_lang)
+        
+        # Should either work (ignore invalid) or return proper error
+        handles_invalid_lang = True  # We'll accept any reasonable handling
+        
+        if success and isinstance(data, dict):
+            # If it works, that's fine - system ignores invalid values
+            handles_invalid_lang = True
+        elif not success:
+            # If it fails, should be a proper validation error, not server error
+            is_validation_error = "400" in str(error) or "422" in str(error) or "validation" in str(data).lower()
+            is_server_error = "500" in str(error)
+            handles_invalid_lang = is_validation_error and not is_server_error
+        
+        self.log_test_result(
+            "🎯 Invalid language_level parameter handling",
+            handles_invalid_lang,
+            f"Invalid language_level handled properly: {handles_invalid_lang}. Response: {error if not success else 'Success'}",
+            data
+        )
+        
+        # 6. Test empty parameters handling
+        search_data_empty = {}
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_empty)
+        
+        # Should work (all parameters are optional) or return reasonable response
+        handles_empty_params = success and isinstance(data, dict) and "status" in data
+        
+        self.log_test_result(
+            "🎯 Empty parameters handling",
+            handles_empty_params,
+            f"Empty parameters handled: {handles_empty_params}. Status: {data.get('status') if success else error}",
+            data
+        )
+
     async def test_german_language_level_filtering_focused(self):
         """🎯 ФОКУСИРОВАННЫЙ ТЕСТ: German Language Level Filtering (B1, C1) - как запрошено"""
         logger.info("=== 🎯 ФОКУСИРОВАННЫЙ ТЕСТ: German Language Level Filtering (B1, C1) ===")
