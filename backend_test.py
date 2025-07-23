@@ -1372,6 +1372,188 @@ class BackendTester:
             {"pattern_errors": pattern_error_details}
         )
 
+    async def test_telegram_mini_app_job_search_pattern_errors(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Mini App Job Search - проверка ошибки 'The string did not match the expected pattern'"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Mini App Job Search Pattern Errors ===")
+        
+        # 1. Test GET /api/job-search?location=Berlin&language_level=B1 (без search_query - это должно работать)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Berlin&language_level=B1")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Berlin&language_level=B1 (без search_query)",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "match" in str(error).lower()
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Berlin&language_level=B1 (без search_query)",
+                False,
+                f"ОШИБКА: {error}. Pattern error detected: {pattern_error_detected}",
+                data
+            )
+        
+        # 2. Test GET /api/job-search?location=München&language_level=A2&search_query=Developer (с search_query)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=München&language_level=A2&search_query=Developer")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=A2&search_query=Developer",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "match" in str(error).lower()
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=A2&search_query=Developer",
+                False,
+                f"ОШИБКА: {error}. Pattern error detected: {pattern_error_detected}",
+                data
+            )
+        
+        # 3. Test GET /api/job-search?location=Hamburg&language_level=C1 (без search_query)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Hamburg&language_level=C1")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Hamburg&language_level=C1 (без search_query)",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "match" in str(error).lower()
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Hamburg&language_level=C1 (без search_query)",
+                False,
+                f"ОШИБКА: {error}. Pattern error detected: {pattern_error_detected}",
+                data
+            )
+
+        # 4. Test special characters handling - location=München (с умлаутом)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=München&language_level=B1")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                "🎯 Special characters: location=München (с умлаутом)",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "match" in str(error).lower()
+            self.log_test_result(
+                "🎯 Special characters: location=München (с умлаутом)",
+                False,
+                f"ОШИБКА: {error}. Pattern error detected: {pattern_error_detected}",
+                data
+            )
+        
+        # 5. Test spaces in location - Frankfurt am Main (с пробелами)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Frankfurt%20am%20Main&language_level=B2")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                "🎯 Special characters: location=Frankfurt am Main (с пробелами)",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "match" in str(error).lower()
+            self.log_test_result(
+                "🎯 Special characters: location=Frankfurt am Main (с пробелами)",
+                False,
+                f"ОШИБКА: {error}. Pattern error detected: {pattern_error_detected}",
+                data
+            )
+        
+        # 6. Test special characters in search_query - C++ Developer (со специальными символами)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Berlin&language_level=B1&search_query=C%2B%2B%20Developer")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                "🎯 Special characters: search_query=C++ Developer (со специальными символами)",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "match" in str(error).lower()
+            self.log_test_result(
+                "🎯 Special characters: search_query=C++ Developer (со специальными символами)",
+                False,
+                f"ОШИБКА: {error}. Pattern error detected: {pattern_error_detected}",
+                data
+            )
+
+    async def test_parameter_validation_edge_cases(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверка валидации параметров"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Проверка валидации параметров ===")
+        
+        # 1. Test некорректные language_level
+        invalid_levels = ["A3", "D1", "invalid", ""]
+        
+        for level in invalid_levels:
+            success, data, error = await self.make_request("GET", f"/api/job-search?location=Berlin&language_level={level}")
+            
+            # Should handle gracefully, not crash with pattern error
+            no_pattern_error = "pattern" not in str(error).lower() and "match" not in str(error).lower()
+            handles_gracefully = success or ("400" in str(error) or "422" in str(error))
+            
+            self.log_test_result(
+                f"🎯 Invalid language_level validation: {level}",
+                no_pattern_error and handles_gracefully,
+                f"Level '{level}': No pattern errors: {no_pattern_error}, Handles gracefully: {handles_gracefully}",
+                data
+            )
+        
+        # 2. Test пустые параметры
+        empty_param_tests = [
+            ("location=&language_level=B1", "Empty location"),
+            ("location=Berlin&language_level=", "Empty language_level"),
+            ("location=Berlin&language_level=B1&search_query=", "Empty search_query")
+        ]
+        
+        for params, description in empty_param_tests:
+            success, data, error = await self.make_request("GET", f"/api/job-search?{params}")
+            
+            no_pattern_error = "pattern" not in str(error).lower() and "match" not in str(error).lower()
+            
+            self.log_test_result(
+                f"🎯 Empty parameter handling: {description}",
+                no_pattern_error,
+                f"No pattern errors: {no_pattern_error}, Response: {error if not success else 'Success'}",
+                data
+            )
+
     async def test_german_language_level_filtering(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2)"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2) ===")
