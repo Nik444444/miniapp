@@ -32,7 +32,7 @@ class GermanPatternTester:
     def __init__(self):
         # Get backend URL from frontend .env file
         frontend_env_path = Path("/app/frontend/.env")
-        self.backend_url = "https://77b8afe3-046d-45e6-8059-9266ca878ac4.preview.emergentagent.com"
+        self.backend_url = "https://miniapp-wvsxfa.fly.dev"
         
         if frontend_env_path.exists():
             with open(frontend_env_path, 'r') as f:
