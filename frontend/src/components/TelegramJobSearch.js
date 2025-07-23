@@ -239,6 +239,11 @@ const TelegramJobSearch = ({ onBack }) => {
                 if (isTelegramWebApp()) {
                     telegramWebApp.showAlert(`⚠️ Ошибка сети. Проверьте подключение к интернету.`);
                 }
+            } else if (error.message && (error.message.includes('pattern') || error.message.includes('string did not match'))) {
+                // НЕ показываем pattern matching ошибки пользователю
+                console.error('🚨 PATTERN ERROR IN CITIES SEARCH:', error.message);
+                // Загружаем популярные города как fallback
+                loadPopularCities();
             }
         }
     };
