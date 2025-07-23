@@ -5148,8 +5148,14 @@ if __name__ == "__main__":
         logger.info("=" * 80)
         
         try:
-            # 🎯 JOB SEARCH TESTS (NEW FUNCTIONALITY)
-            await self.test_job_search_endpoints()
+            # 🎯 NEW CORRECTED JOB SEARCH TESTS (PRIORITY)
+            await self.test_job_search_endpoints_corrected_functionality()
+            await self.test_cities_api_endpoints()
+            await self.test_parameter_validation_and_error_handling()
+            await self.test_german_language_level_filtering_focused()
+            await self.test_arbeitnow_integration_status()
+            
+            # 🎯 JOB SEARCH TESTS (EXISTING FUNCTIONALITY)
             await self.test_job_subscriptions_endpoints()
             await self.test_resume_analysis_endpoints()
             await self.test_interview_preparation_endpoints()
