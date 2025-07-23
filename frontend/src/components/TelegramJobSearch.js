@@ -263,7 +263,6 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
             setCurrentView('main');
         }
     };
-    }, [currentView, user, searchFilters.location]);
 
     // Search cities when user types
     useEffect(() => {
