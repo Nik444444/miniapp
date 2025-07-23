@@ -992,6 +992,12 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
         <div className="min-h-screen bg-gray-50">
             {currentView === 'main' && renderEnhancedMainView()}
             {currentView === 'results' && renderEnhancedResults()}
+            {currentView === 'ai-assistant' && (
+                <AIJobAssistant 
+                    onBack={() => setCurrentView('main')}
+                    initialJob={selectedJob}
+                />
+            )}
             {selectedJob && renderJobDetailModal()}
         </div>
     );
