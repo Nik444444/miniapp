@@ -850,11 +850,39 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
                                     </div>
                                 )}
 
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between mb-3">
                                     <div className="text-sm text-gray-500">
                                         {job.profession}
                                     </div>
                                     <ArrowRight className="w-4 h-4 text-gray-400" />
+                                </div>
+
+                                {/* AI Actions */}
+                                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedJob(job);
+                                            setCurrentView('ai-assistant');
+                                            hapticFeedback('light');
+                                        }}
+                                        className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:from-emerald-600 hover:to-teal-700 transition-all flex items-center justify-center gap-1"
+                                    >
+                                        <Brain className="w-4 h-4" />
+                                        AI-Анализ
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedJob(job);
+                                            setCurrentView('ai-assistant');
+                                            hapticFeedback('light');
+                                        }}
+                                        className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-2 px-3 rounded-lg text-xs font-medium hover:from-blue-600 hover:to-indigo-700 transition-all flex items-center justify-center gap-1"
+                                    >
+                                        <Globe className="w-4 h-4" />
+                                        Перевод
+                                    </button>
                                 </div>
                             </div>
                         ))}
