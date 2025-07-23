@@ -2039,6 +2039,121 @@ async def search_jobs_post(
         logger.error(f"❌ Advanced enhanced job search failed: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка расширенного поиска вакансий: {str(e)}")
 
+@api_router.post("/user-location-info")
+async def get_user_location_info(
+    location_request: UserLocationRequest
+):
+    """
+    🌍 Get location information and nearby cities from user coordinates
+    """
+    try:
+        logger.info(f"🌍 Getting location info for coordinates: {location_request.dict()}")
+        
+        location_info = await job_search_service.get_user_location_info({
+            'lat': location_request.lat,
+            'lon': location_request.lon
+        })
+        
+        return {
+            "status": "success",
+            "data": location_info,
+            "message": "📍 Standortinformationen erfolgreich abgerufen"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Location info failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Fehler beim Abrufen der Standortinformationen: {str(e)}")
+
+@api_router.get("/search-radius-options")
+async def get_search_radius_options():
+    """
+    📍 Get available search radius options with descriptions
+    """
+    try:
+        radius_options = await job_search_service.get_search_radius_options()
+        
+        return {
+            "status": "success",
+            "data": radius_options,
+            "message": "📍 Suchradius-Optionen erfolgreich abgerufen"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Radius options failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Fehler beim Abrufen der Radius-Optionen: {str(e)}")
+
+@api_router.get("/job-search-status")
+async def get_job_search_status():
+    """
+    📊 Get enhanced job search service status and capabilities
+    """
+    try:
+        status = {
+            'service_name': 'Enhanced German Job Search Service',
+            'version': '2.0',
+            'api_source': 'bundesagentur.de',
+            'status': 'operational',
+            'enhanced_features': {
+                'geolocation_search': True,
+                'radius_filtering': True,
+                'language_level_estimation': True,
+                'work_time_filtering': True,
+                'publication_date_filtering': True,
+                'contract_type_filtering': True,
+                'advanced_categorization': True,
+                'salary_estimation': True
+            },
+            'supported_parameters': {
+                'search_query': 'Free text job search',
+                'location': 'City or postal code',
+                'radius': 'Search radius in km (5, 10, 25, 50, 100, 200)',
+                'language_level': 'German level (A1, A2, B1, B2, C1, C2)',
+                'work_time': 'Work time (vz, tz, ho, mj, snw)',
+                'published_since': 'Days since publication (0-100)',
+                'contract_type': 'Contract type (1=limited, 2=unlimited)',
+                'category': 'Job category filter',
+                'remote': 'Remote work filter',
+                'visa_sponsorship': 'Visa sponsorship filter'
+            },
+            'language_levels': {
+                'A1': 'Anfänger - Basic everyday expressions',
+                'A2': 'Grundlagen - Simple routine matters', 
+                'B1': 'Mittelstufe - Work and study topics',
+                'B2': 'Gehobene Mittelstufe - Complex texts',
+                'C1': 'Fortgeschritten - Professional fluency',
+                'C2': 'Muttersprachlich - Native-like proficiency'
+            },
+            'work_time_options': {
+                'vz': 'Vollzeit - Full-time positions',
+                'tz': 'Teilzeit - Part-time positions',
+                'ho': 'Homeoffice - Remote/home office work',
+                'mj': 'Minijob - Mini jobs (450€ basis)',
+                'snw': 'Schicht/Nacht/Wochenende - Shift, night or weekend work'
+            },
+            'job_categories': [
+                'tech', 'marketing', 'finance', 'sales', 'design', 
+                'management', 'healthcare', 'education', 'gastronomy', 
+                'construction', 'logistics', 'retail', 'other'
+            ],
+            'radius_options': [5, 10, 25, 50, 100, 200],
+            'api_info': {
+                'base_url': 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service',
+                'version': 'v4',
+                'authentication': 'X-API-Key header',
+                'official_source': 'Bundesagentur für Arbeit'
+            }
+        }
+        
+        return {
+            "status": "success",
+            "data": status,
+            "message": "📊 Service-Status erfolgreich abgerufen"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Status check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Fehler beim Abrufen des Service-Status: {str(e)}")
+
 @api_router.post("/job-subscriptions")
 async def create_job_subscription(
     subscription_request: JobSubscriptionRequest,
