@@ -906,12 +906,12 @@ class BackendTester:
                 data
             )
     
-    async def test_job_search_endpoints(self):
-        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search API Endpoints Testing"""
-        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search API Endpoints Testing ===")
+    async def test_job_search_endpoints_corrected_functionality(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search API с исправленной функциональностью - search_query теперь НЕОБЯЗАТЕЛЬНЫЙ"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Search API - search_query НЕОБЯЗАТЕЛЬНЫЙ ===")
         
-        # 1. Test GET /api/job-search (should work without authentication)
-        success, data, error = await self.make_request("GET", "/api/job-search")
+        # 1. Test GET /api/job-search?location=Berlin&language_level=B1 (БЕЗ search_query - должен работать!)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Berlin&language_level=B1")
         
         if success and isinstance(data, dict):
             has_status = "status" in data
@@ -920,31 +920,74 @@ class BackendTester:
             has_applied_filters = "applied_filters" in data
             
             self.log_test_result(
-                "🎯 GET /api/job-search - Works without authentication",
+                "🎯 GET /api/job-search?location=Berlin&language_level=B1 (БЕЗ search_query)",
                 has_status and has_jobs and has_total_found and has_applied_filters,
-                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}",
+                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}, Applied filters: {data.get('applied_filters')}",
                 data
             )
         else:
-            # Check if it's an authentication error (which would be wrong)
-            is_auth_error = "401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", ""))))
-            
             self.log_test_result(
-                "🎯 GET /api/job-search - Works without authentication",
+                "🎯 GET /api/job-search?location=Berlin&language_level=B1 (БЕЗ search_query)",
                 False,
-                f"Should work without auth but got: {error}. Auth error: {is_auth_error}",
+                f"ОШИБКА: Поиск без search_query не работает: {error}",
                 data
             )
         
-        # 2. Test POST /api/job-search (should work without authentication)
-        search_data = {
-            "search_query": "software developer",
+        # 2. Test GET /api/job-search?location=München&language_level=A2&search_query=Developer
+        success, data, error = await self.make_request("GET", "/api/job-search?location=München&language_level=A2&search_query=Developer")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_total_found = "total_found" in data
+            has_applied_filters = "applied_filters" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=A2&search_query=Developer",
+                has_status and has_jobs and has_total_found and has_applied_filters,
+                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}, Applied filters: {data.get('applied_filters')}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=A2&search_query=Developer",
+                False,
+                f"ОШИБКА: Поиск с полными параметрами не работает: {error}",
+                data
+            )
+        
+        # 3. Test GET /api/job-search?location=Hamburg&language_level=C1 (БЕЗ других параметров)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Hamburg&language_level=C1")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_total_found = "total_found" in data
+            has_applied_filters = "applied_filters" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Hamburg&language_level=C1 (минимальные параметры)",
+                has_status and has_jobs and has_total_found and has_applied_filters,
+                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}, Applied filters: {data.get('applied_filters')}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Hamburg&language_level=C1 (минимальные параметры)",
+                False,
+                f"ОШИБКА: Поиск с минимальными параметрами не работает: {error}",
+                data
+            )
+        
+        # 4. Test POST /api/job-search БЕЗ search_query (должен работать!)
+        search_data_no_query = {
             "location": "Berlin",
+            "language_level": "B2",
             "remote": False,
             "limit": 10
         }
         
-        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_no_query)
         
         if success and isinstance(data, dict):
             has_status = "status" in data
@@ -953,46 +996,49 @@ class BackendTester:
             has_applied_filters = "applied_filters" in data
             
             self.log_test_result(
-                "🎯 POST /api/job-search - Works without authentication",
+                "🎯 POST /api/job-search БЕЗ search_query (location + language_level)",
                 has_status and has_jobs and has_total_found and has_applied_filters,
-                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}",
+                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}, Applied filters: {data.get('applied_filters')}",
                 data
             )
         else:
-            # Check if it's an authentication error (which would be wrong)
-            is_auth_error = "401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", ""))))
-            
             self.log_test_result(
-                "🎯 POST /api/job-search - Works without authentication",
+                "🎯 POST /api/job-search БЕЗ search_query (location + language_level)",
                 False,
-                f"Should work without auth but got: {error}. Auth error: {is_auth_error}",
+                f"КРИТИЧЕСКАЯ ОШИБКА: POST без search_query не работает: {error}",
                 data
             )
         
-        # 3. Test POST /api/job-search with different parameters
-        search_params = [
-            {"search_query": "python developer", "location": "Munich"},
-            {"search_query": "data scientist", "remote": True},
-            {"location": "Hamburg", "visa_sponsorship": True},
-            {"category": "IT", "limit": 5}
-        ]
+        # 5. Test POST /api/job-search С search_query (для сравнения)
+        search_data_with_query = {
+            "search_query": "software developer",
+            "location": "München",
+            "language_level": "B1",
+            "remote": False,
+            "limit": 10
+        }
         
-        all_params_work = True
-        for i, params in enumerate(search_params):
-            success, data, error = await self.make_request("POST", "/api/job-search", json=params)
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_with_query)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_total_found = "total_found" in data
+            has_applied_filters = "applied_filters" in data
             
-            if not success:
-                is_auth_error = "401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", ""))))
-                if is_auth_error:
-                    all_params_work = False
-                    logger.warning(f"Search params {i+1} failed with auth error: {error}")
-        
-        self.log_test_result(
-            "🎯 POST /api/job-search - Various search parameters work",
-            all_params_work,
-            f"All parameter combinations work without auth: {all_params_work}",
-            {"tested_params": search_params}
-        )
+            self.log_test_result(
+                "🎯 POST /api/job-search С search_query (полные параметры)",
+                has_status and has_jobs and has_total_found and has_applied_filters,
+                f"Status: {data.get('status')}, Jobs count: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}, Applied filters: {data.get('applied_filters')}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/job-search С search_query (полные параметры)",
+                False,
+                f"ОШИБКА: POST с search_query не работает: {error}",
+                data
+            )
 
     async def test_german_language_level_filtering(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2)"""
