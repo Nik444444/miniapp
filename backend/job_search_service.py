@@ -1072,7 +1072,12 @@ class JobSearchService:
         💰 Estimate salary range based on job details
         """
         title = job.get('title', '').lower()
-        location = job.get('location', '').lower()
+        # Handle location as dict or string
+        location_data = job.get('location', {})
+        if isinstance(location_data, dict):
+            location = location_data.get('city', '').lower()
+        else:
+            location = str(location_data).lower()
         
         # Base salary ranges by role (EUR per year)
         salary_ranges = {
