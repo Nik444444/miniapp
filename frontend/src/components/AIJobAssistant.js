@@ -160,7 +160,7 @@ const AIJobAssistant = ({ onBack, initialJob = null }) => {
         setChatMessages(prev => [...prev, newUserMessage]);
         
         try {
-            const response = await fetch(`${backendUrl}/ai-recruiter/continue`, {
+            const response = await fetch(`${backendUrl}/api/ai-recruiter/continue`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
