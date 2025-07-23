@@ -116,45 +116,76 @@ class GermanHousingScraper:
             return str(text).strip() if text else ""
 
     def scrape_immoscout24(self, city: str, max_price: int = None, property_type: str = "wohnung") -> List[Dict[str, Any]]:
-        """Scrape ImmoScout24.de"""
+        """Scrape ImmoScout24.de with improved error handling"""
         logger.info(f"🏠 Scraping ImmoScout24 for {city}")
         
         try:
+            # Sanitize city name to prevent pattern matching issues
+            safe_city = re.sub(r'[^\w\säöüÄÖÜß\-]', '', city.strip()) if city else ""
+            if not safe_city:
+                logger.warning(f"Invalid city name: {city}")
+                return []
+            
             # Build search URL
             base_url = "https://www.immobilienscout24.de/Suche/de/mieten/wohnung"
-            params = f"/{quote(city.lower())}"
+            params = f"/{quote(safe_city.lower())}"
             
-            if max_price:
-                params += f"?price=-{max_price}"
+            if max_price and isinstance(max_price, (int, float)) and max_price > 0:
+                params += f"?price=-{int(max_price)}"
                 
             url = base_url + params
             
             response = self._safe_request(url)
             if not response:
+                logger.warning(f"No response from ImmoScout24 for {city}")
                 return []
                 
             soup = BeautifulSoup(response.content, 'html.parser')
             listings = []
             
-            # Find property listings
-            property_items = soup.find_all(['article', 'div'], {'data-item': True}) or soup.find_all('div', class_=re.compile(r'result-list'))
+            # Find property listings with safer regex patterns
+            try:
+                property_items = soup.find_all(['article', 'div'], {'data-item': True}) or soup.find_all('div', class_=lambda x: x and 'result' in str(x).lower())
+            except Exception as e:
+                logger.error(f"Error finding property items: {e}")
+                property_items = []
             
             for item in property_items[:10]:  # Limit to 10 results
                 try:
-                    # Extract data
-                    title_elem = item.find(['h3', 'h4', 'h5', 'a'], class_=re.compile(r'title|headline'))
+                    # Extract data with safer patterns
+                    title_elem = None
+                    try:
+                        title_elem = item.find(['h3', 'h4', 'h5', 'a'], class_=lambda x: x and any(word in str(x).lower() for word in ['title', 'headline']))
+                    except Exception:
+                        title_elem = item.find(['h3', 'h4', 'h5', 'a'])
+                    
                     title = self._clean_text(title_elem.get_text()) if title_elem else "Immobilie"
                     
-                    price_elem = item.find(['span', 'div'], class_=re.compile(r'price|kaltmiete'))
+                    price_elem = None
+                    try:
+                        price_elem = item.find(['span', 'div'], class_=lambda x: x and any(word in str(x).lower() for word in ['price', 'kaltmiete']))
+                    except Exception:
+                        price_elem = item.find(['span', 'div'], string=lambda text: text and '€' in str(text))
+                    
                     price_text = price_elem.get_text() if price_elem else ""
                     price = self._extract_price(price_text)
                     
-                    area_elem = item.find(['span', 'div'], class_=re.compile(r'area|flaeche|qm'))
+                    area_elem = None
+                    try:
+                        area_elem = item.find(['span', 'div'], class_=lambda x: x and any(word in str(x).lower() for word in ['area', 'flaeche', 'qm', 'm²']))
+                    except Exception:
+                        area_elem = item.find(['span', 'div'], string=lambda text: text and ('m²' in str(text) or 'qm' in str(text)))
+                    
                     area_text = area_elem.get_text() if area_elem else ""
                     area = self._extract_price(area_text)  # Same extraction logic
                     
-                    location_elem = item.find(['span', 'div'], class_=re.compile(r'location|address|ort'))
-                    location = self._clean_text(location_elem.get_text()) if location_elem else city
+                    location_elem = None
+                    try:
+                        location_elem = item.find(['span', 'div'], class_=lambda x: x and any(word in str(x).lower() for word in ['location', 'address', 'ort']))
+                    except Exception:
+                        location_elem = item.find(['span', 'div'])
+                    
+                    location = self._clean_text(location_elem.get_text()) if location_elem else safe_city
                     
                     link_elem = item.find('a', href=True)
                     link = urljoin("https://www.immobilienscout24.de", link_elem['href']) if link_elem else None
@@ -165,7 +196,7 @@ class GermanHousingScraper:
                         'price': price,
                         'area': area,
                         'location': location,
-                        'city': city,
+                        'city': safe_city,
                         'link': link,
                         'currency': 'EUR',
                         'property_type': property_type,
@@ -176,14 +207,14 @@ class GermanHousingScraper:
                         listings.append(listing)
                         
                 except Exception as e:
-                    logger.error(f"Error parsing ImmoScout24 item: {str(e)}")
+                    logger.debug(f"Error processing ImmoScout24 item: {e}")
                     continue
-                    
+            
             logger.info(f"✅ ImmoScout24: Found {len(listings)} listings")
             return listings
             
         except Exception as e:
-            logger.error(f"ImmoScout24 scraping failed: {str(e)}")
+            logger.error(f"ImmoScout24 scraping failed for {city}: {str(e)}")
             return []
 
     def scrape_immobilien_de(self, city: str, max_price: int = None) -> List[Dict[str, Any]]:
