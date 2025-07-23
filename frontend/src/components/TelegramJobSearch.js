@@ -391,11 +391,11 @@ const TelegramJobSearch = ({ onBack }) => {
             console.log('✅ Response data:', data);
 
             if (data.status === 'success') {
-                const jobsData = data.data?.jobs || [];  // Исправление: правильный путь к jobs
+                const jobsData = data.jobs || [];  // Исправление: прямой путь к jobs
                 console.log('Jobs found:', jobsData.length);
                 
                 setJobs(jobsData);
-                const totalFound = data.data?.total_found || jobsData.length;
+                const totalFound = data.total_found || jobsData.length;
                 if (isTelegramWebApp()) {
                     telegramWebApp.showAlert(`✅ Найдено ${totalFound} вакансий!`);
                 } else {
