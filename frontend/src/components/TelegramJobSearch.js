@@ -728,8 +728,8 @@ const TelegramJobSearch = ({ onBack }) => {
                     />
                     <MapPin className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                     
-                    {/* ИСПРАВЛЕНИЕ: Показываем dropdown всегда когда нужно И есть города */}
-                    {showCityDropdown && (cities.length > 0 || (!citySearchInput || citySearchInput.length < 2)) && (
+                    {/* ИСПРАВЛЕНИЕ: Показываем dropdown когда есть города ИЛИ при focus */}
+                    {showCityDropdown && (
                         <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
                             <div className="p-2 text-xs text-gray-500 font-medium bg-gray-50">
                                 {(citySearchInput || '').length >= 2 ? 'Результаты поиска:' : 'Популярные города:'}
@@ -738,7 +738,11 @@ const TelegramJobSearch = ({ onBack }) => {
                                 cities.map((city, index) => (
                                     <button
                                         key={`${city.name}-${index}`}
-                                        onClick={() => handleCitySelect(city.name)}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleCitySelect(city.name);
+                                        }}
                                         className="w-full text-left p-3 hover:bg-violet-50 border-t border-gray-100 first:border-t-0 flex items-center justify-between transition-colors"
                                     >
                                         <div>
