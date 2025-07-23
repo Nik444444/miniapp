@@ -280,6 +280,24 @@ class JobSubscriptionUpdate(BaseModel):
     category: Optional[str] = None
     active: Optional[bool] = None
 
+class JobSubscriptionCreateRequest(BaseModel):
+    search_query: Optional[str] = None
+    location: Optional[str] = None
+    remote: Optional[bool] = None
+    visa_sponsorship: Optional[bool] = None
+    language_level: Optional[str] = None
+    category: Optional[str] = None
+    notification_frequency: Optional[str] = "daily"
+
+class JobSubscriptionUpdateRequest(BaseModel):
+    search_query: Optional[str] = None
+    location: Optional[str] = None
+    remote: Optional[bool] = None
+    visa_sponsorship: Optional[bool] = None
+    language_level: Optional[str] = None
+    category: Optional[str] = None
+    active: Optional[bool] = None
+
 class ResumeAnalysisRequest(BaseModel):
     resume_text: str
     target_position: Optional[str] = None
