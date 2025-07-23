@@ -1987,42 +1987,56 @@ async def search_jobs(
 
 @api_router.post("/job-search")
 async def search_jobs_post(
-    search_request: JobSearchRequest
+    search_request: EnhancedJobSearchRequest
 ):
     """
-    🔍 Advanced job search with detailed filtering (POST method)
+    🔍 Advanced job search with geolocation, radius filtering and enhanced parameters
     """
     try:
-        logger.info(f"Advanced job search: {search_request.dict()}")
+        logger.info(f"🔍 Advanced enhanced job search: {search_request.dict()}")
         
-        # Search jobs using the job search service
+        # Enhanced job search with all parameters
         results = await job_search_service.search_jobs(
             search_query=search_request.search_query,
             location=search_request.location,
+            radius=search_request.radius,
             remote=search_request.remote,
             visa_sponsorship=search_request.visa_sponsorship,
             language_level=search_request.language_level,
             category=search_request.category,
-            limit=search_request.limit
+            work_time=search_request.work_time,
+            published_since=search_request.published_since,
+            contract_type=search_request.contract_type,
+            limit=search_request.limit,
+            page=search_request.page,
+            user_coordinates=search_request.user_coordinates
         )
         
-        # Add salary estimates for each job
+        # Enhanced salary estimation for jobs
         if results.get('jobs'):
             for job in results['jobs']:
-                try:
+                if not job.get('salary_info', {}).get('available'):
                     salary_estimate = job_search_service.estimate_salary_range(job)
                     job['estimated_salary'] = salary_estimate
-                except Exception as e:
-                    logger.warning(f"Failed to estimate salary for job {job.get('id', 'unknown')}: {e}")
         
         return {
             "status": "success",
             "data": results,
-            "message": f"Найдено {results.get('total_found', 0)} вакансий с расширенной фильтрацией"
+            "message": f"✅ Erweiterte Suche: {results.get('total_found', 0)} von {results.get('total_available', 0)} Stellenangeboten gefunden",
+            "search_metadata": results.get('search_metadata', {}),
+            "enhanced_features": {
+                "geolocation_used": bool(search_request.user_coordinates),
+                "radius_km": search_request.radius,
+                "advanced_filters": {
+                    "work_time": search_request.work_time,
+                    "published_since": search_request.published_since,
+                    "contract_type": search_request.contract_type
+                }
+            }
         }
         
     except Exception as e:
-        logger.error(f"Advanced job search failed: {e}")
+        logger.error(f"❌ Advanced enhanced job search failed: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка расширенного поиска вакансий: {str(e)}")
 
 @api_router.post("/job-subscriptions")
