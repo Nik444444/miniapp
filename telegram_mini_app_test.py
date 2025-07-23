@@ -270,7 +270,7 @@ class TelegramMiniAppTester:
             
             if success and isinstance(data, dict):
                 has_status = data.get("status") == "success"
-                has_correct_structure = "jobs" in data and isinstance(data["jobs"], list)
+                has_correct_structure = "data" in data and "jobs" in data["data"] and isinstance(data["data"]["jobs"], list)
                 no_pattern_error = "pattern" not in str(data).lower() and "string did not match" not in str(data).lower()
                 
                 if not (has_status and has_correct_structure and no_pattern_error):
