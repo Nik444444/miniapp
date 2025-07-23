@@ -2779,11 +2779,6 @@ async def analyze_job_compatibility(
     try:
         logger.info(f"Analyzing job compatibility for user {current_user['id']}")
         
-        # Get user AI recruiter profile
-        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
-        if not user_profile:
-            raise HTTPException(status_code=400, detail="AI-рекрутер профиль не найден. Сначала пройдите анкетирование.")
-        
         # Get user providers for AI analysis
         user_providers = []
         if current_user.get("gemini_api_key"):
@@ -2793,12 +2788,12 @@ async def analyze_job_compatibility(
         if current_user.get("anthropic_api_key"):
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
-        # Generate compatibility score
-        result = {
-            "status": "error",
-            "message": "AI Assistant service is currently unavailable",
-            "error": "Service temporarily disabled"
-        }
+        # Analyze compatibility using Advanced AI Recruiter
+        result = await advanced_ai_recruiter.analyze_job_compatibility(
+            user_id=current_user['id'],
+            job_data=request.job_data,
+            user_providers=user_providers if user_providers else None
+        )
         
         return result
         
@@ -2828,12 +2823,12 @@ async def translate_job(
         if current_user.get("anthropic_api_key"):
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
-        # Translate job content
-        result = {
-            "status": "error",
-            "message": "AI Assistant service is currently unavailable",
-            "error": "Service temporarily disabled"
-        }
+        # Translate job using Advanced AI Recruiter
+        result = await advanced_ai_recruiter.translate_job(
+            job_data=request.job_data,
+            target_language=request.target_language,
+            user_providers=user_providers if user_providers else None
+        )
         
         return result
         
