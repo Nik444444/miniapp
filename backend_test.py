@@ -1040,7 +1040,146 @@ class BackendTester:
                 data
             )
 
-    async def test_german_language_level_filtering(self):
+    async def test_cities_api_endpoints(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Cities Search API Testing"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Cities Search API Testing ===")
+        
+        # 1. Test GET /api/cities/popular (должен возвращать список популярных городов)
+        success, data, error = await self.make_request("GET", "/api/cities/popular")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check city structure if cities exist
+            city_structure_valid = True
+            if data.get("cities"):
+                first_city = data["cities"][0]
+                required_city_fields = ["name", "state", "population"]
+                city_structure_valid = all(field in first_city for field in required_city_fields)
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/popular - Популярные города",
+                has_status and has_cities and cities_count > 0 and city_structure_valid,
+                f"Status: {data.get('status')}, Cities count: {cities_count}, Structure valid: {city_structure_valid}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/popular - Популярные города",
+                False,
+                f"ОШИБКА: Популярные города не загружаются: {error}",
+                data
+            )
+        
+        # 2. Test GET /api/cities/search?q=Berlin (поиск конкретного города)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Berlin")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if Berlin is found
+            berlin_found = False
+            if data.get("cities"):
+                berlin_found = any(city.get("name", "").lower() == "berlin" for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Berlin - Поиск конкретного города",
+                has_status and has_cities and berlin_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Berlin found: {berlin_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Berlin - Поиск конкретного города",
+                False,
+                f"ОШИБКА: Поиск Berlin не работает: {error}",
+                data
+            )
+        
+        # 3. Test GET /api/cities/search?q=Mün (частичный поиск)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Mün")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if München is found (partial match)
+            munich_found = False
+            if data.get("cities"):
+                munich_found = any("mün" in city.get("name", "").lower() for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Mün - Частичный поиск",
+                has_status and has_cities and munich_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, München found: {munich_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Mün - Частичный поиск",
+                False,
+                f"ОШИБКА: Частичный поиск Mün не работает: {error}",
+                data
+            )
+        
+        # 4. Test GET /api/cities/search?q=Hamburg (еще один тест точного поиска)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Hamburg")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if Hamburg is found
+            hamburg_found = False
+            if data.get("cities"):
+                hamburg_found = any(city.get("name", "").lower() == "hamburg" for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Hamburg - Поиск Hamburg",
+                has_status and has_cities and hamburg_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Hamburg found: {hamburg_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Hamburg - Поиск Hamburg",
+                False,
+                f"ОШИБКА: Поиск Hamburg не работает: {error}",
+                data
+            )
+        
+        # 5. Test GET /api/cities/search?q=Fra (частичный поиск Frankfurt)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Fra")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if Frankfurt is found (partial match)
+            frankfurt_found = False
+            if data.get("cities"):
+                frankfurt_found = any("fra" in city.get("name", "").lower() for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Fra - Частичный поиск Frankfurt",
+                has_status and has_cities and frankfurt_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Frankfurt found: {frankfurt_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Fra - Частичный поиск Frankfurt",
+                False,
+                f"ОШИБКА: Частичный поиск Fra не работает: {error}",
+                data
+            )
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2)"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2) ===")
         
