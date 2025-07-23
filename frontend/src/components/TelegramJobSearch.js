@@ -233,11 +233,11 @@ const TelegramJobSearch = ({ onBack }) => {
             
             setCities([]);
             
-            // Если есть серьезная ошибка pattern matching, уведомляем пользователя
-            if (error.message && error.message.includes('pattern')) {
-                console.error('🚨 PATTERN ERROR IN CITIES SEARCH:', error.message);
+            // Показываем ошибку только если это реальная сетевая ошибка
+            if (error.message && (error.message.includes('NetworkError') || error.message.includes('fetch'))) {
+                console.error('🚨 NETWORK ERROR IN CITIES SEARCH:', error.message);
                 if (isTelegramWebApp()) {
-                    telegramWebApp.showAlert(`⚠️ Ошибка поиска городов. Попробуйте ввести название проще.`);
+                    telegramWebApp.showAlert(`⚠️ Ошибка сети. Проверьте подключение к интернету.`);
                 }
             }
         }
