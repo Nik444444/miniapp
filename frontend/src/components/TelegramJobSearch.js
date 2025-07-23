@@ -156,7 +156,8 @@ const TelegramJobSearch = ({ onBack }) => {
             // Валидация и очистка query
             const cleanQuery = query ? query.trim() : '';
             if (cleanQuery.length < 2) {
-                setCities([]);
+                console.log('Query too short, loading popular cities instead');
+                loadPopularCities();
                 return;
             }
             
@@ -182,10 +183,11 @@ const TelegramJobSearch = ({ onBack }) => {
             const data = await response.json();
             console.log('Cities search response:', data);
             
-            if (data.status === 'success') {
-                setCities(data.data.cities || []);
+            if (data.status === 'success' && data.data && data.data.cities) {
+                setCities(data.data.cities);
+                console.log('Cities search result:', data.data.cities.length, 'cities found');
             } else {
-                console.warn('Cities search returned non-success status:', data);
+                console.warn('Cities search returned unexpected format:', data);
                 setCities([]);
             }
         } catch (error) {
