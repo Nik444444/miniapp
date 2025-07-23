@@ -35,7 +35,7 @@ class TelegramMiniAppTester:
     def __init__(self):
         # Get backend URL from frontend .env file
         frontend_env_path = Path("/app/frontend/.env")
-        self.backend_url = "https://0b022c0e-b0a5-4d4d-b6db-d6767968419e.preview.emergentagent.com"
+        self.backend_url = "https://6ad8821c-85b0-472c-8a4a-cb6f9c2bb16a.preview.emergentagent.com"
         
         if frontend_env_path.exists():
             with open(frontend_env_path, 'r') as f:
