@@ -450,7 +450,246 @@ class JobSearchService:
             filtered = [job for job in filtered if 
                        any(keyword in job.get('title', '').lower() for keyword in category_keywords)]
         
+    def _apply_enhanced_filters(self, 
+                               jobs: List[Dict],
+                               remote: bool = None,
+                               language_level: str = None,
+                               category: str = None,
+                               visa_sponsorship: bool = None) -> List[Dict]:
+        """Apply enhanced filters to job listings"""
+        
+        filtered = jobs.copy()
+        
+        # Remote filter
+        if remote is not None:
+            filtered = [job for job in filtered if job.get('remote_possible', False) == remote]
+        
+        # Language level filter (enhanced AI-based estimation)
+        if language_level and language_level in self.language_levels:
+            max_score = self.language_levels[language_level]['max_score']
+            filtered = [job for job in filtered if 
+                       job.get('language_requirement', {}).get('score', 50) <= max_score]
+        
+        # Category filter (enhanced with German terms)
+        if category and category in self.job_categories:
+            category_keywords = self.job_categories[category]
+            filtered = [job for job in filtered if 
+                       any(keyword.lower() in job.get('title', '').lower() or 
+                           keyword.lower() in job.get('profession', '').lower()
+                           for keyword in category_keywords)]
+        
+        # Visa sponsorship filter
+        if visa_sponsorship is not None:
+            filtered = [job for job in filtered if job.get('visa_sponsorship', False) == visa_sponsorship]
+        
         return filtered
+
+    def _estimate_language_requirement_enhanced(self, job: Dict) -> Dict[str, Any]:
+        """Enhanced AI-based estimation of German language requirement"""
+        title = job.get('titel', '').lower()
+        profession = job.get('beruf', '').lower()
+        company = job.get('arbeitgeber', '').lower()
+        
+        score = 40  # Base score (B1 level)
+        
+        # Keywords indicating higher German requirement
+        high_german_keywords = [
+            'kundenkontakt', 'kundenbetreuung', 'vertrieb', 'verkauf', 'beratung',
+            'kommunikation', 'präsentation', 'führung', 'management', 'teamleitung',
+            'öffentlicher dienst', 'behörde', 'verwaltung', 'sozial', 'pflege',
+            'erziehung', 'lehrer', 'ausbildung', 'recht', 'jura'
+        ]
+        
+        # Keywords indicating lower German requirement  
+        low_german_keywords = [
+            'english', 'international', 'startup', 'tech', 'developer', 'software',
+            'programmer', 'data scientist', 'remote', 'freelance', 'it', 'informatik',
+            'entwickler', 'programmierer'
+        ]
+        
+        # Check for high German requirement indicators
+        for keyword in high_german_keywords:
+            if keyword in title or keyword in profession or keyword in company:
+                score += 15
+        
+        # Check for low German requirement indicators
+        for keyword in low_german_keywords:
+            if keyword in title or keyword in profession or keyword in company:
+                score -= 10
+        
+        # Location factor (international cities have lower requirements)
+        arbeitsort = job.get('arbeitsort', {})
+        location = arbeitsort.get('ort', '').lower()
+        if location in ['berlin', 'münchen', 'hamburg', 'frankfurt']:
+            score -= 5
+        
+        # Company factor (international companies)
+        if any(term in company for term in ['gmbh & co', 'international', 'global', 'europe']):
+            score -= 5
+        
+        score = max(20, min(90, score))  # Keep score between A2-C1 range
+        
+        # Determine level
+        level = 'B1'
+        for lvl, data in self.language_levels.items():
+            if data['min_score'] <= score <= data['max_score']:
+                level = lvl
+                break
+        
+        return {
+            'level': level,
+            'score': score,
+            'description': self.language_levels[level]['description'],
+            'confidence': 'medium'
+        }
+
+    def _analyze_jobs(self, jobs: List[Dict]) -> Dict[str, Any]:
+        """Comprehensive analysis of job listings"""
+        if not jobs:
+            return {'categories': {}, 'locations': {}, 'companies': {}, 'insights': []}
+        
+        # Category analysis
+        categories = {}
+        for category, keywords in self.job_categories.items():
+            matching_jobs = [job for job in jobs if 
+                           any(keyword.lower() in job.get('title', '').lower() or
+                               keyword.lower() in job.get('profession', '').lower()
+                               for keyword in keywords)]
+            if matching_jobs:
+                categories[category] = {
+                    'count': len(matching_jobs),
+                    'percentage': round((len(matching_jobs) / len(jobs)) * 100, 1),
+                    'average_match_score': round(sum(job.get('match_score', 50) for job in matching_jobs) / len(matching_jobs), 1)
+                }
+        
+        # Location analysis
+        locations = {}
+        for job in jobs:
+            location = job.get('location', {}).get('city', 'Unknown')
+            if location not in locations:
+                locations[location] = {'count': 0, 'jobs': []}
+            locations[location]['count'] += 1
+            locations[location]['jobs'].append(job['id'])
+        
+        # Company analysis
+        companies = {}
+        for job in jobs:
+            company = job.get('company_name', 'Unknown')
+            if company not in companies:
+                companies[company] = {'count': 0, 'jobs': []}
+            companies[company]['count'] += 1
+            companies[company]['jobs'].append(job['id'])
+        
+        # Generate insights
+        insights = []
+        
+        # Top category insight
+        if categories:
+            top_category = max(categories.keys(), key=lambda k: categories[k]['count'])
+            insights.append(f"Meiste Stellenangebote in Kategorie: {top_category} ({categories[top_category]['count']} Jobs)")
+        
+        # Top location insight
+        if locations:
+            top_location = max(locations.keys(), key=lambda k: locations[k]['count'])
+            insights.append(f"Meiste Jobs in: {top_location} ({locations[top_location]['count']} Angebote)")
+        
+        # Remote work insight
+        remote_jobs = [job for job in jobs if job.get('remote_possible', False)]
+        if remote_jobs:
+            insights.append(f"{len(remote_jobs)} Jobs bieten Homeoffice-Möglichkeiten")
+        
+        # Language level insight
+        language_levels_dist = {}
+        for job in jobs:
+            level = job.get('language_requirement', {}).get('level', 'B1')
+            language_levels_dist[level] = language_levels_dist.get(level, 0) + 1
+        
+        if language_levels_dist:
+            most_common_level = max(language_levels_dist.keys(), key=lambda k: language_levels_dist[k])
+            insights.append(f"Häufigster Sprachlevel: {most_common_level} ({language_levels_dist[most_common_level]} Jobs)")
+        
+        return {
+            'categories': categories,
+            'locations': dict(sorted(locations.items(), key=lambda x: x[1]['count'], reverse=True)[:10]),
+            'companies': dict(sorted(companies.items(), key=lambda x: x[1]['count'], reverse=True)[:10]),
+            'language_distribution': language_levels_dist,
+            'remote_jobs_count': len(remote_jobs),
+            'insights': insights
+        }
+
+    def _process_facets(self, facets: Dict) -> Dict[str, Any]:
+        """Process API facets into user-friendly format"""
+        processed = {}
+        
+        # Process work time facets
+        if 'arbeitszeit' in facets:
+            processed['work_time'] = {}
+            for key, count in facets['arbeitszeit'].get('counts', {}).items():
+                if key in self.work_time_filters:
+                    processed['work_time'][key] = {
+                        'name': self.work_time_filters[key]['name'],
+                        'count': count,
+                        'description': self.work_time_filters[key]['description']
+                    }
+        
+        # Process location facets
+        if 'arbeitsort' in facets:
+            processed['locations'] = facets['arbeitsort'].get('counts', {})
+        
+        # Process employer facets
+        if 'arbeitgeber' in facets:
+            processed['employers'] = facets['arbeitgeber'].get('counts', {})
+        
+        # Process profession facets
+        if 'beruf' in facets:
+            processed['professions'] = facets['beruf'].get('counts', {})
+        
+        return processed
+
+    def _generate_enhanced_recommendations(self, search_query: str, jobs: List[Dict], analysis: Dict) -> List[str]:
+        """Generate enhanced AI-powered search recommendations"""
+        recommendations = []
+        
+        if not jobs:
+            recommendations.append("🔍 Versuchen Sie einen breiteren Suchbegriff oder vergrößern Sie den Suchradius")
+            recommendations.append("📍 Erwägen Sie Homeoffice-Jobs für mehr Flexibilität")
+            recommendations.append("🌍 Suchen Sie in mehreren deutschen Städten gleichzeitig")
+            return recommendations
+        
+        # Category-based recommendations
+        categories = analysis.get('categories', {})
+        if categories:
+            top_category = max(categories.keys(), key=lambda k: categories[k]['count'])
+            recommendations.append(f"💼 Besonders viele {top_category.title()}-Jobs verfügbar")
+        
+        # Location-based recommendations  
+        locations = analysis.get('locations', {})
+        if len(locations) > 1:
+            top_locations = list(locations.keys())[:3]
+            recommendations.append(f"📍 Top Standorte: {', '.join(top_locations)}")
+        
+        # Remote work recommendation
+        remote_count = analysis.get('remote_jobs_count', 0)
+        if remote_count > 0:
+            recommendations.append(f"🏠 {remote_count} Jobs bieten Homeoffice-Möglichkeiten")
+        
+        # Language level recommendation
+        lang_dist = analysis.get('language_distribution', {})
+        if lang_dist:
+            common_levels = sorted(lang_dist.items(), key=lambda x: x[1], reverse=True)[:2]
+            recommendations.append(f"🗣️ Empfohlene Sprachlevel: {', '.join([level for level, count in common_levels])}")
+        
+        # Search query specific recommendations
+        if search_query:
+            query_lower = search_query.lower()
+            if 'developer' in query_lower or 'entwickler' in query_lower:
+                recommendations.append("💻 Auch suchen: Software Engineer, Programmierer, IT-Spezialist")
+            elif 'marketing' in query_lower:
+                recommendations.append("📈 Auch suchen: Digital Marketing, Social Media, Content Manager")
+            elif 'sales' in query_lower or 'vertrieb' in query_lower:
+                recommendations.append("💰 Auch suchen: Account Manager, Business Development, Kundenberater")
+        
+        return recommendations[:5]  # Limit to 5 recommendations
 
     def _estimate_language_requirement(self, job: Dict) -> int:
         """
