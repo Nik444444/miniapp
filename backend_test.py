@@ -1238,6 +1238,110 @@ class BackendTester:
         # Summary test for all levels
         working_levels = [level for level, result in level_results.items() if result.get("success")]
         
+    async def test_bundesagentur_api_integration_critical(self):
+        """🎯 КРИТИЧЕСКАЯ ПРОВЕРКА: Убедиться что все вакансии теперь идут с правильного официального API"""
+        logger.info("=== 🎯 КРИТИЧЕСКАЯ ПРОВЕРКА: Bundesagentur.de API Integration ===")
+        
+        # 1. **GET /api/job-search-status** - должен показывать bundesagentur.de как источник
+        success, data, error = await self.make_request("GET", "/api/job-search-status")
+        
+        if success and isinstance(data, dict):
+            # Проверяем api_source
+            api_source = data.get("api_source")
+            is_bundesagentur = api_source == "bundesagentur.de"
+            
+            # Проверяем bundesagentur_integration
+            bundesagentur_integration = data.get("bundesagentur_integration")
+            has_integration_info = isinstance(bundesagentur_integration, dict)
+            correct_endpoint = False
+            if has_integration_info:
+                endpoint = bundesagentur_integration.get("api_endpoint", "")
+                correct_endpoint = "rest.arbeitsagentur.de/jobboerse/jobsuche-service" in endpoint
+            
+            # НЕ должно быть упоминаний arbeitnow.com
+            no_arbeitnow_mentions = "arbeitnow.com" not in str(data).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search-status - Bundesagentur.de API source",
+                is_bundesagentur and has_integration_info and correct_endpoint and no_arbeitnow_mentions,
+                f"API Source: {api_source}, Integration: {has_integration_info}, Correct endpoint: {correct_endpoint}, No arbeitnow: {no_arbeitnow_mentions}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search-status - Bundesagentur.de API source",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+        
+        # 2. **POST /api/job-search** - проверить что api_info.source = "bundesagentur.de"
+        search_data = {
+            "location": "Berlin",
+            "language_level": "B1",
+            "limit": 10
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+        
+        if success and isinstance(data, dict):
+            # Проверяем api_info
+            api_info = data.get("api_info", {})
+            api_source = api_info.get("source")
+            api_name = api_info.get("name", "")
+            
+            is_bundesagentur_source = api_source == "bundesagentur.de"
+            is_official_name = "Bundesagentur für Arbeit" in api_name and "Official German Job Board" in api_name
+            
+            # Проверяем что вакансии действительно приходят
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            
+            self.log_test_result(
+                "🎯 POST /api/job-search - Bundesagentur.de API response",
+                is_bundesagentur_source and is_official_name and has_jobs,
+                f"API Source: {api_source}, API Name: {api_name}, Has jobs: {has_jobs}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 POST /api/job-search - Bundesagentur.de API response",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+        
+        # 3. **GET /api/job-search?location=Berlin&language_level=B1** - проверить структуру ответа и источник данных
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Berlin&language_level=B1")
+        
+        if success and isinstance(data, dict):
+            # Проверяем api_info
+            api_info = data.get("api_info", {})
+            api_source = api_info.get("source")
+            
+            is_bundesagentur_source = api_source == "bundesagentur.de"
+            
+            # Проверяем структуру ответа
+            has_status = data.get("status") == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_total_found = "total_found" in data
+            
+            # НЕ должно быть упоминаний arbeitnow.com в ответе
+            no_arbeitnow_mentions = "arbeitnow.com" not in str(data).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search - Bundesagentur.de GET request",
+                is_bundesagentur_source and has_status and has_jobs and no_arbeitnow_mentions,
+                f"API Source: {api_source}, Status: {has_status}, Has jobs: {has_jobs}, No arbeitnow: {no_arbeitnow_mentions}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/job-search - Bundesagentur.de GET request",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+
     async def test_telegram_mini_app_job_search_api_endpoints(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Mini App Job Search API endpoints - ПОЛЬЗОВАТЕЛЬСКИЙ ЗАПРОС"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Mini App Job Search API endpoints ===")
