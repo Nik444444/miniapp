@@ -700,7 +700,7 @@ const TelegramJobSearch = ({ onBack }) => {
                 <div className="relative">
                     <input
                         type="text"
-                        placeholder="Поиск города (например, Berlin)"
+                        placeholder="Поиск города (например, Berlin) - ОБЯЗАТЕЛЬНО"
                         value={citySearchInput || ''}
                         onChange={(e) => {
                             try {
@@ -717,17 +717,18 @@ const TelegramJobSearch = ({ onBack }) => {
                             setShowCityDropdown(true);
                         }}
                         className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-10"
+                        required
                     />
                     <MapPin className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                     
                     {showCityDropdown && cities.length > 0 && (
-                        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                        <div className="absolute z-20 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
                             <div className="p-2 text-xs text-gray-500 font-medium">
                                 {(citySearchInput || '').length >= 2 ? 'Результаты поиска:' : 'Популярные города:'}
                             </div>
                             {cities.map((city, index) => (
                                 <button
-                                    key={index}
+                                    key={`${city.name}-${index}`}
                                     onClick={() => handleCitySelect(city.name)}
                                     className="w-full text-left p-3 hover:bg-gray-50 border-t border-gray-100 first:border-t-0 flex items-center justify-between"
                                 >
@@ -748,7 +749,7 @@ const TelegramJobSearch = ({ onBack }) => {
                     {/* Close dropdown when clicking outside */}
                     {showCityDropdown && (
                         <div 
-                            className="fixed inset-0 z-5" 
+                            className="fixed inset-0 z-10" 
                             onClick={() => setShowCityDropdown(false)}
                         />
                     )}
