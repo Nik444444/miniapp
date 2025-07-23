@@ -172,13 +172,13 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status = data.get("status") == "success"
-            has_cities = "cities" in data and isinstance(data["cities"], list)
-            cities_count = len(data.get("cities", []))
+            has_cities = "data" in data and "cities" in data["data"] and isinstance(data["data"]["cities"], list)
+            cities_count = len(data.get("data", {}).get("cities", []))
             
             # Check if partial search for Köl works
             kol_found = False
-            if data.get("cities"):
-                kol_found = any("köl" in city.get("name", "").lower() for city in data["cities"])
+            if data.get("data", {}).get("cities"):
+                kol_found = any("köl" in city.get("name", "").lower() for city in data["data"]["cities"])
             
             self.log_test_result(
                 "GET /api/cities/search?q=Köl - частичный поиск как на скриншоте",
