@@ -5748,6 +5748,10 @@ if __name__ == "__main__":
         logger.info("=" * 80)
         
         try:
+            # 🎯 ПОЛЬЗОВАТЕЛЬСКИЙ ЗАПРОС: Telegram Mini App Job Search API endpoints
+            logger.info("📱 ТЕСТИРОВАНИЕ TELEGRAM MINI APP JOB SEARCH API ENDPOINTS (ПОЛЬЗОВАТЕЛЬСКИЙ ЗАПРОС)")
+            await self.test_telegram_mini_app_job_search_api_endpoints()
+            
             # 🎯 ОСНОВНЫЕ ТЕСТЫ (ПРИОРИТЕТ 1): Cities API
             logger.info("🏙️ ТЕСТИРОВАНИЕ CITIES API")
             await self.test_cities_api_endpoints()
