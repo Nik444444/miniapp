@@ -1225,6 +1225,199 @@ class BackendTester:
         # Summary test for all levels
         working_levels = [level for level, result in level_results.items() if result.get("success")]
         
+    async def test_special_characters_and_spaces_handling(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Обработка специальных символов и пробелов"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Обработка специальных символов и пробелов ===")
+        
+        # 1. Test cities search with special characters (München)
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=München")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if München is found with special characters
+            munich_found = False
+            if data.get("cities"):
+                munich_found = any("münchen" in city.get("name", "").lower() for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 Cities search with special characters (München)",
+                has_status and has_cities and munich_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, München found: {munich_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Cities search with special characters (München)",
+                False,
+                f"ОШИБКА: Поиск München с умлаутом не работает: {error}",
+                data
+            )
+        
+        # 2. Test job search with location containing spaces
+        search_data_spaces = {
+            "location": "Frankfurt am Main",
+            "language_level": "B1",
+            "limit": 5
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_spaces)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            
+            self.log_test_result(
+                "🎯 Job search with location containing spaces (Frankfurt am Main)",
+                has_status and has_jobs,
+                f"Status: {data.get('status')}, Jobs found: {len(data.get('jobs', []))}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Job search with location containing spaces (Frankfurt am Main)",
+                False,
+                f"ОШИБКА: Поиск с пробелами в названии города не работает: {error}",
+                data
+            )
+        
+        # 3. Test job search with search_query containing special characters
+        search_data_special = {
+            "search_query": "C++ Developer",
+            "location": "Berlin",
+            "language_level": "B2",
+            "limit": 5
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/job-search", json=search_data_special)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            
+            self.log_test_result(
+                "🎯 Job search with special characters in search_query (C++ Developer)",
+                has_status and has_jobs,
+                f"Status: {data.get('status')}, Jobs found: {len(data.get('jobs', []))}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Job search with special characters in search_query (C++ Developer)",
+                False,
+                f"ОШИБКА: Поиск с специальными символами в запросе не работает: {error}",
+                data
+            )
+        
+        # 4. Test cities search with partial match containing special characters
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Düss")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data and data["status"] == "success"
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if Düsseldorf is found with partial match
+            dusseldorf_found = False
+            if data.get("cities"):
+                dusseldorf_found = any("düss" in city.get("name", "").lower() for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 Cities search partial match with special characters (Düss)",
+                has_status and has_cities and dusseldorf_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Düsseldorf found: {dusseldorf_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Cities search partial match with special characters (Düss)",
+                False,
+                f"ОШИБКА: Частичный поиск с умлаутом не работает: {error}",
+                data
+            )
+        
+        # 5. Test that no "pattern matching" errors occur
+        # This is tested by checking that all responses are successful and don't contain pattern errors
+        pattern_error_tests = [
+            ("GET", "/api/cities/search?q=Ber", "Berlin partial search"),
+            ("GET", "/api/cities/search?q=München", "München with umlaut"),
+            ("POST", "/api/job-search", {"location": "Berlin", "language_level": "B1"}, "Job search minimal params")
+        ]
+        
+        no_pattern_errors = True
+        pattern_error_details = []
+        
+        for method, endpoint, test_data, description in pattern_error_tests:
+            if method == "POST":
+                success, data, error = await self.make_request(method, endpoint, json=test_data)
+            else:
+                success, data, error = await self.make_request(method, endpoint)
+            
+            # Check for pattern matching errors
+            has_pattern_error = False
+            if not success or isinstance(data, dict):
+                error_text = str(error) + str(data)
+                has_pattern_error = "pattern" in error_text.lower() or "did not match" in error_text.lower()
+            
+            if has_pattern_error:
+                no_pattern_errors = False
+                pattern_error_details.append(f"{description}: {error}")
+        
+        self.log_test_result(
+            "🎯 No 'pattern matching' errors in API responses",
+            no_pattern_errors,
+            f"All endpoints free from pattern errors" if no_pattern_errors else f"Pattern errors found: {pattern_error_details}",
+            {"pattern_errors": pattern_error_details}
+        )
+
+    async def test_german_language_level_filtering(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2)"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: German Language Level Filtering (A1-C2) ===")
+        
+        # Test all German language levels
+        language_levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+        level_results = {}
+        all_levels_work = True
+        
+        for level in language_levels:
+            search_data = {
+                "location": "Berlin", 
+                "language_level": level,
+                "limit": 10
+            }
+            
+            success, data, error = await self.make_request("POST", "/api/job-search", json=search_data)
+            
+            if success and isinstance(data, dict):
+                has_status = data.get("status") == "success"
+                jobs_count = len(data.get("jobs", []))
+                total_found = data.get("total_found", 0)
+                level_results[level] = {"jobs": jobs_count, "total": total_found, "success": True}
+                
+                self.log_test_result(
+                    f"🎯 German Language Level {level} - Works without authentication",
+                    has_status,
+                    f"Level {level}: {jobs_count} jobs found, Total available: {total_found}, Status: {data.get('status')}",
+                    data
+                )
+            else:
+                # Check if it's an authentication error (which would be wrong for public endpoint)
+                is_auth_error = "401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", ""))))
+                level_results[level] = {"success": False, "auth_error": is_auth_error}
+                all_levels_work = False
+                
+                self.log_test_result(
+                    f"🎯 German Language Level {level} - Works without authentication",
+                    False,
+                    f"Level {level} failed: {error}. Auth error: {is_auth_error}",
+                    data
+                )
+        
+        # Summary test for all levels
+        working_levels = [level for level, result in level_results.items() if result.get("success")]
+        
         self.log_test_result(
             "🎯 All German Language Levels (A1-C2) work without authentication",
             all_levels_work,
