@@ -59,13 +59,19 @@ const TelegramJobSearch = ({ onBack }) => {
             console.log('Backend URL:', backendUrl);
             console.log('Is Telegram WebApp:', isTelegramWebApp());
             
-            // Проверка корректности backend URL
-            if (!backendUrl || backendUrl.includes('preview.emergentagent.com')) {
-                console.error('❌ НЕПРАВИЛЬНЫЙ BACKEND URL:', backendUrl);
+            // Проверка корректности backend URL - смягченная версия
+            console.log('Checking backend URL:', backendUrl);
+            if (!backendUrl) {
+                console.error('❌ BACKEND URL НЕ ОПРЕДЕЛЕН:', backendUrl);
                 if (isTelegramWebApp()) {
-                    telegramWebApp.showAlert('❌ Ошибка конфигурации. Свяжитесь с поддержкой.');
+                    telegramWebApp.showAlert('❌ Ошибка загрузки конфигурации. Перезапустите приложение.');
                 }
                 return;
+            }
+            
+            if (backendUrl.includes('preview.emergentagent.com')) {
+                console.warn('⚠️ ИСПОЛЬЗУЕТСЯ СТАРЫЙ PREVIEW URL:', backendUrl);
+                // Не блокируем, но предупреждаем
             }
             
             if (isTelegramWebApp()) {
