@@ -1901,17 +1901,22 @@ async def send_push_notification(
 async def search_jobs(
     search_query: Optional[str] = None,
     location: Optional[str] = None,
+    radius: int = 50,
     remote: Optional[bool] = None,
     visa_sponsorship: Optional[bool] = None,
     language_level: Optional[str] = None,
     category: Optional[str] = None,
-    limit: int = 50
+    work_time: Optional[str] = None,
+    published_since: Optional[int] = None,
+    contract_type: Optional[str] = None,
+    limit: int = 50,
+    page: int = 1
 ):
     """
-    🔍 Search for jobs with AI-powered filtering and language level matching
+    🔍 Enhanced job search with geolocation and radius filtering
     """
     try:
-        # Валидация входных параметров
+        # Enhanced parameter validation
         if location:
             location = location.strip()
             if not location:
@@ -1931,29 +1936,51 @@ async def search_jobs(
                     detail=f"Недопустимый уровень языка: {language_level}. Допустимые значения: {', '.join(valid_levels)}"
                 )
         
-        logger.info(f"Job search request: query='{search_query}', location='{location}', language_level='{language_level}'")
+        # Validate radius
+        valid_radii = [5, 10, 25, 50, 100, 200]
+        if radius not in valid_radii:
+            radius = 50  # Default to 50km
         
-        # Search jobs using the job search service
+        # Validate work time
+        if work_time and work_time not in ['vz', 'tz', 'ho', 'mj', 'snw']:
+            work_time = None
+            
+        # Validate published since
+        if published_since and not (0 <= published_since <= 100):
+            published_since = None
+            
+        # Validate contract type
+        if contract_type and contract_type not in ['1', '2']:
+            contract_type = None
+        
+        logger.info(f"🔍 Enhanced job search: query='{search_query}', location='{location}', radius={radius}km, work_time='{work_time}'")
+        
+        # Enhanced job search
         results = await job_search_service.search_jobs(
             search_query=search_query,
             location=location,
+            radius=radius,
             remote=remote,
             visa_sponsorship=visa_sponsorship,
             language_level=language_level,
             category=category,
-            limit=limit
+            work_time=work_time,
+            published_since=published_since,
+            contract_type=contract_type,
+            limit=limit,
+            page=page
         )
         
         return {
             "status": "success",
             "data": results,
-            "message": f"Найдено {results.get('total_found', 0)} вакансий"
+            "message": f"✅ Gefunden: {results.get('total_found', 0)} von {results.get('total_available', 0)} Stellenangeboten"
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Job search failed: {e}")
+        logger.error(f"❌ Enhanced job search failed: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка поиска вакансий: {str(e)}")
 
 
