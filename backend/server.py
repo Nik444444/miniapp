@@ -2875,11 +2875,11 @@ async def generate_cover_letter(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Generate cover letter
-        result = await job_ai_assistant_service.generate_cover_letter(
-            job_data=request.job_data,
-            user_profile=user_profile,
-            user_providers=user_providers if user_providers else None
-        )
+        result = {
+            "status": "error",
+            "message": "AI Assistant service is currently unavailable",
+            "error": "Service temporarily disabled"
+        }
         
         return result
         
