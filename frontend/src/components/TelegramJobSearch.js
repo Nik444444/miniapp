@@ -808,8 +808,8 @@ const TelegramJobSearch = ({ onBack }) => {
             <div className="flex space-x-3">
                 <button
                     onClick={searchJobs}
-                    disabled={loading}
-                    className="flex-1 bg-violet-600 text-white p-3 rounded-lg font-semibold flex items-center justify-center disabled:opacity-50"
+                    disabled={loading || !searchFilters.location || !searchFilters.language_level}
+                    className="flex-1 bg-violet-600 text-white p-3 rounded-lg font-semibold flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         <>
@@ -825,7 +825,8 @@ const TelegramJobSearch = ({ onBack }) => {
                 </button>
                 <button
                     onClick={createSubscription}
-                    className="bg-green-600 text-white p-3 rounded-lg flex items-center"
+                    disabled={!searchFilters.location || !searchFilters.language_level}
+                    className="bg-green-600 text-white p-3 rounded-lg flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Bell className="h-4 w-4" />
                 </button>
@@ -849,6 +850,14 @@ const TelegramJobSearch = ({ onBack }) => {
                 >
                     🔧
                 </button>
+            </div>
+
+            {/* Required fields notice */}
+            <div className="bg-blue-50 p-3 rounded-lg">
+                <p className="text-xs text-blue-800">
+                    <strong>Обязательные поля:</strong> Город и уровень немецкого языка. 
+                    Поиск по должности необязателен - оставьте пустым для поиска всех вакансий.
+                </p>
             </div>
 
             {/* Results */}
