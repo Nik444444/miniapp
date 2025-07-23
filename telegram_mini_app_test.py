@@ -129,15 +129,16 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status_success = data.get("status") == "success"
-            has_cities = "cities" in data and isinstance(data["cities"], list)
-            cities_count = len(data.get("cities", []))
+            has_data = "data" in data and isinstance(data["data"], dict)
+            has_cities = has_data and "cities" in data["data"] and isinstance(data["data"]["cities"], list)
+            cities_count = len(data["data"].get("cities", [])) if has_data else 0
             
             # Check if Berlin is found
             berlin_found = False
-            if data.get("cities"):
+            if has_cities and data["data"]["cities"]:
                 berlin_found = any(
                     city.get("name", "").lower() == "berlin" 
-                    for city in data["cities"]
+                    for city in data["data"]["cities"]
                 )
             
             self.log_test_result(
