@@ -141,9 +141,9 @@ const TelegramJobSearch = ({ onBack }) => {
             const data = await response.json();
             console.log('Popular cities response:', data);
             
-            if (data.status === 'success' && data.data && data.data.cities) {
-                setCities(data.data.cities);
-                console.log('Popular cities loaded:', data.data.cities.length);
+            if (data.status === 'success' && data.cities) {
+                setCities(data.cities);
+                console.log('Popular cities loaded:', data.cities.length);
             } else {
                 console.warn('Popular cities returned unexpected format:', data);
                 setCities([]);
