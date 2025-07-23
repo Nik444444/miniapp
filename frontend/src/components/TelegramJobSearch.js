@@ -94,12 +94,15 @@ const TelegramJobSearch = ({ onBack }) => {
                 console.log('City search useEffect triggered with input:', input);
                 
                 if (input.length >= 2) {
+                    console.log('Triggering city search for:', input);
                     searchCities(input);
                 } else if (input.length === 0) {
+                    console.log('Input empty, loading popular cities');
                     loadPopularCities();
                 } else {
-                    // При вводе менее 2 символов очищаем список
-                    setCities([]);
+                    // При вводе менее 2 символов загружаем популярные города
+                    console.log('Input too short, loading popular cities');
+                    loadPopularCities();
                 }
             } catch (error) {
                 console.error('Error in city search useEffect:', error);
