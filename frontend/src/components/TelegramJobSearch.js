@@ -760,8 +760,9 @@ const TelegramJobSearch = ({ onBack }) => {
                         value={searchFilters.language_level}
                         onChange={(e) => setSearchFilters(prev => ({...prev, language_level: e.target.value}))}
                         className="p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                        required
                     >
-                        <option value="">Уровень немецкого</option>
+                        <option value="">Уровень немецкого - ОБЯЗАТЕЛЬНО</option>
                         {languageLevels.map(level => (
                             <option key={level} value={level}>{level}</option>
                         ))}
@@ -772,7 +773,7 @@ const TelegramJobSearch = ({ onBack }) => {
                         onChange={(e) => setSearchFilters(prev => ({...prev, category: e.target.value}))}
                         className="p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                     >
-                        <option value="">Категория</option>
+                        <option value="">Категория (необязательно)</option>
                         {jobCategories.map(category => (
                             <option key={category} value={category}>
                                 {category.charAt(0).toUpperCase() + category.slice(1)}
