@@ -419,7 +419,18 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             } else {
                 console.error('API returned non-success status:', data);
-                const errorMessage = data.message || 'Неизвестная ошибка сервера';
+                let errorMessage = 'Неизвестная ошибка сервера';
+                
+                // Фильтруем проблематичные сообщения от API
+                if (data.message) {
+                    if (data.message.includes('pattern') || data.message.includes('string did not match') || 
+                        data.message.includes('специальные символы') || data.message.includes('упростить запрос')) {
+                        errorMessage = '🔧 Ошибка обработки запроса. Попробуйте изменить параметры поиска.';
+                    } else {
+                        errorMessage = data.message;
+                    }
+                }
+                
                 if (isTelegramWebApp()) {
                     telegramWebApp.showAlert(`❌ ${errorMessage}`);
                 } else {
