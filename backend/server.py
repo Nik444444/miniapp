@@ -2837,11 +2837,11 @@ async def translate_job(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Translate job content
-        result = await job_ai_assistant_service.translate_job_content(
-            job_data=request.job_data,
-            target_language=request.target_language,
-            user_providers=user_providers if user_providers else None
-        )
+        result = {
+            "status": "error",
+            "message": "AI Assistant service is currently unavailable",
+            "error": "Service temporarily disabled"
+        }
         
         return result
         
