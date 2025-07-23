@@ -795,59 +795,164 @@ class JobSearchService:
         
         return recommendations[:3]  # Limit to 3 recommendations
 
-    async def _get_fallback_jobs(self) -> Dict[str, Any]:
-        """Return demo jobs when API is unavailable"""
+    async def _get_enhanced_fallback_jobs(self) -> Dict[str, Any]:
+        """Return enhanced demo jobs when API is unavailable"""
         demo_jobs = [
             {
-                'id': 'demo_1',
-                'title': 'Senior Software Developer',
-                'company_name': 'TechStart GmbH',
-                'location': 'Berlin, Germany',
-                'description': 'We are looking for a Senior Software Developer with experience in Python and React.',
-                'remote': True,
+                'id': 'demo_2025_1',
+                'title': 'Senior Software Developer - React & Node.js',
+                'profession': 'Softwareentwickler/in',
+                'company_name': 'TechBerlin GmbH',
+                'location': {
+                    'city': 'Berlin',
+                    'state': 'Berlin', 
+                    'country': 'Deutschland',
+                    'postal_code': '10117',
+                    'coordinates': {'lat': 52.5200, 'lon': 13.4050},
+                    'distance_km': 5.2
+                },
+                'location_string': 'Berlin, Berlin',
+                'dates': {
+                    'published': '2025-01-20',
+                    'start_date': '2025-02-01',
+                    'modified': '2025-01-20T10:00:00Z'
+                },
+                'external_url': 'https://example.com/job/demo_1',
+                'reference_number': 'DEMO-2025-001',
+                'job_type': 'full-time',
+                'work_time': 'vz',
+                'remote_possible': True,
                 'visa_sponsorship': True,
-                'published_at': '2024-12-20T10:00:00Z',
-                'job_types': ['Full-time'],
-                'url': 'https://example.com/job/demo_1',
-                'estimated_german_level': 'B1'
+                'tags': ['Software Development', 'Berlin', 'React', 'Node.js'],
+                'salary_info': {
+                    'available': True,
+                    'range': '65000-85000',
+                    'currency': 'EUR',
+                    'period': 'yearly'
+                },
+                'description': 'Entwicklung moderner Web-Anwendungen mit React und Node.js in internationalem Team.',
+                'requirements': ['3+ Jahre Erfahrung', 'React & Node.js', 'Deutsch B1', 'Englisch fließend'],
+                'benefits': ['Homeoffice möglich', 'Weiterbildungsbudget', '30 Tage Urlaub'],
+                'language_requirement': {'level': 'B1', 'score': 35, 'confidence': 'high'},
+                'match_score': 85
             },
             {
-                'id': 'demo_2', 
-                'title': 'Marketing Manager',
-                'company_name': 'Digital Solutions AG',
-                'location': 'Munich, Germany',
-                'description': 'Marketing Manager position for digital campaigns and customer acquisition.',
-                'remote': False,
+                'id': 'demo_2025_2',
+                'title': 'Pflegefachkraft (m/w/d) - Vollzeit',
+                'profession': 'Pflegefachmann/-frau',
+                'company_name': 'Klinikum München',
+                'location': {
+                    'city': 'München',
+                    'state': 'Bayern',
+                    'country': 'Deutschland', 
+                    'postal_code': '80331',
+                    'coordinates': {'lat': 48.1351, 'lon': 11.5820},
+                    'distance_km': 12.8
+                },
+                'location_string': 'München, Bayern',
+                'dates': {
+                    'published': '2025-01-19',
+                    'start_date': '2025-02-15', 
+                    'modified': '2025-01-19T14:30:00Z'
+                },
+                'external_url': 'https://example.com/job/demo_2',
+                'reference_number': 'DEMO-2025-002',
+                'job_type': 'full-time',
+                'work_time': 'vz',
+                'remote_possible': False,
                 'visa_sponsorship': False,
-                'published_at': '2024-12-20T09:30:00Z',
-                'job_types': ['Full-time'],
-                'url': 'https://example.com/job/demo_2',
-                'estimated_german_level': 'C1'
+                'tags': ['Krankenpflege', 'München', 'Vollzeit'],
+                'salary_info': {
+                    'available': True,
+                    'range': '3200-3800',
+                    'currency': 'EUR',
+                    'period': 'monthly'
+                },
+                'description': 'Qualifizierte Pflegefachkraft für Intensivstation gesucht.',
+                'requirements': ['Pflegeexamen', 'Deutsch C1', 'Schichtdienst möglich'],
+                'benefits': ['Tarifvertrag', 'Betriebsrente', 'Fort- und Weiterbildung'],
+                'language_requirement': {'level': 'C1', 'score': 75, 'confidence': 'high'},
+                'match_score': 92
             },
             {
-                'id': 'demo_3',
-                'title': 'Data Scientist',
-                'company_name': 'AI Innovations',
-                'location': 'Hamburg, Germany', 
-                'description': 'Data Scientist role focusing on machine learning and analytics.',
-                'remote': True,
+                'id': 'demo_2025_3',
+                'title': 'Marketing Manager - Digital & E-Commerce',
+                'profession': 'Marketing Manager/in',
+                'company_name': 'StartupHamburg AG',
+                'location': {
+                    'city': 'Hamburg',
+                    'state': 'Hamburg',
+                    'country': 'Deutschland',
+                    'postal_code': '20095',
+                    'coordinates': {'lat': 53.5511, 'lon': 9.9937},
+                    'distance_km': 8.1
+                },
+                'location_string': 'Hamburg, Hamburg',
+                'dates': {
+                    'published': '2025-01-18',
+                    'start_date': '2025-03-01',
+                    'modified': '2025-01-18T09:15:00Z'
+                },
+                'external_url': 'https://example.com/job/demo_3',
+                'reference_number': 'DEMO-2025-003',
+                'job_type': 'full-time',
+                'work_time': 'vz',
+                'remote_possible': True,
                 'visa_sponsorship': True,
-                'published_at': '2024-12-20T08:15:00Z',
-                'job_types': ['Full-time'],
-                'url': 'https://example.com/job/demo_3',
-                'estimated_german_level': 'B2'
+                'tags': ['Marketing', 'Hamburg', 'Digital', 'E-Commerce'],
+                'salary_info': {
+                    'available': True,
+                    'range': '55000-70000', 
+                    'currency': 'EUR',
+                    'period': 'yearly'
+                },
+                'description': 'Strategische Planung und Umsetzung digitaler Marketing-Kampagnen.',
+                'requirements': ['Marketing Studium', 'Digital Marketing Erfahrung', 'Deutsch B2'],
+                'benefits': ['Flexible Arbeitszeiten', 'Homeoffice', 'Team Events'],
+                'language_requirement': {'level': 'B2', 'score': 55, 'confidence': 'medium'},
+                'match_score': 78
             }
         ]
+        
+        # Simulate analysis
+        analysis = self._analyze_jobs(demo_jobs)
         
         return {
             'status': 'demo',
             'total_found': len(demo_jobs),
             'total_available': len(demo_jobs),
             'jobs': demo_jobs,
-            'categories': self._categorize_jobs(demo_jobs)['categories'],
-            'language_levels': self.language_levels,
-            'note': 'Demo mode - showing sample jobs',
-            'ai_recommendations': ['Попробуйте позже для реальных данных', 'Настройте API для полного доступа']
+            'analysis': analysis,
+            'facets': {
+                'work_time': {
+                    'vz': {'name': 'Vollzeit', 'count': 3, 'description': 'Full-time positions'}
+                },
+                'locations': {'Berlin': 1, 'München': 1, 'Hamburg': 1},
+                'professions': {'Software': 1, 'Pflege': 1, 'Marketing': 1}
+            },
+            'search_metadata': {
+                'search_mode': 'demo',
+                'radius_km': 50,
+                'language_levels_available': list(self.language_levels.keys())
+            },
+            'pagination': {
+                'page': 1,
+                'size': 25,
+                'total': len(demo_jobs),
+                'has_next': False
+            },
+            'recommendations': [
+                '🔧 Demo-Modus aktiv - Echte Daten nach API-Konfiguration verfügbar',
+                '🌟 Verschiedene Branchen und Standorte verfügbar',
+                '📍 Nutzen Sie die Geolocation-Funktion für präzise Suche',
+                '🗣️ Sprachfilter für alle Level A1-C2 verfügbar'
+            ],
+            'api_info': {
+                'source': 'demo_mode',
+                'name': 'Demo Job Search - Enhanced Features Preview',
+                'version': 'v2.0',
+                'enhanced_features': ['geolocation', 'radius_search', 'advanced_filters', 'language_estimation']
+            }
         }
 
     async def save_job_subscription(self, 
