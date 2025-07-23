@@ -170,9 +170,9 @@ const TelegramMainMenu = ({ onNavigate, onApiKeySetup, onLanguageSelection }) =>
             gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
             hoverGradient: 'from-violet-600 via-purple-600 to-fuchsia-600',
             bgGradient: 'from-violet-500/20 to-fuchsia-500/20',
-            status: 'coming-soon',
-            priority: 'medium',
-            description: 'Скоро доступно'
+            status: 'active',
+            priority: 'high',
+            description: 'ИИ-помощник для поиска работы в Германии'
         },
         {
             id: 'marketplace',
