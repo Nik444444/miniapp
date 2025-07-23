@@ -279,6 +279,137 @@ class JobSearchService:
         
         return converted_jobs
 
+    def _calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Calculate distance between two coordinates in kilometers"""
+        import math
+        
+        # Convert to radians
+        lat1_rad = math.radians(lat1)
+        lon1_rad = math.radians(lon1)
+        lat2_rad = math.radians(lat2)
+        lon2_rad = math.radians(lon2)
+        
+        # Haversine formula
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        a = math.sin(dlat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon/2)**2
+        c = 2 * math.asin(math.sqrt(a))
+        
+        # Earth radius in kilometers
+        earth_radius = 6371
+        return round(earth_radius * c, 1)
+    
+    def _determine_job_type(self, job: Dict) -> str:
+        """Determine job type from job data"""
+        # Most German jobs default to full-time
+        return 'full-time'
+    
+    def _extract_work_time(self, job: Dict) -> str:
+        """Extract work time information"""
+        # This would need to be determined from job description or other fields
+        return 'full-time'
+    
+    def _check_remote_possibility(self, job: Dict) -> bool:
+        """Check if remote work is possible"""
+        title = job.get('titel', '').lower()
+        profession = job.get('beruf', '').lower()
+        
+        remote_keywords = ['home', 'remote', 'telearbeit', 'homeoffice']
+        return any(keyword in title or keyword in profession for keyword in remote_keywords)
+    
+    def _extract_job_tags(self, job: Dict) -> List[str]:
+        """Extract relevant tags from job data"""
+        tags = []
+        
+        if job.get('beruf'):
+            tags.append(job['beruf'])
+        
+        # Add location tag
+        arbeitsort = job.get('arbeitsort', {})
+        if arbeitsort.get('ort'):
+            tags.append(arbeitsort['ort'])
+            
+        return tags
+    
+    def _extract_salary_info(self, job: Dict) -> Dict[str, Any]:
+        """Extract salary information if available"""
+        return {
+            'available': False,
+            'range': None,
+            'currency': 'EUR',
+            'period': 'monthly',
+            'note': 'Salary information not provided in job listing'
+        }
+    
+    def _build_job_description(self, job: Dict) -> str:
+        """Build comprehensive job description"""
+        parts = []
+        
+        if job.get('titel'):
+            parts.append(f"Position: {job['titel']}")
+        
+        if job.get('beruf'):
+            parts.append(f"Profession: {job['beruf']}")
+            
+        if job.get('arbeitgeber'):
+            parts.append(f"Employer: {job['arbeitgeber']}")
+            
+        arbeitsort = job.get('arbeitsort', {})
+        if arbeitsort.get('ort'):
+            location_str = arbeitsort['ort']
+            if arbeitsort.get('region'):
+                location_str += f", {arbeitsort['region']}"
+            parts.append(f"Location: {location_str}")
+            
+        return "\n".join(parts)
+    
+    def _extract_requirements(self, job: Dict) -> List[str]:
+        """Extract job requirements"""
+        requirements = []
+        
+        # Basic German requirement for most jobs
+        requirements.append("German language skills required")
+        
+        # Add profession-specific requirements
+        profession = job.get('beruf', '').lower()
+        if 'software' in profession or 'entwickler' in profession:
+            requirements.append("Programming experience")
+        elif 'pflege' in profession:
+            requirements.append("Healthcare/nursing qualification")
+        elif 'verkauf' in profession:
+            requirements.append("Sales experience")
+            
+        return requirements
+    
+    def _extract_benefits(self, job: Dict) -> List[str]:
+        """Extract job benefits"""
+        benefits = []
+        
+        # Standard German employment benefits
+        benefits.append("German employment protection laws")
+        benefits.append("Statutory health insurance")
+        
+        # Location-based benefits
+        arbeitsort = job.get('arbeitsort', {})
+        if arbeitsort.get('ort') in ['Berlin', 'München', 'Hamburg']:
+            benefits.append("Major city location")
+            
+        return benefits
+    
+    def _calculate_match_score(self, job: Dict) -> int:
+        """Calculate job match score (0-100)"""
+        score = 50  # Base score
+        
+        # Add points for complete information
+        if job.get('externeUrl'):
+            score += 10
+        if job.get('arbeitgeber'):
+            score += 10
+        if job.get('arbeitsort', {}).get('koordinaten'):
+            score += 10
+            
+        return min(100, score)
+
     def _filter_jobs(self, 
                      jobs: List[Dict],
                      search_query: str = None,
