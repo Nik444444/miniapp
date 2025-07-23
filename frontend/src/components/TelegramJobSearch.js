@@ -198,7 +198,6 @@ const TelegramJobSearch = ({ onBack }) => {
             console.error('Cities search error details:', {
                 message: error.message,
                 stack: error.stack,
-                url: url,
                 query: cleanQuery
             });
             
