@@ -303,17 +303,21 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             });
 
-            // Безопасное построение URL
+            // УЛУЧШЕННОЕ построение URL с более безопасным encoding
             let url = `${backendUrl}/api/job-search`;
             const paramParts = [];
             
             Object.entries(cleanFilters).forEach(([key, value]) => {
                 try {
-                    paramParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+                    // Дополнительная валидация специальных символов
+                    const safeValue = String(value).replace(/[^\w\säöüÄÖÜß\-+.,]/g, '');
+                    paramParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(safeValue)}`);
+                    console.log(`Encoded parameter: ${key} = "${value}" -> "${safeValue}"`);
                 } catch (encodeError) {
                     console.warn('Failed to encode parameter:', key, value, encodeError);
-                    // Fallback без специального encoding
-                    paramParts.push(`${key}=${value}`);
+                    // Fallback с еще более безопасным encoding
+                    const safeFallback = String(value).replace(/[^\w\s]/g, '');
+                    paramParts.push(`${key}=${safeFallback}`);
                 }
             });
 
@@ -321,9 +325,15 @@ const TelegramJobSearch = ({ onBack }) => {
                 url += '?' + paramParts.join('&');
             }
 
-            console.log('Searching jobs with clean filters:', cleanFilters);
+            console.log('🔍 Job Search Debug Info:');
+            console.log('Original filters:', searchFilters);
+            console.log('Clean filters:', cleanFilters);
             console.log('Backend URL:', backendUrl);
             console.log('Full API URL:', url);
+            console.log('Request headers:', {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            });
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -333,15 +343,24 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             });
             
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
+            console.log('✅ Response Info:');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+            console.log('OK:', response.ok);
+            console.log('Headers:', Object.fromEntries(response.headers.entries()));
             
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('❌ Response Error Details:');
+                console.error('Status:', response.status);
+                console.error('Status Text:', response.statusText);
+                console.error('Response Text:', errorText);
+                
+                throw new Error(`HTTP ${response.status}: ${response.statusText}${errorText ? ' - ' + errorText : ''}`);
             }
             
             const data = await response.json();
-            console.log('Response data:', data);
+            console.log('✅ Response data:', data);
 
             if (data.status === 'success') {
                 const jobsData = data.data?.jobs || [];  // Исправление: правильный путь к jobs
@@ -364,29 +383,31 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             }
         } catch (error) {
-            console.error('Error searching jobs:', error);
-            console.error('Error details:', {
-                message: error.message,
-                stack: error.stack,
-                response: error.response
-            });
+            console.error('❌ Job Search Error:');
+            console.error('Error Type:', error.constructor.name);
+            console.error('Error Message:', error.message);
+            console.error('Error Stack:', error.stack);
+            console.error('Full Error Object:', error);
             
             let errorMessage = 'Ошибка поиска работы';
             
             if (error.message) {
                 if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
-                    errorMessage = 'Ошибка сетевого соединения. Проверьте интернет-соединение.';
+                    errorMessage = '🌐 Ошибка сетевого соединения. Проверьте интернет-соединение.';
                 } else if (error.message.includes('HTTP 400') || error.message.includes('Bad Request')) {
-                    errorMessage = 'Ошибка валидации параметров поиска. Пожалуйста, проверьте введенные данные.';
+                    errorMessage = '⚠️ Ошибка валидации параметров поиска. Пожалуйста, проверьте введенные данные.';
                 } else if (error.message.includes('HTTP 500')) {
-                    errorMessage = 'Ошибка сервера. Попробуйте позже.';
+                    errorMessage = '🔧 Ошибка сервера. Попробуйте позже.';
                 } else if (error.message.includes('pattern') || error.message.includes('match')) {
-                    errorMessage = 'Ошибка валидации данных. Убедитесь, что поля заполнены корректно.';
+                    errorMessage = '🔍 Обнаружена проблема с поиском. Попробуйте упростить запрос или убрать специальные символы.';
+                    console.error('🚨 PATTERN ERROR DETECTED:', error.message);
                 } else {
-                    // Не добавляем префикс "Ошибка поиска:" для более ясного сообщения
-                    errorMessage = error.message;
+                    // Включаем исходное сообщение об ошибке для отладки
+                    errorMessage = `🔍 ${error.message}`;
                 }
             }
+            
+            console.error('📢 User will see:', errorMessage);
             
             if (isTelegramWebApp()) {
                 telegramWebApp.showAlert(`❌ ${errorMessage}`);
