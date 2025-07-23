@@ -1915,42 +1915,7 @@ async def search_jobs(
         logger.error(f"Job search failed: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка поиска вакансий: {str(e)}")
 
-@api_router.get("/job-search")
-async def search_jobs_get(
-    search_query: Optional[str] = None,
-    location: Optional[str] = None,
-    remote: Optional[bool] = None,
-    visa_sponsorship: Optional[bool] = None,
-    language_level: Optional[str] = None,
-    category: Optional[str] = None,
-    limit: int = 50
-):
-    """
-    🔍 Job search with filters (GET method for frontend compatibility)
-    """
-    try:
-        logger.info(f"Job search GET: query='{search_query}', location='{location}', language_level='{language_level}'")
-        
-        # Search jobs using the job search service
-        results = await job_search_service.search_jobs(
-            search_query=search_query,
-            location=location,
-            remote=remote,
-            visa_sponsorship=visa_sponsorship,
-            language_level=language_level,
-            category=category,
-            limit=limit
-        )
-        
-        return {
-            "status": "success",
-            "data": results,
-            "message": f"Найдено {results.get('total_found', 0)} вакансий"
-        }
-        
-    except Exception as e:
-        logger.error(f"Job search failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Ошибка поиска вакансий: {str(e)}")
+
 
 @api_router.post("/job-search")
 async def search_jobs_post(
