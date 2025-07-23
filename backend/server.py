@@ -2669,6 +2669,418 @@ async def get_job_search_status():
             "message": f"Ошибка получения статуса Job Search сервиса: {str(e)}"
         }
 
+# =====================================================
+# AI ASSISTANT API ENDPOINTS
+# =====================================================
+
+@api_router.post("/ai-recruiter/start")
+async def start_ai_recruiter(
+    request: AIRecruiterStartRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🤖 Start conversation with AI recruiter
+    """
+    try:
+        logger.info(f"Starting AI recruiter for user {current_user['id']}")
+        
+        # Get user providers for AI analysis
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Start AI recruiter conversation
+        result = await job_ai_assistant_service.start_ai_recruiter_conversation(
+            user_id=current_user['id'],
+            user_language=request.user_language,
+            user_providers=user_providers if user_providers else None
+        )
+        
+        # Save conversation state to database
+        if result.get('status') == 'success':
+            await db.save_ai_recruiter_profile(current_user['id'], result['profile'])
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to start AI recruiter: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка запуска AI-рекрутера: {str(e)}")
+
+@api_router.post("/ai-recruiter/continue")
+async def continue_ai_recruiter(
+    request: AIRecruiterContinueRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    💬 Continue conversation with AI recruiter
+    """
+    try:
+        logger.info(f"Continuing AI recruiter conversation for user {current_user['id']}")
+        
+        # Get user providers for AI analysis
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Continue conversation
+        result = await job_ai_assistant_service.continue_ai_recruiter_conversation(
+            user_id=current_user['id'],
+            user_message=request.user_message,
+            current_profile=request.conversation_data,
+            user_providers=user_providers if user_providers else None
+        )
+        
+        # Update conversation state in database
+        if result.get('status') == 'success':
+            await db.save_ai_recruiter_profile(current_user['id'], result['profile'])
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to continue AI recruiter conversation: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка продолжения беседы: {str(e)}")
+
+@api_router.get("/ai-recruiter/profile")
+async def get_ai_recruiter_profile(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    👤 Get user's AI recruiter profile
+    """
+    try:
+        profile = await db.get_ai_recruiter_profile(current_user['id'])
+        
+        if not profile:
+            return {
+                'status': 'not_found',
+                'message': 'AI-рекрутер профиль не найден. Начните новую беседу.'
+            }
+        
+        return {
+            'status': 'success',
+            'profile': profile
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get AI recruiter profile: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения профиля: {str(e)}")
+
+@api_router.post("/job-compatibility")
+async def analyze_job_compatibility(
+    request: JobCompatibilityRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📊 Analyze job compatibility with user profile
+    """
+    try:
+        logger.info(f"Analyzing job compatibility for user {current_user['id']}")
+        
+        # Get user AI recruiter profile
+        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
+        if not user_profile:
+            raise HTTPException(status_code=400, detail="AI-рекрутер профиль не найден. Сначала пройдите анкетирование.")
+        
+        # Get user providers for AI analysis
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Generate compatibility score
+        result = await job_ai_assistant_service.generate_job_compatibility_score(
+            job_data=request.job_data,
+            user_profile=user_profile,
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to analyze job compatibility: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка анализа совместимости: {str(e)}")
+
+@api_router.post("/translate-job")
+async def translate_job(
+    request: JobTranslationRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🌍 Translate job content to target language
+    """
+    try:
+        logger.info(f"Translating job to {request.target_language} for user {current_user['id']}")
+        
+        # Get user providers for AI translation
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Translate job content
+        result = await job_ai_assistant_service.translate_job_content(
+            job_data=request.job_data,
+            target_language=request.target_language,
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to translate job: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка перевода вакансии: {str(e)}")
+
+@api_router.post("/generate-cover-letter")
+async def generate_cover_letter(
+    request: CoverLetterGenerationRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📝 Generate personalized cover letter for job application
+    """
+    try:
+        logger.info(f"Generating cover letter for user {current_user['id']}")
+        
+        # Get user AI recruiter profile
+        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
+        if not user_profile:
+            raise HTTPException(status_code=400, detail="AI-рекрутер профиль не найден. Сначала пройдите анкетирование.")
+        
+        # Get user providers for AI generation
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Generate cover letter
+        result = await job_ai_assistant_service.generate_cover_letter(
+            job_data=request.job_data,
+            user_profile=user_profile,
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate cover letter: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка генерации сопроводительного письма: {str(e)}")
+
+@api_router.post("/ai-job-recommendations")
+async def get_ai_job_recommendations(
+    request: AIRecommendationRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🎯 Get AI-powered job recommendations based on user profile
+    """
+    try:
+        logger.info(f"Getting AI job recommendations for user {current_user['id']}")
+        
+        # Get user AI recruiter profile
+        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
+        if not user_profile:
+            raise HTTPException(status_code=400, detail="AI-рекрутер профиль не найден. Сначала пройдите анкетирование.")
+        
+        # Extract search parameters from user profile
+        collected_data = user_profile.get('collected_data', {})
+        
+        # Build search request based on profile
+        search_params = {
+            'search_query': collected_data.get('job_titles', [''])[0] if collected_data.get('job_titles') else None,
+            'location': collected_data.get('preferred_location', 'Berlin'),
+            'remote': collected_data.get('remote_preference', False),
+            'visa_sponsorship': collected_data.get('needs_visa', False),
+            'language_level': collected_data.get('german_level', 'B1'),
+            'limit': request.max_jobs
+        }
+        
+        # Search for jobs
+        job_results = await job_search_service.search_jobs(**search_params)
+        
+        # Get user providers for AI analysis
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Analyze each job for compatibility
+        recommended_jobs = []
+        for job in job_results.get('jobs', [])[:request.max_jobs]:
+            compatibility = await job_ai_assistant_service.generate_job_compatibility_score(
+                job_data=job,
+                user_profile=user_profile,
+                user_providers=user_providers if user_providers else None
+            )
+            
+            if compatibility.get('status') == 'success':
+                job['compatibility_score'] = compatibility['compatibility']['overall_score']
+                job['compatibility_analysis'] = compatibility['compatibility']
+                recommended_jobs.append(job)
+        
+        # Sort by compatibility score
+        recommended_jobs.sort(key=lambda x: x.get('compatibility_score', 0), reverse=True)
+        
+        return {
+            'status': 'success',
+            'recommendations': recommended_jobs[:request.max_jobs],
+            'total_analyzed': len(recommended_jobs),
+            'user_profile_completeness': user_profile.get('progress', 0),
+            'search_parameters': search_params
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get AI job recommendations: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения AI-рекомендаций: {str(e)}")
+
+# =====================================================
+# TELEGRAM NOTIFICATION API ENDPOINTS
+# =====================================================
+
+@api_router.post("/telegram-notifications/send")
+async def send_telegram_notification(
+    request: TelegramNotificationRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📱 Send Telegram notification to user
+    """
+    try:
+        logger.info(f"Sending Telegram notification to user {current_user['id']}")
+        
+        # Determine notification type and send appropriate message
+        if request.notification_type == 'job_match':
+            result = await telegram_job_notification_service.send_job_match_notification(
+                user_telegram_id=request.user_telegram_id,
+                job_data=request.job_data,
+                compatibility_score=request.additional_data.get('compatibility_score') if request.additional_data else None,
+                user_language=request.user_language
+            )
+        elif request.notification_type == 'ai_recommendation':
+            result = await telegram_job_notification_service.send_ai_recruiter_recommendation(
+                user_telegram_id=request.user_telegram_id,
+                jobs_list=request.additional_data.get('jobs_list', []) if request.additional_data else [],
+                ai_analysis=request.additional_data.get('ai_analysis', '') if request.additional_data else '',
+                user_language=request.user_language
+            )
+        elif request.notification_type == 'compatibility_alert':
+            result = await telegram_job_notification_service.send_compatibility_alert(
+                user_telegram_id=request.user_telegram_id,
+                job_data=request.job_data,
+                compatibility_analysis=request.additional_data.get('compatibility_analysis', {}) if request.additional_data else {},
+                user_language=request.user_language
+            )
+        else:
+            # Custom notification
+            result = await telegram_job_notification_service.send_custom_notification(
+                user_telegram_id=request.user_telegram_id,
+                title=request.additional_data.get('title', 'Уведомление') if request.additional_data else 'Уведомление',
+                message=request.additional_data.get('message', '') if request.additional_data else '',
+                user_language=request.user_language
+            )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to send Telegram notification: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка отправки уведомления: {str(e)}")
+
+@api_router.post("/telegram-notifications/job-digest")
+async def send_job_digest_notification(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📊 Send daily job digest to user's Telegram
+    """
+    try:
+        logger.info(f"Sending job digest to user {current_user['id']}")
+        
+        # Get user's telegram ID from profile
+        user_telegram_id = current_user.get('telegram_id')
+        if not user_telegram_id:
+            raise HTTPException(status_code=400, detail="Telegram ID не найден в профиле пользователя")
+        
+        # Get user's job subscriptions
+        subscriptions = await job_search_service.get_user_subscriptions(current_user['id'])
+        
+        if not subscriptions:
+            raise HTTPException(status_code=400, detail="У пользователя нет активных подписок на вакансии")
+        
+        # Get new jobs for each subscription
+        all_new_jobs = []
+        for subscription in subscriptions:
+            if subscription.get('active', True):
+                # Search for jobs based on subscription criteria
+                search_params = {
+                    'search_query': subscription.get('search_query'),
+                    'location': subscription.get('location'),
+                    'remote': subscription.get('remote'),
+                    'visa_sponsorship': subscription.get('visa_sponsorship'),
+                    'language_level': subscription.get('language_level'),
+                    'category': subscription.get('category'),
+                    'limit': 10
+                }
+                
+                job_results = await job_search_service.search_jobs(**search_params)
+                if job_results.get('jobs'):
+                    all_new_jobs.extend(job_results['jobs'][:5])  # Limit to 5 per subscription
+        
+        if not all_new_jobs:
+            return {
+                'status': 'no_jobs',
+                'message': 'Новых вакансий не найдено'
+            }
+        
+        # Remove duplicates based on job URL or title
+        unique_jobs = []
+        seen_urls = set()
+        for job in all_new_jobs:
+            job_url = job.get('external_url', job.get('title', ''))
+            if job_url not in seen_urls:
+                seen_urls.add(job_url)
+                unique_jobs.append(job)
+        
+        # Send digest notification
+        result = await telegram_job_notification_service.send_new_jobs_digest(
+            user_telegram_id=str(user_telegram_id),
+            new_jobs=unique_jobs[:10],  # Limit to 10 jobs total
+            subscription_data=subscriptions[0] if subscriptions else {},
+            user_language=current_user.get('preferred_language', 'ru')
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to send job digest: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка отправки дайджеста: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
