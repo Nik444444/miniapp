@@ -49,6 +49,11 @@ class SQLiteDatabase:
                 picture TEXT,
                 oauth_provider TEXT NOT NULL,
                 google_id TEXT,
+                telegram_id TEXT,
+                telegram_username TEXT,
+                telegram_first_name TEXT,
+                telegram_last_name TEXT,
+                telegram_language_code TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 last_login TIMESTAMP,
                 gemini_api_key TEXT,
@@ -57,6 +62,37 @@ class SQLiteDatabase:
                 preferred_language TEXT DEFAULT 'ru'
             )
         ''')
+        
+        # Добавляем поля для Telegram если их нет (для существующих баз данных)
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN telegram_id TEXT')
+            logger.info("Added telegram_id column to users table")
+        except sqlite3.OperationalError:
+            pass
+        
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN telegram_username TEXT')
+            logger.info("Added telegram_username column to users table")
+        except sqlite3.OperationalError:
+            pass
+        
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN telegram_first_name TEXT')
+            logger.info("Added telegram_first_name column to users table")
+        except sqlite3.OperationalError:
+            pass
+        
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN telegram_last_name TEXT')
+            logger.info("Added telegram_last_name column to users table")
+        except sqlite3.OperationalError:
+            pass
+        
+        try:
+            cursor.execute('ALTER TABLE users ADD COLUMN telegram_language_code TEXT')
+            logger.info("Added telegram_language_code column to users table")
+        except sqlite3.OperationalError:
+            pass
         
         # Добавляем поле preferred_language если его нет (для существующих баз данных)
         try:
