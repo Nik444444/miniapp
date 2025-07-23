@@ -220,6 +220,8 @@ class JobSearchService:
                     
         except Exception as e:
             logger.error(f"❌ Enhanced job search failed: {e}")
+            import traceback
+            logger.error(f"❌ Full traceback: {traceback.format_exc()}")
             return await self._get_enhanced_fallback_jobs()
 
     def _convert_enhanced_jobs(self, jobs_raw: List[Dict], user_coordinates: Dict[str, float] = None) -> List[Dict]:
