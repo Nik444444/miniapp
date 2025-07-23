@@ -513,7 +513,9 @@ class JobSearchService:
         if location:
             location_lower = location.lower()
             filtered = [job for job in filtered if 
-                       location_lower in job.get('location', '').lower()]
+                       location_lower in (job.get('location_string', '') or 
+                                         (job.get('location', {}).get('city', '') if isinstance(job.get('location'), dict) 
+                                          else str(job.get('location', '')))).lower()]
         
         # Remote filter
         if remote is not None:
