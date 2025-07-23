@@ -238,6 +238,7 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         loading,
+        backendUrl: BACKEND_URL,
         isAuthenticated,
         loginWithGoogle,
         loginWithTelegram,
