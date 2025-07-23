@@ -165,11 +165,25 @@ const TelegramJobSearch = ({ onBack }) => {
                 return;
             }
             
+            // УЛУЧШЕННАЯ валидация и очистка запроса
+            const safeQuery = cleanQuery
+                .replace(/[^\w\säöüÄÖÜß\-]/g, '') // Убираем все кроме букв, цифр, пробелов и немецких символов
+                .substring(0, 50); // Ограничиваем длину
+            
+            if (!safeQuery || safeQuery.length < 2) {
+                console.log('Query became invalid after cleaning, loading popular cities');
+                loadPopularCities();
+                return;
+            }
+            
             // Безопасное построение URL
-            const encodedQuery = encodeURIComponent(cleanQuery);
+            const encodedQuery = encodeURIComponent(safeQuery);
             const url = `${backendUrl}/api/cities/search?q=${encodedQuery}&limit=10`;
             
-            console.log('Searching cities with query:', cleanQuery);
+            console.log('🏙️ Cities Search Debug:');
+            console.log('Original query:', cleanQuery);
+            console.log('Safe query:', safeQuery);
+            console.log('Encoded query:', encodedQuery);
             console.log('Cities search URL:', url);
             
             const response = await fetch(url, {
@@ -180,12 +194,22 @@ const TelegramJobSearch = ({ onBack }) => {
                 }
             });
             
+            console.log('✅ Cities Response Info:');
+            console.log('Status:', response.status);
+            console.log('OK:', response.ok);
+            
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Cities API Error:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    responseText: errorText
+                });
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const data = await response.json();
-            console.log('Cities search response:', data);
+            console.log('✅ Cities search response:', data);
             
             if (data.status === 'success' && data.data && data.data.cities) {
                 setCities(data.data.cities);
@@ -195,22 +219,25 @@ const TelegramJobSearch = ({ onBack }) => {
                 setCities([]);
             }
         } catch (error) {
-            console.error('Error searching cities:', error);
+            console.error('❌ Cities Search Error:');
+            console.error('Error Type:', error.constructor.name);
+            console.error('Error Message:', error.message);
+            console.error('Error Stack:', error.stack);
             console.error('Cities search error details:', {
                 message: error.message,
                 stack: error.stack,
-                query: cleanQuery
+                query: cleanQuery,
+                safeQuery: safeQuery || 'undefined'
             });
             
             setCities([]);
             
-            // Если есть серьезная ошибка, уведомляем пользователя
+            // Если есть серьезная ошибка pattern matching, уведомляем пользователя
             if (error.message && error.message.includes('pattern')) {
-                console.warn('Pattern matching error in cities search:', error.message);
-                // Можно показать уведомление, если нужно
-                // if (isTelegramWebApp()) {
-                //     telegramWebApp.showAlert(`⚠️ Ошибка поиска городов: ${error.message}`);
-                // }
+                console.error('🚨 PATTERN ERROR IN CITIES SEARCH:', error.message);
+                if (isTelegramWebApp()) {
+                    telegramWebApp.showAlert(`⚠️ Ошибка поиска городов. Попробуйте ввести название проще.`);
+                }
             }
         }
     };
