@@ -712,15 +712,17 @@ class JobSearchService:
         return enhanced_result.get('score', 50)
 
     def _categorize_jobs(self, jobs: List[Dict]) -> Dict[str, Any]:
-        """Categorize jobs by type"""
+        """Legacy categorization method for backward compatibility"""
         categorized = {category: [] for category in self.job_categories.keys()}
         
         for job in jobs:
             title = job.get('title', '').lower()
+            profession = job.get('profession', '').lower()
             assigned = False
             
             for category, keywords in self.job_categories.items():
-                if category != 'other' and any(keyword in title for keyword in keywords):
+                if category != 'other' and any(keyword.lower() in title or keyword.lower() in profession 
+                                              for keyword in keywords):
                     categorized[category].append(job)
                     assigned = True
                     break
@@ -745,32 +747,9 @@ class JobSearchService:
         }
 
     def _generate_search_recommendations(self, search_query: str, jobs: List[Dict]) -> List[str]:
-        """Generate AI-powered search recommendations"""
-        recommendations = []
-        
-        if not jobs:
-            recommendations.append("Попробуйте расширить поисковый запрос или убрать фильтры")
-            recommendations.append("Рассмотрите удаленную работу - добавьте фильтр 'Remote'")
-        
-        if search_query:
-            # Suggest related searches
-            if 'developer' in search_query.lower():
-                recommendations.append("Также ищите: Software Engineer, Frontend, Backend")
-            elif 'marketing' in search_query.lower():
-                recommendations.append("Также ищите: Digital Marketing, SEO, Content Marketing")
-        
-        # Location-based recommendations
-        locations = [job.get('location', '') for job in jobs]
-        common_locations = {}
-        for location in locations:
-            if location:
-                common_locations[location] = common_locations.get(location, 0) + 1
-        
-        if common_locations:
-            top_location = max(common_locations.keys(), key=lambda k: common_locations[k])
-            recommendations.append(f"Много вакансий найдено в: {top_location}")
-        
-        return recommendations[:3]  # Limit to 3 recommendations
+        """Legacy recommendations method for backward compatibility"""
+        analysis = self._analyze_jobs(jobs)
+        return self._generate_enhanced_recommendations(search_query, jobs, analysis)
 
     async def _get_enhanced_fallback_jobs(self) -> Dict[str, Any]:
         """Return enhanced demo jobs when API is unavailable"""
