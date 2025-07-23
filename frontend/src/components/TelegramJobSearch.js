@@ -664,11 +664,12 @@ const TelegramJobSearch = ({ onBack }) => {
                 <div>
                     <input
                         type="text"
-                        placeholder="Поиск по должности..."
+                        placeholder="Поиск по должности (необязательно)..."
                         value={searchFilters.search_query}
                         onChange={(e) => setSearchFilters(prev => ({...prev, search_query: e.target.value}))}
                         className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                     />
+                    <p className="text-xs text-gray-500 mt-1">💡 Оставьте пустым для поиска всех вакансий</p>
                 </div>
 
                 <div className="relative">
