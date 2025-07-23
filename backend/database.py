@@ -1079,5 +1079,125 @@ class SQLiteDatabase:
                     return prep
                 return None
 
+    # =====================================================
+    # МЕТОДЫ ДЛЯ РАБОТЫ С AI-РЕКРУТЕРОМ
+    # =====================================================
+
+    async def save_ai_recruiter_profile(self, user_id: str, profile_data: Dict[str, Any]) -> str:
+        """Сохранение профиля AI-рекрутера"""
+        # Создаем таблицу если её нет
+        async with self.get_connection() as conn:
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS ai_recruiter_profiles (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    profile_data TEXT NOT NULL,
+                    stage TEXT DEFAULT 'initial',
+                    progress INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
+            
+            # Сохраняем или обновляем профиль
+            await conn.execute('''
+                INSERT OR REPLACE INTO ai_recruiter_profiles 
+                (id, user_id, profile_data, stage, progress, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                f"ai_profile_{user_id}",
+                user_id,
+                json.dumps(profile_data),
+                profile_data.get('stage', 'initial'),
+                profile_data.get('progress', 0),
+                profile_data.get('created_at', datetime.utcnow().isoformat()),
+                datetime.utcnow().isoformat()
+            ))
+            await conn.commit()
+        
+        return f"ai_profile_{user_id}"
+
+    async def get_ai_recruiter_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Получение профиля AI-рекрутера"""
+        async with self.get_connection() as conn:
+            # Создаем таблицу если её нет
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS ai_recruiter_profiles (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    profile_data TEXT NOT NULL,
+                    stage TEXT DEFAULT 'initial',
+                    progress INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
+            
+            async with conn.execute('''
+                SELECT * FROM ai_recruiter_profiles 
+                WHERE user_id = ?
+            ''', (user_id,)) as cursor:
+                row = await cursor.fetchone()
+                if row:
+                    profile = dict(row)
+                    try:
+                        profile['profile_data'] = json.loads(profile['profile_data'])
+                        return profile['profile_data']
+                    except:
+                        return None
+                return None
+
+    async def delete_ai_recruiter_profile(self, user_id: str) -> bool:
+        """Удаление профиля AI-рекрутера"""
+        async with self.get_connection() as conn:
+            cursor = await conn.execute('''
+                DELETE FROM ai_recruiter_profiles 
+                WHERE user_id = ?
+            ''', (user_id,))
+            
+            await conn.commit()
+            return cursor.rowcount > 0
+
+    async def get_all_ai_recruiter_profiles(self) -> List[Dict[str, Any]]:
+        """Получение всех профилей AI-рекрутера для аналитики"""
+        async with self.get_connection() as conn:
+            # Создаем таблицу если её нет
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS ai_recruiter_profiles (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    profile_data TEXT NOT NULL,
+                    stage TEXT DEFAULT 'initial',
+                    progress INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users (id)
+                )
+            ''')
+            
+            async with conn.execute('''
+                SELECT arp.*, u.email, u.name 
+                FROM ai_recruiter_profiles arp
+                JOIN users u ON arp.user_id = u.id
+                ORDER BY arp.updated_at DESC
+            ''') as cursor:
+                rows = await cursor.fetchall()
+                profiles = []
+                for row in rows:
+                    profile = dict(row)
+                    try:
+                        profile_data = json.loads(profile['profile_data'])
+                        profile.update({
+                            'user_email': profile['email'],
+                            'user_name': profile['name'],
+                            'profile_data': profile_data
+                        })
+                        profiles.append(profile)
+                    except:
+                        continue
+                return profiles
+
 # Глобальный экземпляр базы данных
 db = SQLiteDatabase()
