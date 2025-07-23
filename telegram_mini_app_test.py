@@ -203,13 +203,13 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status = data.get("status") == "success"
-            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            has_jobs = "data" in data and "jobs" in data["data"] and isinstance(data["data"]["jobs"], list)
             no_pattern_error = "pattern" not in str(data).lower() and "string did not match" not in str(data).lower()
             
             self.log_test_result(
                 "GET /api/job-search?location=Berlin&language_level=B1 (без search_query)",
                 has_status and has_jobs and no_pattern_error,
-                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                f"Status: {data.get('status')}, Jobs: {len(data.get('data', {}).get('jobs', []))}, No pattern errors: {no_pattern_error}",
                 data
             )
         else:
