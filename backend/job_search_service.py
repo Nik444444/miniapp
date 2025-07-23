@@ -1,6 +1,6 @@
 """
-🔍 Job Search Service - Integration with Arbeitnow API and AI-powered features
-Интеграция с API вакансий и ИИ-функции для поиска работы
+🔍 Job Search Service - Integration with Arbeitsagentur API (Official German Job Board)
+Интеграция с официальным API Bundesagentur für Arbeit Германии
 """
 
 import aiohttp
@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 class JobSearchService:
     def __init__(self):
-        self.base_url = "https://www.arbeitnow.com/api/job-board-api"
+        # New Arbeitsagentur API
+        self.base_url = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
+        self.api_key = "jobboerse-jobsuche"  # Official API key for Arbeitsagentur
         self.session = None
         
         # Language level mappings for German proficiency
