@@ -228,7 +228,26 @@ class LandlordContactRequest(BaseModel):
     user_occupation: Optional[str] = "Fachkraft"
     user_income: Optional[str] = "stabiles Einkommen"
 
-# Job Search Models
+# Job Search Models (Enhanced)
+class EnhancedJobSearchRequest(BaseModel):
+    search_query: Optional[str] = None
+    location: Optional[str] = None
+    radius: Optional[int] = 50
+    remote: Optional[bool] = None
+    visa_sponsorship: Optional[bool] = None
+    language_level: Optional[str] = None
+    category: Optional[str] = None
+    work_time: Optional[str] = None
+    published_since: Optional[int] = None
+    contract_type: Optional[str] = None
+    limit: int = 50
+    page: int = 1
+    user_coordinates: Optional[Dict[str, float]] = None
+
+class UserLocationRequest(BaseModel):
+    lat: float
+    lon: float
+
 class JobSearchRequest(BaseModel):
     search_query: Optional[str] = None
     location: Optional[str] = None
