@@ -1225,6 +1225,225 @@ class BackendTester:
         # Summary test for all levels
         working_levels = [level for level, result in level_results.items() if result.get("success")]
         
+    async def test_telegram_mini_app_job_search_api_endpoints(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Mini App Job Search API endpoints - ПОЛЬЗОВАТЕЛЬСКИЙ ЗАПРОС"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Telegram Mini App Job Search API endpoints ===")
+        
+        # 1. **Cities API тестирование:**
+        logger.info("--- Cities API Testing ---")
+        
+        # GET /api/cities/popular - должен возвращать популярные города
+        success, data, error = await self.make_request("GET", "/api/cities/popular")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/popular - популярные города",
+                has_status and has_cities and cities_count > 0,
+                f"Status: {data.get('status')}, Cities count: {cities_count}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/popular - популярные города",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+        
+        # GET /api/cities/search?q=Ber - поиск городов начинающихся с "Ber"
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Ber")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if cities starting with "Ber" are found
+            ber_cities_found = False
+            if data.get("cities"):
+                ber_cities_found = any(city.get("name", "").lower().startswith("ber") for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Ber - поиск городов начинающихся с 'Ber'",
+                has_status and has_cities and ber_cities_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Ber cities found: {ber_cities_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Ber - поиск городов начинающихся с 'Ber'",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+        
+        # GET /api/cities/search?q=Köln - поиск города с немецкими символами
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Köln")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if Köln is found with German symbols
+            koln_found = False
+            if data.get("cities"):
+                koln_found = any("köln" in city.get("name", "").lower() for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Köln - поиск города с немецкими символами",
+                has_status and has_cities and koln_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Köln found: {koln_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Köln - поиск города с немецкими символами",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+        
+        # GET /api/cities/search?q=Köl - частичный поиск как на скриншоте
+        success, data, error = await self.make_request("GET", "/api/cities/search?q=Köl")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_cities = "cities" in data and isinstance(data["cities"], list)
+            cities_count = len(data.get("cities", []))
+            
+            # Check if partial search for Köl works
+            kol_found = False
+            if data.get("cities"):
+                kol_found = any("köl" in city.get("name", "").lower() for city in data["cities"])
+            
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Köl - частичный поиск как на скриншоте",
+                has_status and has_cities and kol_found,
+                f"Status: {data.get('status')}, Cities found: {cities_count}, Köl partial match found: {kol_found}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/cities/search?q=Köl - частичный поиск как на скриншоте",
+                False,
+                f"ОШИБКА: {error}",
+                data
+            )
+        
+        # 2. **Job Search API тестирование:**
+        logger.info("--- Job Search API Testing ---")
+        
+        # GET /api/job-search?location=Berlin&language_level=B1 (без search_query)
+        success, data, error = await self.make_request("GET", "/api/job-search?location=Berlin&language_level=B1")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "string did not match" not in str(data).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Berlin&language_level=B1 (без search_query)",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "string did not match" in str(error).lower()
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=Berlin&language_level=B1 (без search_query)",
+                False,
+                f"ОШИБКА: {error}, Pattern error detected: {pattern_error_detected}",
+                data
+            )
+        
+        # GET /api/job-search?location=München&language_level=A2&search_query=Developer
+        success, data, error = await self.make_request("GET", "/api/job-search?location=München&language_level=A2&search_query=Developer")
+        
+        if success and isinstance(data, dict):
+            has_status = data.get("status") == "success"
+            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
+            no_pattern_error = "pattern" not in str(data).lower() and "string did not match" not in str(data).lower()
+            
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=A2&search_query=Developer",
+                has_status and has_jobs and no_pattern_error,
+                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, No pattern errors: {no_pattern_error}",
+                data
+            )
+        else:
+            pattern_error_detected = "pattern" in str(error).lower() or "string did not match" in str(error).lower()
+            self.log_test_result(
+                "🎯 GET /api/job-search?location=München&language_level=A2&search_query=Developer",
+                False,
+                f"ОШИБКА: {error}, Pattern error detected: {pattern_error_detected}",
+                data
+            )
+        
+        # 3. **Проверка всех ответов:**
+        logger.info("--- Response Structure Validation ---")
+        
+        # Test additional job search scenarios to ensure no pattern matching errors
+        test_scenarios = [
+            ("Berlin", "B1", None, "Berlin B1 без search_query"),
+            ("München", "A2", "Developer", "München A2 с Developer"),
+            ("Hamburg", "C1", None, "Hamburg C1 без search_query"),
+            ("Frankfurt am Main", "B2", "Engineer", "Frankfurt с пробелами и Engineer"),
+            ("Köln", "B1", None, "Köln с умлаутом без search_query")
+        ]
+        
+        all_responses_valid = True
+        pattern_errors_found = []
+        
+        for location, language_level, search_query, description in test_scenarios:
+            # Build URL
+            url = f"/api/job-search?location={location}&language_level={language_level}"
+            if search_query:
+                url += f"&search_query={search_query}"
+            
+            success, data, error = await self.make_request("GET", url)
+            
+            if success and isinstance(data, dict):
+                has_status = data.get("status") == "success"
+                has_correct_structure = "jobs" in data and isinstance(data["jobs"], list)
+                no_pattern_error = "pattern" not in str(data).lower() and "string did not match" not in str(data).lower()
+                
+                if not (has_status and has_correct_structure and no_pattern_error):
+                    all_responses_valid = False
+                    if not no_pattern_error:
+                        pattern_errors_found.append(description)
+                
+                self.log_test_result(
+                    f"🎯 Response validation: {description}",
+                    has_status and has_correct_structure and no_pattern_error,
+                    f"Status: {data.get('status')}, Structure OK: {has_correct_structure}, No pattern errors: {no_pattern_error}",
+                    data
+                )
+            else:
+                all_responses_valid = False
+                pattern_error_detected = "pattern" in str(error).lower() or "string did not match" in str(error).lower()
+                if pattern_error_detected:
+                    pattern_errors_found.append(description)
+                
+                self.log_test_result(
+                    f"🎯 Response validation: {description}",
+                    False,
+                    f"ОШИБКА: {error}, Pattern error: {pattern_error_detected}",
+                    data
+                )
+        
+        # Final summary
+        self.log_test_result(
+            "🎯 ИТОГОВЫЙ РЕЗУЛЬТАТ: Telegram Mini App Job Search API",
+            all_responses_valid and len(pattern_errors_found) == 0,
+            f"Все ответы валидны: {all_responses_valid}, Pattern errors найдено: {len(pattern_errors_found)} в {pattern_errors_found}",
+            {"all_valid": all_responses_valid, "pattern_errors": pattern_errors_found}
+        )
+
     async def test_special_characters_and_spaces_handling(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Обработка специальных символов и пробелов"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Обработка специальных символов и пробелов ===")
