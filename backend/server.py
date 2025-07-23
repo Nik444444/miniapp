@@ -31,6 +31,10 @@ os.environ['TESSERACT_VERSION'] = '5.3.0'
 from database import db
 from llm_manager import llm_manager
 from modern_llm_manager import modern_llm_manager
+
+# Initialize Advanced AI Recruiter
+from advanced_ai_recruiter import AdvancedAIRecruiter
+advanced_ai_recruiter = AdvancedAIRecruiter(db)
 from telegram_service import telegram_service
 from telegram_auth_service import telegram_auth_service
 from text_formatter import format_analysis_text, create_super_wow_analysis_prompt
