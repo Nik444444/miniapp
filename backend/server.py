@@ -291,6 +291,40 @@ class InterviewPrepRequest(BaseModel):
     interview_type: str = "behavioral"  # behavioral, technical, case_study, cultural_fit
     language: str = "ru"
 
+# AI Assistant Models
+class AIRecruiterStartRequest(BaseModel):
+    user_language: str = "ru"
+
+class AIRecruiterContinueRequest(BaseModel):
+    user_message: str
+    conversation_data: Dict[str, Any]
+
+class JobCompatibilityRequest(BaseModel):
+    job_id: str
+    job_data: Dict[str, Any]
+    user_profile_id: Optional[str] = None
+
+class JobTranslationRequest(BaseModel):
+    job_id: str
+    job_data: Dict[str, Any]
+    target_language: str = "ru"
+
+class CoverLetterGenerationRequest(BaseModel):
+    job_id: str
+    job_data: Dict[str, Any]
+    user_profile_id: Optional[str] = None
+
+class TelegramNotificationRequest(BaseModel):
+    user_telegram_id: str
+    notification_type: str
+    job_data: Optional[Dict[str, Any]] = None
+    additional_data: Optional[Dict[str, Any]] = None
+    user_language: str = "ru"
+
+class AIRecommendationRequest(BaseModel):
+    user_profile_id: str
+    max_jobs: int = 5
+
 # Utility functions
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
