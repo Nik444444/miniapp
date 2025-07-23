@@ -231,13 +231,14 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status_success = data.get("status") == "success"
-            has_jobs = "jobs" in data and isinstance(data["jobs"], list)
-            has_total_found = "total_found" in data
+            has_data = "data" in data and isinstance(data["data"], dict)
+            has_jobs = has_data and "jobs" in data["data"] and isinstance(data["data"]["jobs"], list)
+            has_total_found = has_data and "total_found" in data["data"]
             
             self.log_test_result(
                 "GET /api/job-search?location=Berlin&language_level=B1 (WITHOUT search_query)",
                 has_status_success and has_jobs and has_total_found,
-                f"Status: {data.get('status')}, Jobs: {len(data.get('jobs', []))}, Total found: {data.get('total_found')}",
+                f"Status: {data.get('status')}, Jobs: {len(data['data'].get('jobs', [])) if has_data else 0}, Total found: {data['data'].get('total_found') if has_data else None}",
                 data
             )
         else:
