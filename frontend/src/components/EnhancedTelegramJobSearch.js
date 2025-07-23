@@ -625,6 +625,47 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
                     )}
                 </button>
 
+                {/* AI Assistant Button */}
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 shadow-xl">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                            <Brain className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-xl font-bold text-white">AI-Рекрутер</h3>
+                            <p className="text-emerald-100 text-sm">Персональный помощник для поиска работы</p>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-emerald-100 text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Анализ совместимости с вакансиями</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-emerald-100 text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Перевод вакансий на любой язык</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-emerald-100 text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Генерация сопроводительных писем</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-emerald-100 text-sm">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Уведомления прямо в Telegram</span>
+                        </div>
+                    </div>
+                    
+                    <button
+                        onClick={() => setCurrentView('ai-assistant')}
+                        className="w-full bg-white text-emerald-600 py-3 px-6 rounded-xl font-semibold hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                    >
+                        <Bot className="w-5 h-5" />
+                        Запустить AI-Рекрутера
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                </div>
+
                 {/* Nearby cities suggestion */}
                 {nearestCities.length > 0 && (
                     <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-4">
