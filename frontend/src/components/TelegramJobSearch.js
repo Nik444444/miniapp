@@ -212,9 +212,9 @@ const TelegramJobSearch = ({ onBack }) => {
             const data = await response.json();
             console.log('✅ Cities search response:', data);
             
-            if (data.status === 'success' && data.data && data.data.cities) {
-                setCities(data.data.cities);
-                console.log('Cities search result:', data.data.cities.length, 'cities found');
+            if (data.status === 'success' && data.cities) {
+                setCities(data.cities);
+                console.log('Cities search result:', data.cities.length, 'cities found');
             } else {
                 console.warn('Cities search returned unexpected format:', data);
                 setCities([]);
