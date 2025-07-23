@@ -1,47 +1,60 @@
 #!/usr/bin/env python3
 """
-🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Job Search и Cities Search функциональность в Telegram Mini App
+🎯 ENHANCED JOB SEARCH FUNCTIONALITY TESTING: German Job Search API Integration
 
 КОНТЕКСТ:
-- Пользователь сообщал о проблемах с поиском работы в Telegram Mini App
-- Ошибка "The string did not match the expected pattern" при поиске работы
-- Города при вводе не предлагались
-- Внесены исправления в обработку параметров и валидацию
+Test the enhanced job search functionality with the new German job search API integration.
+This includes testing the integration with https://rest.arbeitsagentur.de/jobboerse/jobsuche-service
+and enhanced features like geolocation, advanced filtering, and real API integration.
 
 ЗАДАЧИ ДЛЯ ТЕСТИРОВАНИЯ:
 
-1. **Cities Search API тестирование:**
-   - GET /api/cities/search?q=Berlin (точное совпадение)
-   - GET /api/cities/search?q=Ber (частичное совпадение)  
-   - GET /api/cities/search?q=Mü (тест с умлаутом)
-   - GET /api/cities/popular (популярные города)
-   - GET /api/cities/info/Berlin (детальная информация)
+1. **Enhanced Job Search Endpoints:**
+   - GET /api/job-search with new parameters (radius, work_time, published_since, contract_type, page)
+   - POST /api/job-search with EnhancedJobSearchRequest body including geolocation
+   - POST /api/user-location-info with coordinates
+   - GET /api/search-radius-options 
+   - GET /api/job-search-status for enhanced service status
 
-2. **Job Search API тестирование:**
-   - GET /api/job-search (базовый поиск)
-   - GET /api/job-search?location=Berlin (поиск по городу)
-   - GET /api/job-search?language_level=B1 (фильтр по языку)
-   - GET /api/job-search?search_query=developer (поиск по профессии)
-   - GET /api/job-search?location=München&language_level=B2 (комбинация фильтров)
+2. **Geolocation Features:**
+   - Test user location info endpoint with sample German coordinates (Berlin: lat: 52.5200, lon: 13.4050)
+   - Verify radius options are returned correctly
+   - Test job search with user coordinates and different radius values
 
-3. **Тест проблемных случаев:**
-   - Поиск с пробелами в названии города
-   - Поиск с специальными символами
-   - Пустые параметры поиска
-   - Очень длинные запросы
+3. **Advanced Filtering:**
+   - Test work_time filters: vz, tz, ho, mj, snw
+   - Test language_level filters: A1, A2, B1, B2, C1, C2
+   - Test category filters: tech, healthcare, finance, marketing, sales, education, construction, logistics, gastronomy, retail, other
+   - Test published_since filter (0-100 days)
+   - Test contract_type filter (1=limited, 2=unlimited)
 
-4. **Статус сервисов:**
-   - GET /api/job-search-status
-   - Проверить что сервисы активны и готовы к работе
+4. **Real API Integration:**
+   - Verify the integration with https://rest.arbeitsagentur.de/jobboerse/jobsuche-service
+   - Test that real job data is being returned (not demo data)
+   - Test pagination with different page numbers
+   - Test with German cities: Berlin, München, Hamburg, Köln
+
+5. **Enhanced Response Format:**
+   - Verify the new enhanced response structure with analysis, facets, search_metadata
+   - Check that distance calculations work when user coordinates are provided
+   - Verify language level estimation is working for German jobs
+   - Test that job categories are properly analyzed
+
+6. **Error Handling:**
+   - Test with invalid coordinates
+   - Test with invalid radius values
+   - Test with invalid language levels
+   - Test API failure scenarios
 
 ОЖИДАЕМЫЕ РЕЗУЛЬТАТЫ:
-- Все endpoints должны возвращать 200 OK
-- Cities search должен возвращать корректные предложения городов
-- Job search должен возвращать релевантные вакансии
-- Никаких ошибок "pattern matching" 
-- Корректная обработка edge cases
+- All enhanced endpoints should return 200 OK with proper structure
+- Real job data from arbeitsagentur.de API should be returned
+- Geolocation features should work with German coordinates
+- Advanced filtering should work correctly
+- Enhanced response format should include analysis and metadata
+- Error handling should be robust
 
-ФОКУС: Протестировать backend API и убедиться что все исправления работают корректно.
+ФОКУС: Test the enhanced German job search functionality with real API integration.
 """
 
 import asyncio
