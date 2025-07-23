@@ -145,13 +145,13 @@ class TelegramMiniAppTester:
         
         if success and isinstance(data, dict):
             has_status = data.get("status") == "success"
-            has_cities = "cities" in data and isinstance(data["cities"], list)
-            cities_count = len(data.get("cities", []))
+            has_cities = "data" in data and "cities" in data["data"] and isinstance(data["data"]["cities"], list)
+            cities_count = len(data.get("data", {}).get("cities", []))
             
             # Check if Köln is found with German symbols
             koln_found = False
-            if data.get("cities"):
-                koln_found = any("köln" in city.get("name", "").lower() for city in data["cities"])
+            if data.get("data", {}).get("cities"):
+                koln_found = any("köln" in city.get("name", "").lower() for city in data["data"]["cities"])
             
             self.log_test_result(
                 "GET /api/cities/search?q=Köln - поиск города с немецкими символами",
