@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { 
-    Rocket, Brain, Zap, Target, Star, TrendingUp,
+import {
+    Brain, Zap, TrendingUp, Target, Rocket, User, 
     BarChart3, PieChart, Award, Trophy, ChevronRight,
     CheckCircle, Clock, AlertTriangle, Sparkles,
     FileText, MessageSquare, BookOpen, Settings,
