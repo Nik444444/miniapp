@@ -1038,8 +1038,8 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
                     initialJob={selectedJob}
                 />
             )}
-            {currentView === 'revolutionary-ai' && (
-                <RevolutionaryAIRecruiter 
+            {currentView === 'perfect-ai' && (
+                <PerfectAIRecruiter 
                     onBack={() => setCurrentView('main')}
                     aiProfile={null}
                 />
