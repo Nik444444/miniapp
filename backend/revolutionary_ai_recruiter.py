@@ -708,9 +708,478 @@ Structure your response in JSON format.
             'generated_at': datetime.now().isoformat(),
             'demo_mode': True
         }
-    # =====================================================
-    # ДЕМО И ПАРСИНГ МЕТОДЫ
-    # =====================================================
+    async def _analyze_skill_gaps(self,
+                                collected_data: Dict[str, Any],
+                                market_analysis: Dict[str, Any],
+                                language: str,
+                                user_providers: List[Tuple[str, str, str]] = None) -> Dict[str, Any]:
+        """Анализ пробелов в навыках"""
+        
+        if not user_providers:
+            return self._create_demo_skill_gaps_analysis(collected_data, language)
+        
+        # Извлекаем требуемые навыки из рыночного анализа
+        market_skills = market_analysis.get('skill_trends', {}).get('top_skills', [])
+        user_skills = collected_data.get('technical_skills', [])
+        
+        prompt = f"""
+Проанализируй пробелы в навыках кандидата по сравнению с требованиями рынка.
+
+НАВЫКИ КАНДИДАТА:
+{', '.join(user_skills)}
+
+ВОСТРЕБОВАННЫЕ НАВЫКИ НА РЫНКЕ:
+{', '.join(market_skills[:10])}
+
+ПРОФЕССИЯ: {collected_data.get('profession', 'Unknown')}
+УРОВЕНЬ ОПЫТА: {collected_data.get('experience_years', 'Unknown')}
+
+Проанализируй:
+
+1. КРИТИЧЕСКИЕ ПРОБЕЛЫ:
+   - Навыки, которые срочно нужно изучить
+   - Влияние на трудоустройство
+
+2. РЕКОМЕНДУЕМЫЕ К ИЗУЧЕНИЮ:
+   - Навыки для улучшения позиций
+   - Тренды развития профессии
+
+3. СИЛЬНЫЕ СТОРОНЫ:
+   - Навыки, которые уже есть у кандидата
+   - Конкурентные преимущества
+
+4. ПЛАН РАЗВИТИЯ:
+   - Приоритетность изучения
+   - Временные рамки
+   - Ресурсы для изучения
+
+Ответ в формате JSON.
+"""
+        
+        try:
+            provider, model, api_key = user_providers[0]
+            ai_analysis = await modern_llm_manager.generate_content(
+                prompt=prompt,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                max_tokens=2000
+            )
+            
+            return self._parse_skill_gaps_analysis(ai_analysis, collected_data)
+            
+        except Exception as e:
+            logger.error(f"Skill gaps analysis failed: {e}")
+            return self._create_demo_skill_gaps_analysis(collected_data, language)
+    
+    async def _analyze_salary_potential(self,
+                                      collected_data: Dict[str, Any],
+                                      market_analysis: Dict[str, Any],
+                                      language: str,
+                                      user_providers: List[Tuple[str, str, str]] = None) -> Dict[str, Any]:
+        """Анализ зарплатных возможностей"""
+        
+        if not user_providers:
+            return self._create_demo_salary_analysis(collected_data, language)
+        
+        profession = collected_data.get('profession', 'Unknown')
+        experience = collected_data.get('experience_years', 'Unknown')
+        city = collected_data.get('preferred_city', 'Berlin')
+        current_expectations = collected_data.get('salary_expectations', 'Unknown')
+        
+        prompt = f"""
+Проанализируй зарплатные возможности кандидата на рынке труда Германии.
+
+КАНДИДАТ:
+Профессия: {profession}
+Опыт: {experience} лет
+Город: {city}
+Текущие ожидания: {current_expectations}
+
+ДАННЫЕ РЫНКА:
+{json.dumps(market_analysis.get('salary_trends', {}), ensure_ascii=False, indent=2)}
+
+Проанализируй:
+
+1. РЕАЛИСТИЧНАЯ ЗАРПЛАТНАЯ ВИЛКА:
+   - Минимум для данного уровня опыта
+   - Средний уровень в отрасли
+   - Максимум при отличной подготовке
+
+2. ФАКТОРЫ ВЛИЯНИЯ НА ЗАРПЛАТУ:
+   - Положительные (что увеличивает доход)
+   - Отрицательные (что может снижать предложения)
+
+3. СРАВНЕНИЕ С ОЖИДАНИЯМИ:
+   - Реалистичность текущих ожиданий
+   - Рекомендации по корректировке
+
+4. СТРАТЕГИЯ ПЕРЕГОВОРОВ:
+   - Начальная позиция для переговоров
+   - Аргументы для обоснования зарплаты
+   - Дополнительные льготы и компенсации
+
+5. ПЕРСПЕКТИВЫ РОСТА:
+   - Зарплатные возможности через 1-2 года
+   - Что нужно для увеличения дохода
+
+Учитывай особенности немецкого рынка труда.
+Ответ в формате JSON.
+"""
+        
+        try:
+            provider, model, api_key = user_providers[0]
+            ai_analysis = await modern_llm_manager.generate_content(
+                prompt=prompt,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                max_tokens=2000
+            )
+            
+            return self._parse_salary_analysis(ai_analysis, collected_data)
+            
+        except Exception as e:
+            logger.error(f"Salary analysis failed: {e}")
+            return self._create_demo_salary_analysis(collected_data, language)
+    
+    async def _create_career_strategy(self,
+                                    profile_analysis: Dict[str, Any],
+                                    market_analysis: Dict[str, Any],
+                                    skill_gap_analysis: Dict[str, Any],
+                                    language: str,
+                                    user_providers: List[Tuple[str, str, str]] = None) -> Dict[str, Any]:
+        """Создание персональной карьерной стратегии"""
+        
+        if not user_providers:
+            return self._create_demo_career_strategy(profile_analysis, language)
+        
+        prompt = f"""
+Создай персональную карьерную стратегию на основе глубокого анализа.
+
+АНАЛИЗ ПРОФИЛЯ:
+{json.dumps(profile_analysis, ensure_ascii=False, indent=2)}
+
+АНАЛИЗ РЫНКА:
+{json.dumps(market_analysis, ensure_ascii=False, indent=2)}
+
+АНАЛИЗ НАВЫКОВ:
+{json.dumps(skill_gap_analysis, ensure_ascii=False, indent=2)}
+
+Создай РЕВОЛЮЦИОННУЮ карьерную стратегию:
+
+1. ТИП СТРАТЕГИИ:
+   - Агрессивная (быстрый рост)
+   - Устойчивая (постепенное развитие) 
+   - Смена направления
+   - Углубление экспертизы
+   - Расширение компетенций
+
+2. КРАТКОСРОЧНЫЕ ЦЕЛИ (3-6 месяцев):
+   - Конкретные действия для поиска работы
+   - Навыки для изучения в первую очередь
+   - Целевые компании и позиции
+
+3. СРЕДНЕСРОЧНЫЕ ЦЕЛИ (6-18 месяцев):
+   - Развитие карьеры на первой позиции
+   - Дополнительные навыки и сертификации
+   - Расширение профессиональной сети
+
+4. ДОЛГОСРОЧНАЯ ПЕРСПЕКТИВА (1-3 года):
+   - Карьерный рост и позиционирование
+   - Специализация или диверсификация
+   - Лидерские и менеджерские навыки
+
+5. ПЛАН ДЕЙСТВИЙ:
+   - Еженедельные задачи
+   - Месячные цели
+   - Контрольные точки
+
+6. РИСКИ И ВОЗМОЖНОСТИ:
+   - Потенциальные препятствия
+   - Как их преодолеть
+   - Скрытые возможности
+
+Стратегия должна быть КОНКРЕТНОЙ и ДЕЙСТВЕННОЙ.
+Ответ в формате JSON.
+"""
+        
+        try:
+            provider, model, api_key = user_providers[0]
+            ai_analysis = await modern_llm_manager.generate_content(
+                prompt=prompt,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                max_tokens=2500
+            )
+            
+            return self._parse_career_strategy(ai_analysis)
+            
+        except Exception as e:
+            logger.error(f"Career strategy creation failed: {e}")
+            return self._create_demo_career_strategy(profile_analysis, language)
+    
+    async def _predict_success_rates(self,
+                                   profile_analysis: Dict[str, Any],
+                                   market_analysis: Dict[str, Any],
+                                   job_recommendations: List[Dict[str, Any]],
+                                   language: str,
+                                   user_providers: List[Tuple[str, str, str]] = None) -> Dict[str, Any]:
+        """Предсказание успешности кандидатуры"""
+        
+        if not user_providers:
+            return self._create_demo_success_predictions(job_recommendations, language)
+        
+        # Готовим данные для анализа
+        recommendations_summary = []
+        for rec in job_recommendations[:5]:  # Берем топ-5 рекомендаций
+            job = rec.get('job', {})
+            analysis = rec.get('revolutionary_analysis', {})
+            recommendations_summary.append({
+                'title': job.get('title', 'Unknown'),
+                'company': job.get('company_name', 'Unknown'),
+                'compatibility_score': analysis.get('compatibility_score', 0),
+                'success_prediction': analysis.get('success_prediction', 0)
+            })
+        
+        prompt = f"""
+Проанализируй и предскажи успешность кандидата на рынке труда.
+
+ПРОФИЛЬ КАНДИДАТА:
+{json.dumps(profile_analysis, ensure_ascii=False, indent=2)}
+
+РЫНОЧНАЯ СИТУАЦИЯ:
+{json.dumps(market_analysis, ensure_ascii=False, indent=2)}
+
+АНАЛИЗ ТОПОВЫХ РЕКОМЕНДАЦИЙ:
+{json.dumps(recommendations_summary, ensure_ascii=False, indent=2)}
+
+Дай ТОЧНЫЕ предсказания:
+
+1. ОБЩАЯ УСПЕШНОСТЬ (0-100%):
+   - Вероятность получения интервью
+   - Вероятность получения оффера
+   - Время до трудоустройства
+
+2. АНАЛИЗ ПО ТИПАМ КОМПАНИЙ:
+   - Стартапы (шансы успеха)
+   - Корпорации (шансы успеха)
+   - Средний бизнес (шансы успеха)
+
+3. АНАЛИЗ ПО УРОВНЯМ ПОЗИЦИЙ:
+   - Junior позиции (% успеха)
+   - Middle позиции (% успеха)
+   - Senior позиции (% успеха)
+
+4. ВРЕМЕННЫЕ ПРОГНОЗЫ:
+   - Первое интервью (недели)
+   - Первый оффер (недели)
+   - Идеальная позиция (месяцы)
+
+5. ФАКТОРЫ УСПЕХА:
+   - Что повышает шансы
+   - Что снижает шансы
+   - Критические точки
+
+6. РЕКОМЕНДАЦИИ ПО УЛУЧШЕНИЮ:
+   - Что сделать СЕЙЧАС для увеличения шансов
+   - Долгосрочные инвестиции в карьеру
+
+Будь честным и точным в прогнозах.
+Ответ в формате JSON.
+"""
+        
+        try:
+            provider, model, api_key = user_providers[0]
+            ai_analysis = await modern_llm_manager.generate_content(
+                prompt=prompt,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                max_tokens=2000
+            )
+            
+            return self._parse_success_predictions(ai_analysis, job_recommendations)
+            
+        except Exception as e:
+            logger.error(f"Success predictions failed: {e}")
+            return self._create_demo_success_predictions(job_recommendations, language)
+    
+    async def _analyze_market_trends(self,
+                                   current_jobs: List[Dict[str, Any]],
+                                   collected_data: Dict[str, Any],
+                                   language: str,
+                                   user_providers: List[Tuple[str, str, str]] = None) -> Dict[str, Any]:
+        """Анализ трендов рынка труда"""
+        
+        if not user_providers or not current_jobs:
+            return self._create_demo_market_trends(collected_data, language)
+        
+        # Анализируем только первые 20 вакансий для эффективности
+        jobs_sample = current_jobs[:20]
+        jobs_data = []
+        
+        for job in jobs_sample:
+            jobs_data.append({
+                'title': job.get('title', ''),
+                'company': job.get('company_name', ''),
+                'description': job.get('description', '')[:200],  # Ограничиваем длину
+                'requirements': job.get('requirements', ''),
+                'salary': job.get('salary', ''),
+            })
+        
+        prompt = f"""
+Проанализируй тренды рынка труда на основе актуальных вакансий.
+
+ПРОФЕССИЯ КАНДИДАТА: {collected_data.get('profession', 'Unknown')}
+ГОРОД: {collected_data.get('preferred_city', 'Berlin')}
+
+ТЕКУЩИЕ ВАКАНСИИ:
+{json.dumps(jobs_data, ensure_ascii=False, indent=2)}
+
+Проанализируй тренды:
+
+1. ГОРЯЧИЕ ТРЕНДЫ:
+   - Самые востребованные навыки
+   - Растущие направления
+   - Новые технологии в спросе
+
+2. КОМПАНИИ И СЕКТОРЫ:
+   - Активно нанимающие сектора
+   - Типы компаний (стартапы, корпорации)
+   - Размер компаний
+
+3. ТРЕБОВАНИЯ К КАНДИДАТАМ:
+   - Уровень опыта
+   - Языковые требования
+   - Образовательные требования
+
+4. УСЛОВИЯ РАБОТЫ:
+   - Remote vs Office
+   - Зарплатные вилки
+   - Дополнительные льготы
+
+5. КОНКУРЕНЦИЯ:
+   - Уровень конкуренции в отрасли
+   - Дефицитные специализации
+   - Избыток кандидатов
+
+Ответ в формате JSON.
+"""
+        
+        try:
+            provider, model, api_key = user_providers[0]
+            ai_analysis = await modern_llm_manager.generate_content(
+                prompt=prompt,
+                provider=provider,
+                model=model,
+                api_key=api_key,
+                max_tokens=1500
+            )
+            
+            return self._parse_market_trends(ai_analysis)
+            
+        except Exception as e:
+            logger.error(f"Market trends analysis failed: {e}")
+            return self._create_demo_market_trends(collected_data, language)
+    
+    def _analyze_salary_trends(self, jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Анализ зарплатных трендов из вакансий"""
+        
+        salaries = []
+        salary_info = []
+        
+        for job in jobs:
+            salary_str = job.get('salary', '')
+            if salary_str and salary_str.lower() != 'not specified':
+                salary_info.append(salary_str)
+                
+                # Пытаемся извлечь числовые значения
+                import re
+                numbers = re.findall(r'(\d{2,6})', salary_str)
+                if numbers:
+                    try:
+                        salaries.extend([int(num) for num in numbers if int(num) > 1000])
+                    except:
+                        pass
+        
+        if salaries:
+            avg_salary = sum(salaries) / len(salaries)
+            min_salary = min(salaries)
+            max_salary = max(salaries)
+            
+            return {
+                'average_salary': f'{int(avg_salary):,} EUR',
+                'salary_range': f'{min_salary:,} - {max_salary:,} EUR',
+                'total_with_salary': len(salary_info),
+                'salary_samples': salary_info[:5],
+                'analysis': 'На основе реальных вакансий'
+            }
+        else:
+            return {
+                'average_salary': '45,000 - 65,000 EUR',
+                'salary_range': '35,000 - 85,000 EUR', 
+                'total_with_salary': 0,
+                'analysis': 'Оценка на основе рыночных данных'
+            }
+    
+    def _analyze_skill_trends(self, jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Анализ трендов навыков из вакансий"""
+        
+        skill_mentions = {}
+        common_tech_skills = [
+            'python', 'javascript', 'java', 'react', 'node.js', 'sql', 'docker', 
+            'kubernetes', 'aws', 'git', 'agile', 'scrum', 'typescript', 'vue',
+            'angular', 'mongodb', 'postgresql', 'redis', 'elasticsearch',
+            'machine learning', 'ai', 'data science', 'cloud', 'devops'
+        ]
+        
+        for job in jobs:
+            job_text = f"{job.get('description', '')} {job.get('requirements', '')}".lower()
+            
+            for skill in common_tech_skills:
+                if skill in job_text:
+                    skill_mentions[skill] = skill_mentions.get(skill, 0) + 1
+        
+        # Сортируем по популярности
+        top_skills = sorted(skill_mentions.items(), key=lambda x: x[1], reverse=True)
+        
+        return {
+            'top_skills': [skill for skill, count in top_skills[:10]],
+            'skill_demands': dict(top_skills[:15]),
+            'total_jobs_analyzed': len(jobs),
+            'analysis_date': datetime.now().isoformat()
+        }
+    
+    def _analyze_companies(self, jobs: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Анализ компаний из вакансий"""
+        
+        companies = {}
+        company_types = {'startup': 0, 'enterprise': 0, 'medium': 0}
+        
+        for job in jobs:
+            company = job.get('company_name', 'Unknown')
+            if company != 'Unknown':
+                companies[company] = companies.get(company, 0) + 1
+                
+                # Простая классификация по типу
+                desc = job.get('description', '').lower()
+                if any(word in desc for word in ['startup', 'scale-up', 'founded']):
+                    company_types['startup'] += 1
+                elif any(word in desc for word in ['enterprise', 'corporation', 'multinational']):
+                    company_types['enterprise'] += 1
+                else:
+                    company_types['medium'] += 1
+        
+        top_companies = sorted(companies.items(), key=lambda x: x[1], reverse=True)
+        
+        return {
+            'top_hiring_companies': dict(top_companies[:10]),
+            'company_types_distribution': company_types,
+            'total_companies': len(companies),
+            'most_active_company': top_companies[0] if top_companies else ('Unknown', 0)
+        }
     
     def _create_demo_profile_analysis(self, data: Dict[str, Any], language: str) -> Dict[str, Any]:
         """Демо-анализ профиля"""
