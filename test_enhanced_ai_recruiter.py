@@ -90,7 +90,10 @@ async def test_enhanced_ai_recruiter():
         
         # ТЕСТ 3: Получение рекомендаций вакансий
         logger.info("\n🎯 ТЕСТ 3: Получение AI рекомендаций...")
-        recommendation_data = {"max_recommendations": 5}
+        recommendation_data = {
+            "user_profile_id": "test_user_999999999", 
+            "max_jobs": 5
+        }
         async with session.post(f"{backend_url}/api/ai-job-recommendations", json=recommendation_data, headers=headers) as response:
             if response.status == 200:
                 recommendations_result = await response.json()
@@ -121,6 +124,8 @@ async def test_enhanced_ai_recruiter():
                         
             else:
                 logger.error(f"❌ Ошибка получения рекомендаций: {response.status}")
+                error_text = await response.text()
+                logger.error(f"   Детали: {error_text}")
         
         # ТЕСТ 4: Анализ совместимости с конкретной вакансией
         logger.info("\n📊 ТЕСТ 4: Анализ совместимости...")
@@ -133,7 +138,10 @@ async def test_enhanced_ai_recruiter():
             "salary": "70,000 - 90,000 EUR"
         }
         
-        compatibility_data = {"job_data": test_job}
+        compatibility_data = {
+            "job_id": "test_job_123",
+            "job_data": test_job
+        }
         async with session.post(f"{backend_url}/api/job-compatibility", json=compatibility_data, headers=headers) as response:
             if response.status == 200:
                 compatibility_result = await response.json()
@@ -151,10 +159,13 @@ async def test_enhanced_ai_recruiter():
                     
             else:
                 logger.error(f"❌ Ошибка анализа совместимости: {response.status}")
+                error_text = await response.text()
+                logger.error(f"   Детали: {error_text}")
         
         # ТЕСТ 5: Перевод вакансии
         logger.info("\n🔄 ТЕСТ 5: Перевод вакансии...")
         translation_data = {
+            "job_id": "test_job_123",
             "job_data": test_job,
             "target_language": "ru"
         }
@@ -172,6 +183,8 @@ async def test_enhanced_ai_recruiter():
                 
             else:
                 logger.error(f"❌ Ошибка перевода: {response.status}")
+                error_text = await response.text()
+                logger.error(f"   Детали: {error_text}")
         
         logger.info("\n" + "=" * 60)
         logger.info("🎉 ТЕСТИРОВАНИЕ ЗАВЕРШЕНО!")
