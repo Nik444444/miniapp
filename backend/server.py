@@ -344,7 +344,7 @@ class TelegramNotificationRequest(BaseModel):
     user_language: str = "ru"
 
 class AIRecommendationRequest(BaseModel):
-    user_profile_id: str
+    user_profile_id: Optional[str] = None
     max_jobs: int = 5
 
 # Utility functions
