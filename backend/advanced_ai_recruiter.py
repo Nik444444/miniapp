@@ -836,20 +836,137 @@ Your response (in English):"""
         return messages.get(language, messages['ru'])
     
     def _get_fallback_message_for_stage(self, stage: str, language: str) -> str:
-        """Fallback сообщение для этапа"""
+        """Улучшенные fallback сообщения для каждого этапа"""
         
         messages = {
             'ru': {
-                'initial': "Расскажи, какую работу ищешь? Где хочешь работать и какой у тебя уровень немецкого?",
-                'skills': "Расскажи подробнее о своих навыках и опыте работы.",
-                'preferences': "Какие у тебя предпочтения по зарплате, графику работы и типу компании?",
-                'complete': "Отлично! Теперь я найду идеальные вакансии специально для тебя."
+                'initial': """👋 Привет! Я AI-рекрутер и помогу найти идеальную работу в Германии. 
+
+Расскажи мне:
+• Какую должность ищешь? (например: разработчик, дизайнер, маркетолог)
+• В каком городе хочешь работать?
+• Какой у тебя уровень немецкого языка? (A1-C2)
+
+Начни с любого пункта! 🚀""",
+                
+                'skills': """💼 Отлично! Теперь расскажи о своем опыте:
+
+• Сколько лет работаешь в этой сфере?
+• Какие технологии/инструменты знаешь?
+• Есть ли образование или сертификаты?
+• Какие проекты реализовывал?
+
+Чем подробнее - тем лучше подберу вакансии! ⚡""",
+                
+                'preferences': """⚙️ Почти готово! Последние детали:
+
+• Какая зарплата интересна? (от ... до ... EUR)
+• Готов работать полный день или предпочитаешь частичную занятость?
+• Интересует удаленная работа или только офис?
+• Есть предпочтения по размеру компании? (стартап/корпорация)
+
+После этого найду идеальные варианты! 🎯""",
+                
+                'complete': """🎉 Профиль готов! Сейчас ищу лучшие вакансии...
+
+На основе твоих данных я найду:
+✅ Вакансии с подходящими требованиями
+✅ Позиции в выбранном городе
+✅ Работу с нужным уровнем немецкого
+✅ Соответствующую зарплатную вилку
+
+Также могу:
+🔄 Перевести любую вакансию на русский
+📊 Проанализировать совместимость
+✍️ Составить сопроводительное письмо
+
+Вот что нашел для тебя:"""
             },
             'en': {
-                'initial': "Tell me what job you're looking for? Where do you want to work and what's your German level?",
-                'skills': "Tell me more about your skills and work experience.",
-                'preferences': "What are your preferences regarding salary, work schedule and company type?",
-                'complete': "Great! Now I'll find perfect job opportunities specifically for you."
+                'initial': """👋 Hi! I'm an AI recruiter helping find perfect jobs in Germany.
+
+Tell me:
+• What position are you looking for? (e.g., developer, designer, marketer)
+• Which city would you like to work in?
+• What's your German level? (A1-C2)
+
+Start with any point! 🚀""",
+                
+                'skills': """💼 Great! Now tell me about your experience:
+
+• How many years have you worked in this field?
+• What technologies/tools do you know?
+• Do you have education or certifications?
+• What projects have you implemented?
+
+The more details, the better I can match jobs! ⚡""",
+                
+                'preferences': """⚙️ Almost ready! Final details:
+
+• What salary range interests you? (from ... to ... EUR)
+• Full-time or part-time preference?
+• Interested in remote work or office only?
+• Company size preference? (startup/corporation)
+
+After this, I'll find perfect matches! 🎯""",
+                
+                'complete': """🎉 Profile ready! Searching for best jobs...
+
+Based on your data, I'll find:
+✅ Jobs matching your requirements
+✅ Positions in your chosen city
+✅ Work with your German level
+✅ Matching salary range
+
+I can also:
+🔄 Translate any job to English
+📊 Analyze compatibility
+✍️ Create cover letters
+
+Here's what I found for you:"""
+            },
+            'de': {
+                'initial': """👋 Hallo! Ich bin ein AI-Recruiter und helfe bei der Jobsuche in Deutschland.
+
+Erzähl mir:
+• Welche Position suchst du? (z.B. Entwickler, Designer, Marketer)
+• In welcher Stadt möchtest du arbeiten?
+• Wie ist dein Deutschniveau? (A1-C2)
+
+Fang mit einem Punkt an! 🚀""",
+                
+                'skills': """💼 Toll! Jetzt erzähl von deiner Erfahrung:
+
+• Wie viele Jahre Berufserfahrung hast du?
+• Welche Technologien/Tools beherrschst du?
+• Hast du Ausbildung oder Zertifikate?
+• Welche Projekte hast du umgesetzt?
+
+Je mehr Details, desto besser kann ich Jobs finden! ⚡""",
+                
+                'preferences': """⚙️ Fast fertig! Letzte Details:
+
+• Welches Gehalt stellst du dir vor? (von ... bis ... EUR)
+• Vollzeit oder Teilzeit?
+• Remote-Arbeit oder nur Büro?
+• Präferenz für Unternehmensgröße? (Startup/Konzern)
+
+Danach finde ich perfekte Stellen! 🎯""",
+                
+                'complete': """🎉 Profil fertig! Suche beste Jobs...
+
+Basierend auf deinen Daten finde ich:
+✅ Jobs mit passenden Anforderungen
+✅ Stellen in deiner gewählten Stadt
+✅ Arbeit mit deinem Deutschniveau
+✅ Passende Gehaltsvorstellungen
+
+Ich kann auch:
+🔄 Jobs ins Deutsche übersetzen
+📊 Kompatibilität analysieren
+✍️ Anschreiben erstellen
+
+Hier ist was ich für dich gefunden habe:"""
             }
         }
         
