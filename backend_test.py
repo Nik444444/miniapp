@@ -1461,6 +1461,144 @@ class BackendTester:
                 f"Correctly returns 404 without /api prefix" if is_404 else f"Unexpected response: {error}",
                 data
             )
+    async def test_revolutionary_ai_recruiter_with_auth(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Revolutionary AI Recruiter with Authentication"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Revolutionary AI Recruiter with Authentication ===")
+        
+        # Only run if we have auth token from Telegram authentication
+        if not self.auth_token:
+            self.log_test_result(
+                "🎯 Revolutionary AI Recruiter with Auth - Skipped",
+                True,
+                "Skipped: No authentication token available",
+                None
+            )
+            return
+        
+        # 1. Test GET /api/revolutionary-status with authentication
+        success, data, error = await self.make_request("GET", "/api/revolutionary-status")
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_revolutionary_analysis = "revolutionary_analysis" in data
+            has_ai_providers = "ai_providers" in data
+            has_features_available = "features_available" in data
+            has_system_status = "system_status" in data
+            
+            self.log_test_result(
+                "🎯 GET /api/revolutionary-status - Revolutionary status with auth",
+                has_status and has_revolutionary_analysis and has_ai_providers and has_features_available,
+                f"Status: {data.get('status')}, System: {data.get('system_status')}, AI Providers: {len(data.get('ai_providers', []))}, Features: {list(data.get('features_available', {}).keys())}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 GET /api/revolutionary-status - Revolutionary status with auth",
+                False,
+                f"Revolutionary status failed: {error}",
+                data
+            )
+        
+        # 2. Test POST /api/revolutionary-analysis with authentication
+        analysis_data = {
+            "analysis_depth": "full",
+            "focus_areas": ["skills", "market", "strategy"]
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/revolutionary-analysis", json=analysis_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_analysis = "analysis" in data or "revolutionary_analysis" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/revolutionary-analysis - Revolutionary analysis with auth",
+                has_status,
+                f"Status: {data.get('status')}, Has analysis: {has_analysis}",
+                data
+            )
+        else:
+            # Check if it's a user profile issue (acceptable)
+            is_profile_issue = isinstance(data, dict) and ("профиль" in str(data.get("detail", "")).lower() or "profile" in str(data.get("detail", "")).lower())
+            
+            self.log_test_result(
+                "🎯 POST /api/revolutionary-analysis - Revolutionary analysis with auth",
+                is_profile_issue,
+                f"Profile required (expected): {data.get('detail', error)}" if is_profile_issue else f"Revolutionary analysis failed: {error}",
+                data
+            )
+        
+        # 3. Test POST /api/instant-job-analysis with authentication
+        job_analysis_data = {
+            "job_data": {
+                "title": "Senior Python Developer",
+                "company": "Tech Company Berlin",
+                "location": "Berlin, Germany",
+                "description": "We are looking for a senior Python developer with experience in Django and FastAPI.",
+                "requirements": ["Python", "Django", "FastAPI", "PostgreSQL", "German B2"],
+                "salary": "60000-80000 EUR"
+            },
+            "analysis_type": "compatibility"
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/instant-job-analysis", json=job_analysis_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_analysis = "analysis" in data or "job_analysis" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/instant-job-analysis - Instant job analysis with auth",
+                has_status,
+                f"Status: {data.get('status')}, Has analysis: {has_analysis}",
+                data
+            )
+        else:
+            # Check if it's a user profile issue (acceptable)
+            is_profile_issue = isinstance(data, dict) and ("профиль" in str(data.get("detail", "")).lower() or "profile" in str(data.get("detail", "")).lower())
+            
+            self.log_test_result(
+                "🎯 POST /api/instant-job-analysis - Instant job analysis with auth",
+                is_profile_issue,
+                f"Profile required (expected): {data.get('detail', error)}" if is_profile_issue else f"Instant job analysis failed: {error}",
+                data
+            )
+        
+        # 4. Test POST /api/perfect-cover-letter with authentication
+        cover_letter_data = {
+            "job_data": {
+                "title": "Frontend Developer",
+                "company": "Startup Berlin",
+                "location": "Berlin, Germany",
+                "description": "Join our dynamic team as a Frontend Developer working with React and TypeScript.",
+                "requirements": ["React", "TypeScript", "CSS", "German B1"]
+            },
+            "style": "professional",
+            "custom_points": ["Experience with modern React hooks", "Passion for clean code"]
+        }
+        
+        success, data, error = await self.make_request("POST", "/api/perfect-cover-letter", json=cover_letter_data)
+        
+        if success and isinstance(data, dict):
+            has_status = "status" in data
+            has_cover_letter = "cover_letter" in data or "letter" in data
+            
+            self.log_test_result(
+                "🎯 POST /api/perfect-cover-letter - Perfect cover letter with auth",
+                has_status,
+                f"Status: {data.get('status')}, Has cover letter: {has_cover_letter}",
+                data
+            )
+        else:
+            # Check if it's a user profile issue (acceptable)
+            is_profile_issue = isinstance(data, dict) and ("профиль" in str(data.get("detail", "")).lower() or "profile" in str(data.get("detail", "")).lower())
+            
+            self.log_test_result(
+                "🎯 POST /api/perfect-cover-letter - Perfect cover letter with auth",
+                is_profile_issue,
+                f"Profile required (expected): {data.get('detail', error)}" if is_profile_issue else f"Perfect cover letter failed: {error}",
+                data
+            )
     async def test_job_analysis_endpoints(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Analysis AI Endpoints"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Analysis AI Endpoints ===")
