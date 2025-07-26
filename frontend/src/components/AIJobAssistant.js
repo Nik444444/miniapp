@@ -299,7 +299,7 @@ const AIJobAssistant = ({ onBack, initialJob = null }) => {
         setError(null);
         
         try {
-            const response = await fetch(`${backendUrl}/generate-cover-letter`, {
+            const response = await fetch(`${backendUrl}/api/generate-cover-letter`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
