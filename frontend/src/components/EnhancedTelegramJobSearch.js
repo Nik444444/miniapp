@@ -670,11 +670,11 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
                         </button>
                         
                         <button
-                            onClick={() => setCurrentView('revolutionary-ai')}
+                            onClick={() => setCurrentView('perfect-ai')}
                             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2 shadow-lg"
                         >
                             <Rocket className="w-5 h-5" />
-                            🚀 Революционный AI
+                            🎯 Идеальный AI
                             <Sparkles className="w-4 h-4" />
                         </button>
                     </div>
