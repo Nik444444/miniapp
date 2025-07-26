@@ -495,7 +495,7 @@ Your response (in English):"""
         return extracted_data
     
     def _extract_initial_data(self, message: str) -> Dict[str, Any]:
-        """Извлечение начальных данных"""
+        """Улучшенное извлечение начальных данных"""
         data = {}
         
         # Поиск уровня немецкого
@@ -505,19 +505,72 @@ Your response (in English):"""
                 data['german_level'] = level.upper()
                 break
         
-        # Поиск города
-        cities = ['berlin', 'münchen', 'hamburg', 'köln', 'frankfurt', 'düsseldorf', 'stuttgart']
+        # Поиск города (расширенный список)
+        cities = [
+            'berlin', 'берлин', 'münchen', 'мюнхен', 'munich', 'hamburg', 'гамбург',
+            'köln', 'кёльн', 'cologne', 'frankfurt', 'франкфурт', 'düsseldorf', 'дюссельдорф',
+            'stuttgart', 'штутгарт', 'leipzig', 'лейпциг', 'dresden', 'дрезден',
+            'hannover', 'ганновер', 'nürnberg', 'нюрнберг', 'nuremberg'
+        ]
         for city in cities:
             if city in message_lower:
-                data['preferred_city'] = city.title()
+                # Нормализуем название города
+                if city in ['берлин', 'berlin']:
+                    data['preferred_city'] = 'Berlin'
+                elif city in ['мюнхен', 'münchen', 'munich']:
+                    data['preferred_city'] = 'München'
+                elif city in ['гамбург', 'hamburg']:
+                    data['preferred_city'] = 'Hamburg'
+                elif city in ['кёльн', 'köln', 'cologne']:
+                    data['preferred_city'] = 'Köln'
+                elif city in ['франкфурт', 'frankfurt']:
+                    data['preferred_city'] = 'Frankfurt'
+                elif city in ['дюссельдорф', 'düsseldorf']:
+                    data['preferred_city'] = 'Düsseldorf'
+                elif city in ['штутгарт', 'stuttgart']:
+                    data['preferred_city'] = 'Stuttgart'
+                else:
+                    data['preferred_city'] = city.title()
                 break
         
-        # Поиск профессии
-        professions = ['developer', 'engineer', 'manager', 'designer', 'analyst', 'consultant']
-        for prof in professions:
-            if prof in message_lower:
-                data['profession'] = prof.title()
+        # Поиск профессии (значительно расширенный список)
+        profession_patterns = {
+            'developer': ['developer', 'разработчик', 'программист', 'dev', 'coder'],
+            'python developer': ['python', 'пайтон'],
+            'frontend developer': ['frontend', 'фронтенд', 'react', 'vue', 'angular'],
+            'backend developer': ['backend', 'бэкенд', 'бекенд'],
+            'fullstack developer': ['fullstack', 'фуллстек', 'full stack', 'full-stack'],
+            'data scientist': ['data scientist', 'дата саентист', 'аналитик данных'],
+            'designer': ['designer', 'дизайнер', 'ui', 'ux'],
+            'manager': ['manager', 'менеджер', 'project manager', 'проект-менеджер'],
+            'qa engineer': ['qa', 'тестировщик', 'quality', 'tester'],
+            'devops': ['devops', 'девопс', 'infrastructure', 'инфраструктура'],
+            'engineer': ['engineer', 'инженер'],
+            'analyst': ['analyst', 'аналитик'],
+            'consultant': ['consultant', 'консультант'],
+            'marketing': ['marketing', 'маркетинг', 'маркетолог'],
+            'sales': ['sales', 'продажи', 'менеджер по продажам']
+        }
+        
+        for profession, patterns in profession_patterns.items():
+            for pattern in patterns:
+                if pattern in message_lower:
+                    data['profession'] = profession
+                    break
+            if 'profession' in data:
                 break
+        
+        # Если не нашли точную профессию, берем первое подходящее слово
+        if 'profession' not in data:
+            words = message_lower.split()
+            profession_words = ['developer', 'разработчик', 'программист', 'manager', 'менеджер', 
+                              'designer', 'дизайнер', 'analyst', 'аналитик', 'specialist', 'специалист']
+            for word in words:
+                if word in profession_words:
+                    data['profession'] = word
+                    break
+        
+        return data
         
         return data
     
