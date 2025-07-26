@@ -3171,6 +3171,248 @@ async def send_job_digest_notification(
         logger.error(f"Failed to send job digest: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка отправки дайджеста: {str(e)}")
 
+# =====================================================
+# 🚀 REVOLUTIONARY AI RECRUITER ENDPOINTS
+# =====================================================
+
+from revolutionary_ai_recruiter import get_revolutionary_ai_recruiter
+from instant_job_analyzer import get_instant_job_analyzer
+
+# Initialize revolutionary services
+revolutionary_ai_recruiter = get_revolutionary_ai_recruiter(db)
+instant_job_analyzer = get_instant_job_analyzer(db)
+
+# Request models for new endpoints
+class RevolutionaryAnalysisRequest(BaseModel):
+    analysis_depth: str = "full"  # full, quick, comprehensive
+    focus_areas: List[str] = []  # skills, market, strategy, salary
+
+class InstantJobAnalysisRequest(BaseModel):
+    job_data: Dict[str, Any]
+    analysis_type: str = "compatibility"  # compatibility, translation, explanation, improvement
+
+class BatchJobAnalysisRequest(BaseModel):
+    jobs_list: List[Dict[str, Any]]
+    max_jobs: int = 10
+
+class PerfectCoverLetterRequest(BaseModel):
+    job_data: Dict[str, Any]
+    style: str = "professional"  # professional, creative, technical, friendly
+    custom_points: List[str] = []
+
+@api_router.post("/revolutionary-analysis")
+async def conduct_revolutionary_analysis(
+    request: RevolutionaryAnalysisRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🚀 Проведение революционного анализа профиля кандидата
+    """
+    try:
+        logger.info(f"🚀 Starting revolutionary analysis for user {current_user['id']}")
+        
+        # Get user providers for AI analysis
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-5-sonnet-20241022", current_user["anthropic_api_key"]))
+        
+        # Conduct revolutionary analysis
+        result = await revolutionary_ai_recruiter.conduct_revolutionary_analysis(
+            user_id=current_user['id'],
+            user_language=current_user.get('preferred_language', 'ru'),
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Revolutionary analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка революционного анализа: {str(e)}")
+
+@api_router.post("/instant-job-analysis")
+async def instant_job_analysis(
+    request: InstantJobAnalysisRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    ⚡ Мгновенный AI анализ конкретной вакансии
+    """
+    try:
+        logger.info(f"⚡ Instant job analysis for user {current_user['id']}")
+        
+        # Get user profile
+        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
+        if not user_profile:
+            return {
+                'status': 'error',
+                'message': 'Профиль не найден. Сначала пройдите интервью с AI-рекрутером.'
+            }
+        
+        # Get user providers
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Perform instant analysis
+        result = await instant_job_analyzer.instant_job_analysis(
+            job_data=request.job_data,
+            user_profile=user_profile,
+            analysis_type=request.analysis_type,
+            language=current_user.get('preferred_language', 'ru'),
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Instant job analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка мгновенного анализа: {str(e)}")
+
+@api_router.post("/batch-job-analysis")
+async def batch_job_analysis(
+    request: BatchJobAnalysisRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🚀 Пакетный мгновенный анализ списка вакансий
+    """
+    try:
+        logger.info(f"🚀 Batch job analysis for user {current_user['id']}, jobs: {len(request.jobs_list)}")
+        
+        # Get user profile
+        user_profile = await db.get_ai_recruiter_profile(current_user['id'])
+        if not user_profile:
+            return {
+                'status': 'error',
+                'message': 'Профиль не найден. Сначала пройдите интервью с AI-рекрутером.'
+            }
+        
+        # Get user providers
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o-mini", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
+        
+        # Limit jobs for performance
+        jobs_to_analyze = request.jobs_list[:min(request.max_jobs, 20)]
+        
+        # Perform batch analysis
+        analyzed_jobs = await instant_job_analyzer.batch_instant_analysis(
+            jobs_list=jobs_to_analyze,
+            user_profile=user_profile,
+            language=current_user.get('preferred_language', 'ru'),
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return {
+            'status': 'success',
+            'analyzed_jobs': analyzed_jobs,
+            'total_analyzed': len(analyzed_jobs),
+            'analysis_timestamp': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Batch job analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка пакетного анализа: {str(e)}")
+
+@api_router.post("/perfect-cover-letter")
+async def generate_perfect_cover_letter(
+    request: PerfectCoverLetterRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    📝 Генерация идеального сопроводительного письма
+    """
+    try:
+        logger.info(f"📝 Generating perfect cover letter for user {current_user['id']}")
+        
+        # Get user providers
+        user_providers = []
+        if current_user.get("gemini_api_key"):
+            user_providers.append(("gemini", "gemini-2.0-flash", current_user["gemini_api_key"]))
+        if current_user.get("openai_api_key"):
+            user_providers.append(("openai", "gpt-4o", current_user["openai_api_key"]))
+        if current_user.get("anthropic_api_key"):
+            user_providers.append(("anthropic", "claude-3-5-sonnet-20241022", current_user["anthropic_api_key"]))
+        
+        # Generate perfect cover letter
+        result = await revolutionary_ai_recruiter.generate_perfect_cover_letter(
+            job_data=request.job_data,
+            user_id=current_user['id'],
+            style=request.style,
+            user_providers=user_providers if user_providers else None
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Perfect cover letter generation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка генерации идеального письма: {str(e)}")
+
+@api_router.get("/revolutionary-status")
+async def get_revolutionary_status(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    🎯 Получение статуса революционного AI рекрутера
+    """
+    try:
+        # Check if user has completed revolutionary analysis
+        profile = await db.get_ai_recruiter_profile(current_user['id'])
+        
+        has_revolutionary_analysis = False
+        analysis_date = None
+        career_strategy = None
+        total_recommendations = 0
+        
+        if profile and profile.get('revolutionary_analysis'):
+            has_revolutionary_analysis = True
+            analysis_date = profile.get('last_analysis')
+            career_strategy = profile['revolutionary_analysis'].get('career_strategy', {})
+            total_recommendations = len(profile['revolutionary_analysis'].get('job_recommendations', []))
+        
+        # Check AI providers availability
+        ai_providers = []
+        if current_user.get("gemini_api_key"):
+            ai_providers.append({"name": "gemini", "model": "gemini-2.0-flash", "available": True})
+        if current_user.get("openai_api_key"):
+            ai_providers.append({"name": "openai", "model": "gpt-4o", "available": True})
+        if current_user.get("anthropic_api_key"):
+            ai_providers.append({"name": "anthropic", "model": "claude-3-5-sonnet", "available": True})
+        
+        return {
+            'status': 'success',
+            'revolutionary_analysis': {
+                'completed': has_revolutionary_analysis,
+                'analysis_date': analysis_date,
+                'career_strategy': career_strategy,
+                'total_recommendations': total_recommendations
+            },
+            'ai_providers': ai_providers,
+            'features_available': {
+                'revolutionary_analysis': len(ai_providers) > 0,
+                'instant_job_analysis': len(ai_providers) > 0,
+                'perfect_cover_letters': len(ai_providers) > 0,
+                'batch_analysis': len(ai_providers) > 0
+            },
+            'system_status': 'revolutionary' if len(ai_providers) > 0 else 'basic'
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get revolutionary status: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка получения статуса: {str(e)}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
