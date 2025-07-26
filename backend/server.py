@@ -33,8 +33,8 @@ from llm_manager import llm_manager
 from modern_llm_manager import modern_llm_manager
 
 # Initialize Advanced AI Recruiter
-from advanced_ai_recruiter import AdvancedAIRecruiter
-advanced_ai_recruiter = AdvancedAIRecruiter(db)
+from perfect_ai_recruiter import AdvancedAIRecruiter
+perfect_ai_recruiter = AdvancedAIRecruiter(db)
 from telegram_service import telegram_service
 from telegram_auth_service import telegram_auth_service
 from text_formatter import format_analysis_text, create_super_wow_analysis_prompt
@@ -2716,7 +2716,7 @@ async def start_ai_recruiter(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Start AI recruiter conversation using Advanced AI Recruiter
-        result = await advanced_ai_recruiter.start_conversation(
+        result = await perfect_ai_recruiter.start_conversation(
             user_id=current_user['id'],
             user_language=request.user_language,
             user_providers=user_providers if user_providers else None
@@ -2749,7 +2749,7 @@ async def continue_ai_recruiter(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Continue conversation using Advanced AI Recruiter
-        result = await advanced_ai_recruiter.continue_conversation(
+        result = await perfect_ai_recruiter.continue_conversation(
             user_id=current_user['id'],
             user_message=request.user_message,
             user_providers=user_providers if user_providers else None
@@ -2807,7 +2807,7 @@ async def analyze_job_compatibility(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Analyze compatibility using Advanced AI Recruiter
-        result = await advanced_ai_recruiter.analyze_job_compatibility(
+        result = await perfect_ai_recruiter.analyze_job_compatibility(
             user_id=current_user['id'],
             job_data=request.job_data,
             user_providers=user_providers if user_providers else None
@@ -2842,7 +2842,7 @@ async def translate_job(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Translate job using Advanced AI Recruiter
-        result = await advanced_ai_recruiter.translate_job(
+        result = await perfect_ai_recruiter.translate_job(
             job_data=request.job_data,
             target_language=request.target_language,
             user_providers=user_providers if user_providers else None
@@ -2915,7 +2915,7 @@ async def get_ai_job_recommendations(
             user_providers.append(("anthropic", "claude-3-haiku-20240307", current_user["anthropic_api_key"]))
         
         # Get recommendations using Advanced AI Recruiter
-        result = await advanced_ai_recruiter.get_job_recommendations(
+        result = await perfect_ai_recruiter.get_job_recommendations(
             user_id=current_user['id'],
             user_providers=user_providers if user_providers else None
         )
