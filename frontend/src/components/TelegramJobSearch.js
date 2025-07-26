@@ -762,54 +762,201 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
         }
     };
 
-    const renderJobCard = (job) => (
-        <div key={job.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-3">
-            <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 text-sm mb-1">{job.title}</h3>
-                    <div className="flex items-center text-xs text-gray-600 mb-2">
-                        <Building2 className="h-3 w-3 mr-1" />
-                        <span className="mr-3">{job.company_name}</span>
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span>{job.location}</span>
+    // AI Analysis State
+    const [jobAnalyses, setJobAnalyses] = useState({});
+    const [analyzingJobs, setAnalyzingJobs] = useState(new Set());
+
+    const analyzeJobInstantly = async (job, index) => {
+        const jobKey = `${job.title}-${job.company_name}`;
+        
+        if (analyzingJobs.has(jobKey)) return;
+        
+        setAnalyzingJobs(prev => new Set([...prev, jobKey]));
+        
+        try {
+            hapticFeedback('impact', 'light');
+            
+            const response = await fetch(`${backendUrl}/api/instant-job-analysis`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    job_data: job,
+                    analysis_type: 'compatibility'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'success') {
+                setJobAnalyses(prev => ({
+                    ...prev,
+                    [jobKey]: data.analysis
+                }));
+                hapticFeedback('notification', 'success');
+            } else {
+                console.error('Job analysis failed:', data.message);
+            }
+        } catch (error) {
+            console.error('Error analyzing job:', error);
+        } finally {
+            setAnalyzingJobs(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(jobKey);
+                return newSet;
+            });
+        }
+    };
+
+    const renderJobCard = (job, index) => {
+        const jobKey = `${job.title}-${job.company_name}`;
+        const analysis = jobAnalyses[jobKey];
+        const isAnalyzing = analyzingJobs.has(jobKey);
+        
+        return (
+            <div key={job.id || index} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-3">
+                <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-1">{job.title}</h3>
+                        <div className="flex items-center text-xs text-gray-600 mb-2">
+                            <Building2 className="h-3 w-3 mr-1" />
+                            <span className="mr-3">{job.company_name}</span>
+                            <MapPin className="h-3 w-3 mr-1" />
+                            <span>{job.location}</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        {job.remote && (
+                            <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                Remote
+                            </div>
+                        )}
+                        {analysis?.compatibility_score && (
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                analysis.compatibility_score >= 80 ? 'bg-green-100 text-green-800' :
+                                analysis.compatibility_score >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                            }`}>
+                                {analysis.compatibility_score}% совпадение
+                            </div>
+                        )}
                     </div>
                 </div>
-                {job.remote && (
-                    <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                        Remote
+
+                {/* AI Analysis Results */}
+                {analysis && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                        <div className="flex items-start">
+                            <Brain className="h-4 w-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                                <div className="text-xs font-medium text-blue-800 mb-1">AI Анализ:</div>
+                                
+                                {/* Key Strengths */}
+                                {analysis.key_strengths && analysis.key_strengths.length > 0 && (
+                                    <div className="mb-2">
+                                        <div className="text-xs text-green-700 font-medium">✅ Ваши плюсы:</div>
+                                        <div className="text-xs text-green-600">
+                                            {analysis.key_strengths.slice(0, 2).join(', ')}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Main Weaknesses */}
+                                {analysis.main_weaknesses && analysis.main_weaknesses.length > 0 && (
+                                    <div className="mb-2">
+                                        <div className="text-xs text-orange-700 font-medium">⚠️ Стоит подтянуть:</div>
+                                        <div className="text-xs text-orange-600">
+                                            {analysis.main_weaknesses[0]}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Recommendation */}
+                                {analysis.recommendation && (
+                                    <div className="text-xs text-blue-700">
+                                        <span className="font-medium">💡 Совет: </span>
+                                        {analysis.recommendation.length > 80 ? 
+                                            `${analysis.recommendation.substring(0, 80)}...` : 
+                                            analysis.recommendation
+                                        }
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
-            </div>
 
-            <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-xs">
-                    {job.visa_sponsorship && (
-                        <div className="flex items-center text-blue-600">
-                            <Globe className="h-3 w-3 mr-1" />
-                            <span>Visa</span>
-                        </div>
-                    )}
-                    {job.estimated_salary && (
-                        <div className="flex items-center text-green-600">
-                            <Euro className="h-3 w-3 mr-1" />
-                            <span>{job.estimated_salary.min_salary}k-{job.estimated_salary.max_salary}k</span>
-                        </div>
-                    )}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 text-xs">
+                        {job.visa_sponsorship && (
+                            <div className="flex items-center text-blue-600">
+                                <Globe className="h-3 w-3 mr-1" />
+                                <span>Visa</span>
+                            </div>
+                        )}
+                        {job.estimated_salary && (
+                            <div className="flex items-center text-green-600">
+                                <Euro className="h-3 w-3 mr-1" />
+                                <span>{job.estimated_salary.min_salary}k-{job.estimated_salary.max_salary}k</span>
+                            </div>
+                        )}
+                        {job.salary && (
+                            <div className="flex items-center text-green-600">
+                                <Euro className="h-3 w-3 mr-1" />
+                                <span>{job.salary}</span>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                        {/* AI Analysis Button */}
+                        <button
+                            onClick={() => analyzeJobInstantly(job, index)}
+                            disabled={isAnalyzing || !!analysis}
+                            className={`flex items-center px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                analysis 
+                                    ? 'bg-green-100 text-green-700 cursor-default'
+                                    : isAnalyzing 
+                                        ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                                        : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                            }`}
+                        >
+                            {isAnalyzing ? (
+                                <>
+                                    <div className="animate-spin h-3 w-3 border border-purple-600 border-t-transparent rounded-full mr-1"></div>
+                                    AI...
+                                </>
+                            ) : analysis ? (
+                                <>
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Проанализировано
+                                </>
+                            ) : (
+                                <>
+                                    <Brain className="h-3 w-3 mr-1" />
+                                    AI Анализ
+                                </>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                if (isTelegramWebApp()) {
+                                    telegramWebApp.openLink(job.url || job.external_url || '#');
+                                }
+                            }}
+                            className="text-blue-600 text-xs font-medium hover:text-blue-700 flex items-center"
+                        >
+                            Подробнее
+                            <ArrowRight className="h-3 w-3 ml-1" />
+                        </button>
+                    </div>
                 </div>
-                
-                <button
-                    onClick={() => {
-                        if (isTelegramWebApp()) {
-                            telegramWebApp.openLink(job.url || '#');
-                        }
-                    }}
-                    className="text-blue-600 text-xs font-medium hover:text-blue-700"
-                >
-                    Подробнее →
-                </button>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderMainView = () => (
         <div className="space-y-6">
