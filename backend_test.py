@@ -7473,13 +7473,13 @@ if __name__ == "__main__":
             )
 
 async def main():
-    """🎯 ГЛАВНАЯ ФУНКЦИЯ: Тестирование исправленной функциональности Job Search и Cities Search в Telegram Mini App"""
-    print("🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Job Search и Cities Search функциональность в Telegram Mini App")
+    """🎯 ГЛАВНАЯ ФУНКЦИЯ: Тестирование Revolutionary AI Recruiter endpoints в Telegram Mini App"""
+    print("🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Revolutionary AI Recruiter endpoints в Telegram Mini App")
     print("=" * 100)
     
     async with BackendTester() as tester:
-        # Run the comprehensive Telegram Mini App tests
-        await tester.run_telegram_mini_app_tests()
+        # Run the Revolutionary AI Recruiter tests
+        await tester.run_all_tests()
         
         # Print summary
         print("\n" + "=" * 100)
