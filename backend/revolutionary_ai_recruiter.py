@@ -552,6 +552,162 @@ Structure your response in JSON format.
             logger.error(f"Cover letter creation failed: {e}")
             return self._create_demo_cover_letter(job_data, profile, style)
     
+    def _create_cover_letter_prompt(self, job_data: Dict[str, Any], profile: Dict[str, Any], revolutionary_analysis: Dict[str, Any], style: str) -> str:
+        """Создание промпта для идеального сопроводительного письма"""
+        
+        job_info = f"""
+Должность: {job_data.get('title', 'Unknown')}
+Компания: {job_data.get('company_name', 'Unknown')}
+Описание: {job_data.get('description', 'No description')[:400]}...
+Требования: {job_data.get('requirements', 'No requirements')}
+Зарплата: {job_data.get('salary', 'Not specified')}
+Локация: {job_data.get('location', 'Unknown')}
+"""
+        
+        user_data = profile.get('collected_data', {})
+        analysis_data = json.dumps(revolutionary_analysis, ensure_ascii=False, indent=2) if revolutionary_analysis else "Нет данных анализа"
+        
+        style_instructions = {
+            'professional': 'Строго деловой стиль, формальный тон, подчеркивание профессиональных достижений',
+            'creative': 'Креативный подход, живой язык, подчеркивание уникальности и инновационности',
+            'technical': 'Технический стиль, фокус на навыках и технологиях, использование профессиональной терминологии',
+            'friendly': 'Дружелюбный тон, личностный подход, подчеркивание командной работы и культурного соответствия'
+        }
+        
+        return f"""
+Ты эксперт по написанию сопроводительных писем с 15-летним опытом в HR.
+
+Создай ИДЕАЛЬНОЕ сопроводительное письмо в стиле "{style}".
+
+ВАКАНСИЯ:
+{job_info}
+
+ПРОФИЛЬ КАНДИДАТА:
+Профессия: {user_data.get('profession', 'Unknown')}
+Опыт: {user_data.get('experience_years', 'Unknown')} лет
+Навыки: {', '.join(user_data.get('technical_skills', ['Not specified']))}
+Немецкий: {user_data.get('german_level', 'Unknown')}
+Образование: {user_data.get('has_education', 'Unknown')}
+Предпочтения: {user_data.get('work_format', 'Unknown')}
+
+РЕВОЛЮЦИОННЫЙ АНАЛИЗ:
+{analysis_data}
+
+СТИЛЬ ПИСЬМА: {style_instructions.get(style, 'Professional approach')}
+
+Создай письмо которое:
+
+1. ЗАГОЛОВОК: Цепляющая тема письма
+2. ПРИВЕТСТВИЕ: Персональное обращение к HR/нанимающему менеджеру
+3. ВСТУПЛЕНИЕ (1 абзац): 
+   - Конкретная позиция и где нашел вакансию
+   - Краткое, но мощное заявление о соответствии
+4. ОСНОВНАЯ ЧАСТЬ (2-3 абзаца):
+   - Конкретные примеры релевантного опыта
+   - Как навыки решат проблемы компании
+   - Уникальные преимущества кандидата
+5. МОТИВАЦИЯ (1 абзац):
+   - Почему именно эта компания
+   - Что привлекает в позиции
+   - Какой вклад может внести
+6. ЗАКЛЮЧЕНИЕ:
+   - Call-to-action на интервью
+   - Профессиональное закрытие
+
+ТРЕБОВАНИЯ:
+- Максимум 350 слов
+- Конкретные факты, НЕ общие фразы
+- Подчеркнуть 2-3 ключевых совпадения с требованиями
+- Показать знание компании (если возможно)
+- Уверенный, но не навязчивый тон
+
+Ответ в формате JSON со структурированными полями.
+"""
+    
+    def _parse_perfect_cover_letter(self, ai_letter: str, job_data: Dict[str, Any], style: str) -> Dict[str, Any]:
+        """Парсинг идеального сопроводительного письма"""
+        
+        try:
+            # Пытаемся извлечь JSON
+            if '{' in ai_letter and '}' in ai_letter:
+                json_start = ai_letter.find('{')
+                json_end = ai_letter.rfind('}') + 1
+                json_str = ai_letter[json_start:json_end]
+                parsed = json.loads(json_str)
+                
+                # Добавляем метаданные
+                parsed['style'] = style
+                parsed['job_title'] = job_data.get('title', 'Unknown')
+                parsed['company'] = job_data.get('company_name', 'Unknown')
+                parsed['personalization_score'] = self._calculate_personalization_score(parsed)
+                parsed['generated_at'] = datetime.now().isoformat()
+                
+                return parsed
+        except:
+            pass
+        
+        # Fallback структурирование
+        return {
+            'subject': f"Заявка на позицию {job_data.get('title', 'Unknown')}",
+            'greeting': f"Уважаемый HR-менеджер {job_data.get('company_name', 'компании')}!",
+            'body': ai_letter if len(ai_letter) < 1000 else ai_letter[:1000] + '...',
+            'closing': 'С уважением,\n[Ваше имя]',
+            'full_text': ai_letter,
+            'word_count': len(ai_letter.split()),
+            'style': style,
+            'personalization_score': 75,
+            'generated_at': datetime.now().isoformat()
+        }
+    
+    def _calculate_personalization_score(self, letter_data: Dict[str, Any]) -> int:
+        """Расчет балла персонализации письма"""
+        score = 50  # Базовый балл
+        
+        # Проверяем наличие ключевых элементов
+        if letter_data.get('subject') and 'позиция' in letter_data['subject'].lower():
+            score += 10
+        
+        if letter_data.get('body'):
+            body = letter_data['body'].lower()
+            if 'компания' in body or 'организация' in body:
+                score += 10
+            if any(skill in body for skill in ['опыт', 'навык', 'умение', 'знание']):
+                score += 10
+            if 'интервью' in body or 'встреча' in body:
+                score += 10
+            if len(body.split()) >= 200:  # Достаточная длина
+                score += 10
+        
+        return min(score, 100)
+    
+    def _create_demo_cover_letter(self, job_data: Dict[str, Any], profile: Dict[str, Any], style: str) -> Dict[str, Any]:
+        """Создание демо сопроводительного письма"""
+        
+        job_title = job_data.get('title', 'Специалист')
+        company = job_data.get('company_name', 'Компания')
+        user_data = profile.get('collected_data', {})
+        profession = user_data.get('profession', 'специалист')
+        
+        demo_body = f"""Меня заинтересовала вакансия {job_title} в {company}.
+
+Мой опыт работы в качестве {profession} и знание современных технологий позволят мне эффективно решать задачи на этой позиции. Я обладаю необходимыми навыками и готов внести значительный вклад в развитие вашей команды.
+
+{company} привлекает меня как инновативная компания с отличной репутацией. Я был бы рад обсудить мою кандидатуру более подробно на собеседовании.
+
+Готов приступить к работе в ближайшее время и с нетерпением жду вашего ответа."""
+        
+        return {
+            'subject': f'Заявка на позицию {job_title}',
+            'greeting': f'Уважаемые представители {company}!',
+            'body': demo_body,
+            'closing': 'С уважением,\n[Ваше имя]',
+            'full_text': f'Уважаемые представители {company}!\n\n{demo_body}\n\nС уважением,\n[Ваше имя]',
+            'word_count': len(demo_body.split()),
+            'style': style,
+            'personalization_score': 80,
+            'generated_at': datetime.now().isoformat(),
+            'demo_mode': True
+        }
     # =====================================================
     # ДЕМО И ПАРСИНГ МЕТОДЫ
     # =====================================================
