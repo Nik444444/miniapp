@@ -1393,6 +1393,74 @@ class BackendTester:
                 data
             )
     
+    async def test_revolutionary_ai_recruiter_endpoints(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Revolutionary AI Recruiter Endpoints"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Revolutionary AI Recruiter Endpoints ===")
+        
+        # Test Revolutionary AI Recruiter endpoints without authentication - should fail
+        revolutionary_endpoints = [
+            ("GET", "/api/revolutionary-status", "Revolutionary Status Check"),
+            ("POST", "/api/revolutionary-analysis", "Revolutionary Analysis"),
+            ("POST", "/api/instant-job-analysis", "Instant Job Analysis"),
+            ("POST", "/api/perfect-cover-letter", "Perfect Cover Letter Generation")
+        ]
+        
+        for method, endpoint, description in revolutionary_endpoints:
+            if method == "POST":
+                # Send appropriate test data for each POST endpoint
+                if "revolutionary-analysis" in endpoint:
+                    test_data = {"analysis_depth": "full", "focus_areas": ["skills", "market"]}
+                elif "instant-job-analysis" in endpoint:
+                    test_data = {
+                        "job_data": {"title": "Software Developer", "company": "Test Company"},
+                        "analysis_type": "compatibility"
+                    }
+                elif "perfect-cover-letter" in endpoint:
+                    test_data = {
+                        "job_data": {"title": "Software Developer", "company": "Test Company"},
+                        "style": "professional"
+                    }
+                else:
+                    test_data = {}
+                
+                success, data, error = await self.make_request(method, endpoint, json=test_data)
+            else:
+                success, data, error = await self.make_request(method, endpoint)
+            
+            # Should fail with 401 or 403 (authentication required)
+            is_auth_required = not success and ("401" in str(error) or "403" in str(error) or (isinstance(data, dict) and ("Not authenticated" in str(data.get("detail", "")))))
+            
+            self.log_test_result(
+                f"🎯 {method} {endpoint} - {description} (requires auth)",
+                is_auth_required,
+                f"Correctly requires authentication" if is_auth_required else f"Authentication bypass detected: {error}",
+                data
+            )
+        
+        # Test that endpoints without /api prefix return 404
+        endpoints_without_api = [
+            ("GET", "/revolutionary-status"),
+            ("POST", "/revolutionary-analysis"),
+            ("POST", "/instant-job-analysis"),
+            ("POST", "/perfect-cover-letter")
+        ]
+        
+        for method, endpoint in endpoints_without_api:
+            if method == "POST":
+                test_data = {"test": "data"}
+                success, data, error = await self.make_request(method, endpoint, json=test_data)
+            else:
+                success, data, error = await self.make_request(method, endpoint)
+            
+            # Should return 404 (not found) - endpoints should only work with /api prefix
+            is_404 = not success and ("404" in str(error) or (isinstance(data, dict) and "404" in str(data)))
+            
+            self.log_test_result(
+                f"🎯 {method} {endpoint} - Without /api prefix (should be 404)",
+                is_404,
+                f"Correctly returns 404 without /api prefix" if is_404 else f"Unexpected response: {error}",
+                data
+            )
     async def test_job_analysis_endpoints(self):
         """🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Analysis AI Endpoints"""
         logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Job Analysis AI Endpoints ===")
