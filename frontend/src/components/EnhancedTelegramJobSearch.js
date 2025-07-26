@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import AIJobAssistant from './AIJobAssistant';
-import RevolutionaryAIRecruiter from './RevolutionaryAIRecruiter';
+import PerfectAIRecruiter from './PerfectAIRecruiter';
 import { 
     Briefcase, Search, MapPin, Filter, Bell, Star, 
     Zap, Globe, CheckCircle, AlertCircle, Clock,
