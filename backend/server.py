@@ -332,7 +332,7 @@ class JobTranslationRequest(BaseModel):
     target_language: str = "ru"
 
 class CoverLetterGenerationRequest(BaseModel):
-    job_id: str
+    job_id: Optional[str] = None
     job_data: Dict[str, Any]
     user_profile_id: Optional[str] = None
 
