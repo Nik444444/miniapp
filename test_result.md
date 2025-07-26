@@ -336,14 +336,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "🎯 КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Устранение ошибок Telegram Mini App Job Search"
+    - "🎯 КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Ошибка deployмента emergentintegrations и AI рекрутер в Telegram Mini App"
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
 
 agent_communication:
   - agent: "main"
-    message: "🎯 КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ TELEGRAM MINI APP ВЫПОЛНЕНЫ: Исправлен backend URL с preview.emergentagent.com на miniapp-wvsxfa.fly.dev, улучшена обработка ошибок для предотвращения показа pattern matching errors пользователю, исправлено кодирование немецких символов, добавлена защита от проблематичных API сообщений. Требуется тестирование для подтверждения что ошибки 'Обнаружена проблема с поиском' и 'Ошибка поиска городов' больше не появляются."
+    message: "🎯 КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ TELEGRAM MINI APP ВЫПОЛНЕНЫ: 1) ✅ DEPLOYMENT ИСПРАВЛЕН: Убран emergentintegrations из requirements.txt, так как он уже установлен в Dockerfile через --extra-index-url. Протестировано - pip install теперь работает без ошибок. 2) ✅ AI RECRUITER ENDPOINTS ИСПРАВЛЕНЫ: Добавлены отсутствующие /api префиксы в 5 API calls в AIJobAssistant.js (/job-compatibility, /translate-job, /generate-cover-letter, /ai-job-recommendations, /telegram-notifications/send → /api/*). 3) ✅ ВСЕ ENDPOINTS ПРОТЕСТИРОВАНЫ: Backend endpoints работают корректно с аутентификацией. Frontend перезапущен. Требуется backend тестирование для подтверждения что deployment и AI recruiter функции теперь работают корректно."
   - agent: "testing"
     message: "🎯 JOB SEARCH TESTING UPDATE (65.4% success, 17/26 tests): ✅ MAJOR CRITICAL FIXES CONFIRMED: 1) ✅ POST /api/job-search authentication issue RESOLVED - now works without 403 errors 2) ✅ German Language Level Filtering (A1-C2) FULLY WORKING - all levels work without authentication (100% success) 3) ✅ Authentication requirements correctly configured - basic endpoints public, protected endpoints secure ❌ REMAINING ISSUES: 1) ❌ Arbeitnow.com integration not returning job data - endpoints return 0 jobs instead of real data 2) ❌ GET /api/job-search-status missing integration info - arbeitnow_integration and service fields are None 3) ❌ Response structure incomplete - missing total_found, applied_filters fields ✅ CRITICAL SUCCESS: The main authentication problems have been SOLVED. System significantly improved from previous 403 error state. German language filtering works perfectly."
   - agent: "testing"
