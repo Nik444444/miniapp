@@ -327,7 +327,7 @@ class JobCompatibilityRequest(BaseModel):
     user_profile_id: Optional[str] = None
 
 class JobTranslationRequest(BaseModel):
-    job_id: str
+    job_id: Optional[str] = None
     job_data: Dict[str, Any]
     target_language: str = "ru"
 
