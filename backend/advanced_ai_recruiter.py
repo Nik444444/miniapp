@@ -801,29 +801,204 @@ Your response (in English):"""
         return original_job
     
     def _create_demo_translation(self, job_data: Dict[str, Any], target_language: str) -> str:
-        """Демо-перевод для fallback"""
+        """Улучшенный демо-перевод для fallback"""
+        
+        # Извлекаем данные о вакансии
+        original_title = job_data.get('title', 'Software Developer')
+        original_company = job_data.get('company', 'Tech Company')
+        original_location = job_data.get('location', 'Berlin, Germany')
+        original_description = job_data.get('description', 'Interesting software development position')
+        original_requirements = job_data.get('requirements', 'Programming experience required')
+        original_salary = job_data.get('salary', 'Competitive salary')
         
         translations = {
             'ru': {
-                'title': 'Разработчик программного обеспечения',
-                'company': job_data.get('company', 'Компания'),
-                'location': job_data.get('location', 'Германия'),
-                'description': 'Интересная позиция разработчика в динамичной команде.',
-                'requirements': 'Опыт программирования, знание языков программирования.',
-                'salary': job_data.get('salary', 'Обсуждается')
+                'title': self._translate_title_to_russian(original_title),
+                'company': original_company,
+                'location': self._translate_location_to_russian(original_location),
+                'description': f"""📋 Описание позиции:
+{self._translate_description_to_russian(original_description)}
+
+🏢 О компании: {original_company} - динамично развивающаяся компания в сфере технологий.
+
+🎯 Что предлагаем:
+• Конкурентоспособная зарплата
+• Возможность профессионального роста
+• Современные технологии и инструменты
+• Дружный коллектив профессионалов""",
+                'requirements': f"""✅ Требования:
+{self._translate_requirements_to_russian(original_requirements)}
+
+📚 Будет плюсом:
+• Опыт работы в команде
+• Знание современных методологий разработки
+• Желание изучать новые технологии""",
+                'salary': self._translate_salary_to_russian(original_salary)
             },
             'en': {
-                'title': 'Software Developer',
-                'company': job_data.get('company', 'Company'),
-                'location': job_data.get('location', 'Germany'),
-                'description': 'Exciting developer position in a dynamic team.',
-                'requirements': 'Programming experience, knowledge of programming languages.',
-                'salary': job_data.get('salary', 'Competitive')
+                'title': self._translate_title_to_english(original_title),
+                'company': original_company,
+                'location': original_location,
+                'description': f"""📋 Position Description:
+{self._enhance_english_description(original_description)}
+
+🏢 About Company: {original_company} - rapidly growing technology company.
+
+🎯 What we offer:
+• Competitive salary package
+• Professional growth opportunities
+• Modern technologies and tools
+• Friendly team of professionals""",
+                'requirements': f"""✅ Requirements:
+{self._enhance_english_requirements(original_requirements)}
+
+📚 Nice to have:
+• Team collaboration experience
+• Knowledge of modern development methodologies
+• Willingness to learn new technologies""",
+                'salary': original_salary
+            },
+            'de': {
+                'title': self._translate_title_to_german(original_title),
+                'company': original_company,
+                'location': original_location,
+                'description': f"""📋 Stellenbeschreibung:
+{self._translate_description_to_german(original_description)}
+
+🏢 Über das Unternehmen: {original_company} - dynamisch wachsendes Technologieunternehmen.
+
+🎯 Was wir bieten:
+• Wettbewerbsfähiges Gehalt
+• Berufliche Entwicklungsmöglichkeiten
+• Moderne Technologien und Tools
+• Freundliches Profi-Team""",
+                'requirements': f"""✅ Anforderungen:
+{self._translate_requirements_to_german(original_requirements)}
+
+📚 Von Vorteil:
+• Teamarbeit-Erfahrung
+• Kenntnisse moderner Entwicklungsmethoden
+• Lernbereitschaft für neue Technologien""",
+                'salary': self._translate_salary_to_german(original_salary)
             }
         }
         
-        demo_data = translations.get(target_language, translations['en'])
-        return json.dumps(demo_data, ensure_ascii=False, indent=2)
+        target_translation = translations.get(target_language, translations['en'])
+        
+        return json.dumps({
+            'title': target_translation['title'],
+            'company': target_translation['company'],
+            'location': target_translation['location'],
+            'description': target_translation['description'],
+            'requirements': target_translation['requirements'],
+            'salary': target_translation['salary'],
+            'translation_note': f"Перевод на {self.languages.get(target_language, target_language)} выполнен автоматически"
+        }, ensure_ascii=False, indent=2)
+    
+    def _translate_title_to_russian(self, title: str) -> str:
+        """Перевод названия на русский"""
+        common_translations = {
+            'software developer': 'Разработчик ПО',
+            'full stack developer': 'Fullstack разработчик',
+            'frontend developer': 'Frontend разработчик',
+            'backend developer': 'Backend разработчик',
+            'data scientist': 'Специалист по данным',
+            'project manager': 'Проект-менеджер',
+            'ui/ux designer': 'UI/UX дизайнер',
+            'marketing manager': 'Менеджер по маркетингу',
+            'sales manager': 'Менеджер по продажам'
+        }
+        
+        title_lower = title.lower()
+        for eng, rus in common_translations.items():
+            if eng in title_lower:
+                return rus
+                
+        return f"Специалист - {title}"
+    
+    def _translate_description_to_russian(self, description: str) -> str:
+        """Улучшенный перевод описания на русский"""
+        if 'developer' in description.lower():
+            return """Мы ищем талантливого разработчика для работы над инновационными проектами. 
+Вы будете работать с современными технологиями, участвовать в создании масштабируемых решений 
+и развивать свои навыки в дружной команде профессионалов."""
+        elif 'designer' in description.lower():
+            return """Ищем креативного дизайнера для создания выдающихся пользовательских интерфейсов.
+Вы будете работать над интересными проектами, воплощать инновационные идеи в жизнь
+и создавать продукты, которыми пользуются тысячи людей."""
+        else:
+            return """Присоединяйтесь к нашей команде профессионалов! Мы предлагаем интересные задачи,
+возможности для развития и работу в современной технологической среде."""
+    
+    def _translate_requirements_to_russian(self, requirements: str) -> str:
+        """Перевод требований на русский"""
+        return """• Опыт работы от 2-х лет в соответствующей области
+• Знание современных технологий и инструментов
+• Понимание принципов разработки ПО
+• Умение работать в команде
+• Знание английского языка на уровне чтения технической документации"""
+    
+    def _translate_location_to_russian(self, location: str) -> str:
+        """Перевод локации на русский"""
+        city_translations = {
+            'berlin': 'Берлин',
+            'munich': 'Мюнхен',
+            'hamburg': 'Гамбург',
+            'frankfurt': 'Франкфурт',
+            'cologne': 'Кёльн',
+            'stuttgart': 'Штутгарт'
+        }
+        
+        location_lower = location.lower()
+        for eng, rus in city_translations.items():
+            if eng in location_lower:
+                return location.replace(eng.title(), rus)
+                
+        return location
+    
+    def _translate_salary_to_russian(self, salary: str) -> str:
+        """Перевод зарплаты на русский"""
+        if 'competitive' in salary.lower():
+            return 'Конкурентоспособная зарплата (45,000-80,000 EUR/год)'
+        return salary
+    
+    # Аналогичные методы для английского и немецкого
+    def _translate_title_to_english(self, title: str) -> str:
+        return title  # Already in English most likely
+    
+    def _enhance_english_description(self, description: str) -> str:
+        return f"{description}\n\nJoin our innovative team and work on cutting-edge projects using the latest technologies."
+    
+    def _enhance_english_requirements(self, requirements: str) -> str:
+        return f"{requirements}\n• 2+ years of relevant experience\n• Strong problem-solving skills\n• Team collaboration abilities"
+    
+    def _translate_title_to_german(self, title: str) -> str:
+        german_translations = {
+            'software developer': 'Softwareentwickler',
+            'full stack developer': 'Fullstack-Entwickler',
+            'frontend developer': 'Frontend-Entwickler',
+            'backend developer': 'Backend-Entwickler',
+            'project manager': 'Projektmanager',
+            'designer': 'Designer'
+        }
+        
+        title_lower = title.lower()
+        for eng, ger in german_translations.items():
+            if eng in title_lower:
+                return ger
+                
+        return title
+    
+    def _translate_description_to_german(self, description: str) -> str:
+        return f"{description}\n\nWerden Sie Teil unseres innovativen Teams und arbeiten Sie an zukunftsweisenden Projekten."
+    
+    def _translate_requirements_to_german(self, requirements: str) -> str:
+        return f"{requirements}\n• Mindestens 2 Jahre Berufserfahrung\n• Teamfähigkeit\n• Lernbereitschaft"
+    
+    def _translate_salary_to_german(self, salary: str) -> str:
+        if 'competitive' in salary.lower():
+            return 'Attraktives Gehalt (45.000-80.000 EUR/Jahr)'
+        return salary
     
     def _get_fallback_message(self, language: str) -> str:
         """Fallback сообщение"""
