@@ -382,7 +382,7 @@ const AIJobAssistant = ({ onBack, initialJob = null }) => {
         setLoading(true);
         
         try {
-            const response = await fetch(`${backendUrl}/telegram-notifications/send`, {
+            const response = await fetch(`${backendUrl}/api/telegram-notifications/send`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
