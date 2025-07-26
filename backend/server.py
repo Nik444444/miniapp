@@ -32,7 +32,7 @@ from database import db
 from llm_manager import llm_manager
 from modern_llm_manager import modern_llm_manager
 
-# Initialize Advanced AI Recruiter
+# Initialize Perfect AI Recruiter
 from perfect_ai_recruiter import AdvancedAIRecruiter
 perfect_ai_recruiter = get_perfect_ai_recruiter(db)
 from telegram_service import telegram_service
