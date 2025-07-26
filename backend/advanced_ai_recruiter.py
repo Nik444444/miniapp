@@ -682,51 +682,313 @@ Your response (in English):"""
                                    profile: Dict[str, Any],
                                    job: Dict[str, Any],
                                    user_providers: List[Tuple[str, str, str]] = None) -> Dict[str, Any]:
-        """Анализ совместимости с вакансией"""
+        """Улучшенный анализ совместимости с вакансией"""
         
         collected_data = profile.get('collected_data', {})
         
-        # Базовая совместимость
-        score = 50
-        reasons = []
+        # Более детальная система оценки
+        analysis = {
+            'score': 0,
+            'max_score': 100,
+            'categories': {},
+            'strengths': [],
+            'concerns': [],
+            'recommendations': [],
+            'summary': ''
+        }
         
-        # Проверка города
+        # 1. Анализ локации (25 баллов)
+        location_score = self._analyze_location_match(job, collected_data)
+        analysis['categories']['location'] = location_score
+        analysis['score'] += location_score['score']
+        
+        # 2. Анализ профессии/навыков (30 баллов)
+        skills_score = self._analyze_skills_match(job, collected_data)
+        analysis['categories']['skills'] = skills_score
+        analysis['score'] += skills_score['score']
+        
+        # 3. Анализ требований по языку (20 баллов)
+        language_score = self._analyze_language_requirements(job, collected_data)
+        analysis['categories']['language'] = language_score
+        analysis['score'] += language_score['score']
+        
+        # 4. Анализ опыта работы (15 баллов)
+        experience_score = self._analyze_experience_match(job, collected_data)
+        analysis['categories']['experience'] = experience_score
+        analysis['score'] += experience_score['score']
+        
+        # 5. Анализ предпочтений (10 баллов)
+        preferences_score = self._analyze_preferences_match(job, collected_data)
+        analysis['categories']['preferences'] = preferences_score
+        analysis['score'] += preferences_score['score']
+        
+        # Собираем все insights
+        for category in analysis['categories'].values():
+            analysis['strengths'].extend(category.get('strengths', []))
+            analysis['concerns'].extend(category.get('concerns', []))
+            analysis['recommendations'].extend(category.get('recommendations', []))
+        
+        # Генерируем итоговое резюме
+        analysis['summary'] = self._generate_compatibility_summary(analysis['score'], analysis['strengths'], analysis['concerns'])
+        
+        # Определяем общую рекомендацию
+        if analysis['score'] >= 80:
+            analysis['overall_recommendation'] = 'excellent'
+            analysis['recommendation_text'] = '🎯 Отличное соответствие! Обязательно подавайте заявку.'
+        elif analysis['score'] >= 65:
+            analysis['overall_recommendation'] = 'good'
+            analysis['recommendation_text'] = '👍 Хорошее соответствие. Стоит попробовать!'
+        elif analysis['score'] >= 45:
+            analysis['overall_recommendation'] = 'moderate'
+            analysis['recommendation_text'] = '🤔 Частичное соответствие. Оцените свои шансы.'
+        else:
+            analysis['overall_recommendation'] = 'low'
+            analysis['recommendation_text'] = '📝 Низкое соответствие. Возможно, стоит поискать другие варианты.'
+        
+        return analysis
+    
+    def _analyze_location_match(self, job: Dict[str, Any], collected_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Анализ соответствия по локации"""
+        result = {'score': 0, 'max_score': 25, 'strengths': [], 'concerns': [], 'recommendations': []}
+        
         job_location = job.get('location', '').lower()
         preferred_city = collected_data.get('preferred_city', '').lower()
+        work_format = collected_data.get('work_format', '')
         
         if preferred_city and preferred_city in job_location:
-            score += 20
-            reasons.append(f"Вакансия в желаемом городе: {job_location}")
+            result['score'] = 25
+            result['strengths'].append(f"🎯 Вакансия в желаемом городе: {job_location.title()}")
+        elif 'remote' in job_location and work_format == 'remote':
+            result['score'] = 20
+            result['strengths'].append("🏠 Удаленная работа соответствует предпочтениям")
+        elif preferred_city:
+            # Проверяем близкие города
+            if self._are_cities_nearby(preferred_city, job_location):
+                result['score'] = 15
+                result['recommendations'].append(f"📍 Рассмотрите переезд: {job_location.title()} недалеко от {preferred_city.title()}")
+            else:
+                result['score'] = 5
+                result['concerns'].append(f"📍 Другой город: {job_location.title()} вместо {preferred_city.title()}")
+        else:
+            result['score'] = 10
+            result['recommendations'].append("📍 Укажите предпочтения по городу для лучшего поиска")
         
-        # Проверка профессии
+        return result
+    
+    def _analyze_skills_match(self, job: Dict[str, Any], collected_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Анализ соответствия навыков"""
+        result = {'score': 0, 'max_score': 30, 'strengths': [], 'concerns': [], 'recommendations': []}
+        
+        job_description = (job.get('description', '') + ' ' + job.get('requirements', '')).lower()
         job_title = job.get('title', '').lower()
+        
         profession = collected_data.get('profession', '').lower()
+        technical_skills = [skill.lower() for skill in collected_data.get('technical_skills', [])]
+        experience_years = collected_data.get('experience_years', 0)
         
+        # Проверка соответствия профессии
         if profession and profession in job_title:
-            score += 15
-            reasons.append(f"Соответствует профессии: {profession}")
+            result['score'] += 15
+            result['strengths'].append(f"💼 Точное соответствие профессии: {profession}")
+        elif profession and any(word in job_title for word in profession.split()):
+            result['score'] += 10
+            result['strengths'].append(f"💼 Частичное соответствие профессии: {profession}")
         
-        # Проверка навыков
-        job_description = job.get('description', '').lower()
-        technical_skills = collected_data.get('technical_skills', [])
-        
+        # Проверка технических навыков
         matching_skills = []
         for skill in technical_skills:
-            if skill.lower() in job_description:
+            if skill in job_description:
                 matching_skills.append(skill)
         
         if matching_skills:
-            score += len(matching_skills) * 5
-            reasons.append(f"Совпадают навыки: {', '.join(matching_skills)}")
+            skills_score = min(len(matching_skills) * 3, 15)
+            result['score'] += skills_score
+            result['strengths'].append(f"🛠 Совпадают навыки: {', '.join(matching_skills)}")
+        else:
+            result['concerns'].append("🛠 Не найдено явных совпадений по техническим навыкам")
+            result['recommendations'].append("📚 Изучите требования вакансии и подготовьте примеры использования нужных технологий")
         
-        # Ограничиваем максимальный балл
-        score = min(score, 100)
+        return result
+    
+    def _analyze_language_requirements(self, job: Dict[str, Any], collected_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Анализ языковых требований"""
+        result = {'score': 0, 'max_score': 20, 'strengths': [], 'concerns': [], 'recommendations': []}
         
-        return {
-            'score': score,
-            'reasons': reasons,
-            'analysis_date': datetime.now().isoformat()
+        job_text = (job.get('description', '') + ' ' + job.get('requirements', '')).lower()
+        user_german_level = collected_data.get('german_level', '')
+        
+        # Определяем требуемый уровень немецкого
+        required_level = self._extract_german_level_from_job(job_text)
+        
+        if user_german_level and required_level:
+            user_level_num = self._german_level_to_number(user_german_level)
+            required_level_num = self._german_level_to_number(required_level)
+            
+            if user_level_num >= required_level_num:
+                result['score'] = 20
+                result['strengths'].append(f"🇩🇪 Уровень немецкого {user_german_level} соответствует требованиям ({required_level})")
+            elif user_level_num >= required_level_num - 1:
+                result['score'] = 15
+                result['strengths'].append(f"🇩🇪 Уровень немецкого {user_german_level} близок к требованиям ({required_level})")
+                result['recommendations'].append("📖 Рассмотрите возможность повышения уровня немецкого")
+            else:
+                result['score'] = 5
+                result['concerns'].append(f"🇩🇪 Требуется {required_level}, у вас {user_german_level}")
+                result['recommendations'].append("📖 Необходимо значительно улучшить уровень немецкого языка")
+        else:
+            result['score'] = 10
+            if not user_german_level:
+                result['recommendations'].append("🇩🇪 Укажите ваш уровень немецкого языка")
+            else:
+                result['recommendations'].append("🇩🇪 В вакансии не указаны требования к немецкому языку")
+        
+        return result
+    
+    def _analyze_experience_match(self, job: Dict[str, Any], collected_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Анализ соответствия опыта"""
+        result = {'score': 0, 'max_score': 15, 'strengths': [], 'concerns': [], 'recommendations': []}
+        
+        job_text = (job.get('description', '') + ' ' + job.get('requirements', '')).lower()
+        user_experience = collected_data.get('experience_years', 0)
+        
+        # Извлекаем требуемый опыт из описания вакансии
+        required_experience = self._extract_experience_from_job(job_text)
+        
+        if required_experience is not None and user_experience > 0:
+            if user_experience >= required_experience:
+                result['score'] = 15
+                result['strengths'].append(f"⏱ Опыт {user_experience} лет соответствует требованиям ({required_experience}+ лет)")
+            elif user_experience >= required_experience - 1:
+                result['score'] = 10
+                result['strengths'].append(f"⏱ Опыт {user_experience} лет близок к требованиям ({required_experience}+ лет)")
+            else:
+                result['score'] = 5
+                result['concerns'].append(f"⏱ Требуется {required_experience}+ лет, у вас {user_experience} лет")
+                result['recommendations'].append("💼 Подчеркните в резюме все релевантные проекты и достижения")
+        else:
+            result['score'] = 8
+            if user_experience == 0:
+                result['recommendations'].append("⏱ Укажите ваш опыт работы для более точного анализа")
+            else:
+                result['recommendations'].append("⏱ В вакансии не указаны четкие требования к опыту")
+        
+        return result
+    
+    def _analyze_preferences_match(self, job: Dict[str, Any], collected_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Анализ соответствия предпочтений"""
+        result = {'score': 0, 'max_score': 10, 'strengths': [], 'concerns': [], 'recommendations': []}
+        
+        job_text = (job.get('description', '') + ' ' + job.get('requirements', '')).lower()
+        salary_expectations = collected_data.get('salary_expectations', '')
+        work_format = collected_data.get('work_format', '')
+        
+        # Анализ формата работы
+        if work_format == 'remote' and 'remote' in job_text:
+            result['score'] += 5
+            result['strengths'].append("🏠 Удаленная работа как предпочитаете")
+        elif work_format == 'office' and 'office' in job_text:
+            result['score'] += 5
+            result['strengths'].append("🏢 Офисная работа как предпочитаете")
+        elif work_format and work_format not in job_text:
+            result['concerns'].append(f"📍 Возможно, формат работы не соответствует предпочтениям ({work_format})")
+        
+        # Анализ зарплатных ожиданий (упрощенно)
+        if salary_expectations:
+            result['score'] += 3
+            result['strengths'].append("💰 Зарплатные ожидания учтены в анализе")
+        else:
+            result['score'] += 2
+            result['recommendations'].append("💰 Укажите зарплатные ожидания для лучшего подбора")
+        
+        return result
+    
+    def _are_cities_nearby(self, city1: str, city2: str) -> bool:
+        """Проверка близости городов"""
+        nearby_cities = {
+            'berlin': ['potsdam', 'brandenburg'],
+            'munich': ['münchen', 'augsburg'],
+            'hamburg': ['bremen', 'lübeck'],
+            'frankfurt': ['mainz', 'darmstadt', 'wiesbaden'],
+            'cologne': ['köln', 'düsseldorf', 'bonn'],
+            'stuttgart': ['karlsruhe', 'heilbronn']
         }
+        
+        for main_city, nearby in nearby_cities.items():
+            if (main_city in city1 and any(c in city2 for c in nearby)) or \
+               (main_city in city2 and any(c in city1 for c in nearby)):
+                return True
+        
+        return False
+    
+    def _extract_german_level_from_job(self, job_text: str) -> str:
+        """Извлечение требуемого уровня немецкого из описания"""
+        import re
+        
+        # Паттерны для поиска уровня немецкого
+        patterns = [
+            r'german.*?([abc][12])',
+            r'deutsch.*?([abc][12])',
+            r'([abc][12]).*german',
+            r'([abc][12]).*deutsch'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, job_text, re.IGNORECASE)
+            if match:
+                return match.group(1).upper()
+        
+        # Если не найдено, пытаемся определить по ключевым словам
+        if 'fluent german' in job_text or 'native german' in job_text:
+            return 'C1'
+        elif 'good german' in job_text or 'intermediate german' in job_text:
+            return 'B2'
+        elif 'basic german' in job_text:
+            return 'A2'
+        
+        return None
+    
+    def _german_level_to_number(self, level: str) -> int:
+        """Конвертация уровня немецкого в число для сравнения"""
+        level_map = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6}
+        return level_map.get(level.upper(), 0)
+    
+    def _extract_experience_from_job(self, job_text: str) -> int:
+        """Извлечение требуемого опыта из описания"""
+        import re
+        
+        # Паттерны для поиска опыта
+        patterns = [
+            r'(\d+)\+?\s*years?\s*(?:of\s*)?experience',
+            r'(\d+)\+?\s*jahre?\s*erfahrung',
+            r'experience.*?(\d+)\+?\s*years?',
+            r'minimum.*?(\d+)\+?\s*years?'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, job_text, re.IGNORECASE)
+            if match:
+                return int(match.group(1))
+        
+        return None
+    
+    def _generate_compatibility_summary(self, score: int, strengths: List[str], concerns: List[str]) -> str:
+        """Генерация итогового резюме совместимости"""
+        if score >= 80:
+            summary = f"🎯 Отличная совместимость ({score}/100)! "
+        elif score >= 65:
+            summary = f"👍 Хорошая совместимость ({score}/100). "
+        elif score >= 45:
+            summary = f"🤔 Умеренная совместимость ({score}/100). "
+        else:
+            summary = f"📝 Низкая совместимость ({score}/100). "
+        
+        if strengths:
+            summary += f"Сильные стороны: {len(strengths)} совпадений. "
+        
+        if concerns:
+            summary += f"Требует внимания: {len(concerns)} моментов."
+        
+        return summary
     
     def _get_recommendation_reason(self,
                                   profile: Dict[str, Any],
