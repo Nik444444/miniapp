@@ -1227,10 +1227,10 @@ class BackendTester:
         # Test Telegram authentication with user data from the request
         telegram_auth_data = {
             "telegram_user": {
-                "id": 123456789,
-                "first_name": "Test",
-                "last_name": "User", 
-                "username": "testuser",
+                "id": 987654321,
+                "first_name": "TestUser",
+                "last_name": "AIRecruiter", 
+                "username": "testuser_ai",
                 "language_code": "ru"
             }
         }
@@ -1258,6 +1258,56 @@ class BackendTester:
                 "🎯 POST /api/auth/telegram/verify - Telegram authentication for AI recruiter",
                 False,
                 f"❌ КРИТИЧЕСКАЯ ОШИБКА: Telegram authentication failed: {error}",
+                data
+            )
+    
+    async def test_deployment_requirements_fix(self):
+        """🎯 КРИТИЧЕСКИЙ ТЕСТ: Deployment Requirements Fix - emergentintegrations"""
+        logger.info("=== 🎯 КРИТИЧЕСКИЙ ТЕСТ: Deployment Requirements Fix ===")
+        
+        # Test 1: Check that requirements.txt doesn't contain emergentintegrations
+        try:
+            with open("/app/backend/requirements.txt", "r") as f:
+                requirements_content = f.read()
+            
+            has_emergentintegrations = "emergentintegrations" in requirements_content.lower()
+            
+            self.log_test_result(
+                "🎯 Requirements.txt - emergentintegrations removed",
+                not has_emergentintegrations,
+                f"emergentintegrations found in requirements.txt: {has_emergentintegrations}" if has_emergentintegrations else "✅ emergentintegrations correctly removed from requirements.txt",
+                {"requirements_content": requirements_content[:500] + "..." if len(requirements_content) > 500 else requirements_content}
+            )
+        except Exception as e:
+            self.log_test_result(
+                "🎯 Requirements.txt - emergentintegrations removed",
+                False,
+                f"Error reading requirements.txt: {e}",
+                None
+            )
+        
+        # Test 2: Check that emergentintegrations is still available (installed via Dockerfile)
+        success, data, error = await self.make_request("GET", "/api/modern-llm-status")
+        
+        if success and isinstance(data, dict):
+            has_modern_flag = data.get("modern") is True
+            has_providers = "providers" in data and isinstance(data["providers"], dict)
+            providers_count = len(data.get("providers", {}))
+            
+            # Check if emergentintegrations is working (modern LLM manager should work)
+            emergent_working = has_modern_flag and providers_count > 0
+            
+            self.log_test_result(
+                "🎯 Emergentintegrations - Available via Dockerfile",
+                emergent_working,
+                f"Modern LLM: {has_modern_flag}, Providers: {providers_count}, Working: {emergent_working}",
+                data
+            )
+        else:
+            self.log_test_result(
+                "🎯 Emergentintegrations - Available via Dockerfile",
+                False,
+                f"Modern LLM status error: {error}",
                 data
             )
     
