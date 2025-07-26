@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import AIJobAssistant from './AIJobAssistant';
+import RevolutionaryAIRecruiter from './RevolutionaryAIRecruiter';
 import { 
     Briefcase, Search, MapPin, Filter, Bell, Star, 
     Zap, Globe, CheckCircle, AlertCircle, Clock,
@@ -11,7 +12,7 @@ import {
     Plus, Minus, RotateCcw, Smartphone, Wifi,
     Calendar, Briefcase as BriefcaseIcon, Home,
     Clock3, Coffee, Moon, Sun, Send, ExternalLink,
-    Bot
+    Bot, Rocket
 } from 'lucide-react';
 import { 
     isTelegramWebApp, 
