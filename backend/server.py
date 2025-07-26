@@ -322,7 +322,7 @@ class AIRecruiterContinueRequest(BaseModel):
     conversation_data: Dict[str, Any]
 
 class JobCompatibilityRequest(BaseModel):
-    job_id: str
+    job_id: Optional[str] = None
     job_data: Dict[str, Any]
     user_profile_id: Optional[str] = None
 
