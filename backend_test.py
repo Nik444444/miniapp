@@ -6542,44 +6542,41 @@ if __name__ == "__main__":
     asyncio.run(main())
 
     async def run_all_tests(self):
-        """🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Cities API и Job Search API для Telegram Mini App"""
-        logger.info("🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Cities API и Job Search API для Telegram Mini App")
+        """🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Revolutionary AI Recruiter Endpoints для Telegram Mini App"""
+        logger.info("🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Revolutionary AI Recruiter Endpoints для Telegram Mini App")
         logger.info("=" * 80)
-        logger.info("ФОКУС: Тестирование исправлений для Telegram Mini App")
-        logger.info("- Cities API: популярные города, поиск с автодополнением")
-        logger.info("- Job Search API: поиск БЕЗ search_query (необязательный параметр)")
-        logger.info("- Обработка специальных символов и пробелов")
-        logger.info("- Корректная структура данных и отсутствие ошибок pattern matching")
+        logger.info("ФОКУС: Тестирование Revolutionary AI Recruiter endpoints")
+        logger.info("- GET /api/revolutionary-status - проверка статуса системы")
+        logger.info("- POST /api/revolutionary-analysis - проведение революционного анализа")
+        logger.info("- POST /api/instant-job-analysis - мгновенный анализ вакансий")
+        logger.info("- POST /api/perfect-cover-letter - генерация идеальных сопроводительных писем")
+        logger.info("- Все endpoints требуют аутентификацию")
+        logger.info("- Правильная структура данных и обработка пользовательских API ключей")
         logger.info("=" * 80)
         
         try:
-            # 🎯 ПОЛЬЗОВАТЕЛЬСКИЙ ЗАПРОС: Telegram Mini App Job Search API endpoints
-            logger.info("📱 ТЕСТИРОВАНИЕ TELEGRAM MINI APP JOB SEARCH API ENDPOINTS (ПОЛЬЗОВАТЕЛЬСКИЙ ЗАПРОС)")
-            await self.test_telegram_mini_app_job_search_api_endpoints()
+            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ: Revolutionary AI Recruiter Authentication
+            logger.info("🔐 ТЕСТИРОВАНИЕ TELEGRAM AUTHENTICATION")
+            await self.test_telegram_authentication()
             
-            # 🎯 ОСНОВНЫЕ ТЕСТЫ (ПРИОРИТЕТ 1): Cities API
-            logger.info("🏙️ ТЕСТИРОВАНИЕ CITIES API")
-            await self.test_cities_api_endpoints()
+            # 🎯 ОСНОВНЫЕ ТЕСТЫ (ПРИОРИТЕТ 1): Revolutionary AI Recruiter Endpoints
+            logger.info("🚀 ТЕСТИРОВАНИЕ REVOLUTIONARY AI RECRUITER ENDPOINTS")
+            await self.test_revolutionary_ai_recruiter_endpoints()
             
-            # 🎯 ОСНОВНЫЕ ТЕСТЫ (ПРИОРИТЕТ 1): Job Search API
-            logger.info("💼 ТЕСТИРОВАНИЕ JOB SEARCH API")
-            await self.test_job_search_endpoints_corrected_functionality()
-            await self.test_parameter_validation_and_error_handling()
-            await self.test_special_characters_and_spaces_handling()
+            # 🎯 ТЕСТЫ С АУТЕНТИФИКАЦИЕЙ: Revolutionary AI Recruiter Functionality
+            logger.info("🔑 ТЕСТИРОВАНИЕ REVOLUTIONARY AI RECRUITER С АУТЕНТИФИКАЦИЕЙ")
+            await self.test_revolutionary_ai_recruiter_with_auth()
             
-            # 🎯 КРИТИЧЕСКИЕ ТЕСТЫ: Telegram Mini App Pattern Errors
-            logger.info("📱 ТЕСТИРОВАНИЕ TELEGRAM MINI APP PATTERN ERRORS")
-            await self.test_telegram_mini_app_job_search_pattern_errors()
-            await self.test_parameter_validation_edge_cases()
-            
-            # 🎯 ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ: German Language Level Filtering
-            logger.info("🇩🇪 ТЕСТИРОВАНИЕ GERMAN LANGUAGE LEVEL FILTERING")
-            await self.test_german_language_level_filtering()
+            # 🎯 ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ: Deployment Fix
+            logger.info("📦 ТЕСТИРОВАНИЕ DEPLOYMENT REQUIREMENTS FIX")
+            await self.test_deployment_requirements_fix()
+            await self.test_emergentintegrations_availability()
             
             # 🎯 ПОДДЕРЖИВАЮЩИЕ ТЕСТЫ: Базовая функциональность
             logger.info("⚙️ БАЗОВЫЕ ПРОВЕРКИ СИСТЕМЫ")
             await self.test_basic_health_endpoints()
             await self.test_api_health_endpoints()
+            await self.test_modern_llm_status_endpoint()
             
             overall_ready = True
             
