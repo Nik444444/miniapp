@@ -1580,11 +1580,58 @@ Hier ist was ich für dich gefunden habe:"""
         return messages.get(language, messages['ru']).get(stage, messages['ru']['initial'])
     
     def _get_completion_message(self, language: str) -> str:
-        """Сообщение о завершении"""
+        """Улучшенное сообщение о завершении"""
         messages = {
-            'ru': "Ваш профиль готов! Вот персональные рекомендации вакансий специально для вас:",
-            'en': "Your profile is ready! Here are personalized job recommendations specifically for you:",
-            'de': "Ihr Profil ist fertig! Hier sind personalisierte Stellenempfehlungen speziell für Sie:"
+            'ru': """🎉 Отлично! Ваш профиль готов!
+
+Теперь я могу предложить вам:
+
+🎯 **ПЕРСОНАЛЬНЫЕ РЕКОМЕНДАЦИИ ВАКАНСИЙ**
+• Подобрал лучшие варианты под ваш профиль
+• Проанализировал совместимость с каждой позицией
+• Указал конкретные шаги для каждой вакансии
+
+💡 **ДОПОЛНИТЕЛЬНЫЕ ВОЗМОЖНОСТИ:**
+🔄 **Перевод вакансий** - переведу любую вакансию на русский
+📊 **Анализ совместимости** - детальный разбор ваших шансов
+✍️ **Сопроводительные письма** - составлю для каждой вакансии
+📝 **Улучшение резюме** - подскажу как адаптировать под вакансию
+
+⭐ Вот лучшие вакансии специально для вас:""",
+            
+            'en': """🎉 Excellent! Your profile is ready!
+
+Now I can offer you:
+
+🎯 **PERSONALIZED JOB RECOMMENDATIONS**
+• Selected best matches for your profile
+• Analyzed compatibility with each position
+• Provided specific action steps for each job
+
+💡 **ADDITIONAL FEATURES:**
+🔄 **Job Translation** - translate any job to English
+📊 **Compatibility Analysis** - detailed breakdown of your chances
+✍️ **Cover Letters** - create personalized letters for each job
+📝 **Resume Improvement** - advice on adapting to specific jobs
+
+⭐ Here are the best jobs specifically for you:""",
+            
+            'de': """🎉 Ausgezeichnet! Ihr Profil ist fertig!
+
+Jetzt kann ich Ihnen anbieten:
+
+🎯 **PERSONALISIERTE STELLENEMPFEHLUNGEN**
+• Beste Übereinstimmungen für Ihr Profil ausgewählt
+• Kompatibilität mit jeder Position analysiert
+• Spezifische Handlungsschritte für jede Stelle bereitgestellt
+
+💡 **ZUSÄTZLICHE FUNKTIONEN:**
+🔄 **Stellenübersetzung** - übersetze jede Stelle ins Deutsche
+📊 **Kompatibilitätsanalyse** - detaillierte Aufschlüsselung Ihrer Chancen
+✍️ **Anschreiben** - erstelle personalisierte Briefe für jede Stelle
+📝 **Lebenslauf-Verbesserung** - Ratschläge zur Anpassung an spezifische Jobs
+
+⭐ Hier sind die besten Jobs speziell für Sie:"""
         }
         
         return messages.get(language, messages['ru'])
