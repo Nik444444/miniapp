@@ -1,37 +1,42 @@
 #!/usr/bin/env python3
 """
-🎯 AI RECRUITER ENDPOINTS TESTING: Telegram Mini App AI Recruiter Issue
+🎯 КРИТИЧЕСКОЕ ТЕСТИРОВАНИЕ: Telegram Mini App Deployment и AI Recruiter Fixes
 
 КОНТЕКСТ:
-Пользователь сообщает, что при запуске инструмента "поиск работы" AI-рекрутер выдает ошибку 
-"Ошибка запуска AI рекрутера" в Telegram Mini App.
+Пользователь сообщает о двух критических проблемах:
+1. Deployment error: "ERROR: No matching distribution found for emergentintegrations" 
+2. AI recruiter not working in Telegram Mini App job search tool
+
+ИСПРАВЛЕНИЯ ВЫПОЛНЕНЫ:
+1. ✅ DEPLOYMENT FIX: Removed emergentintegrations from requirements.txt (was causing pip install failure)
+2. ✅ AI RECRUITER API FIX: Fixed missing /api prefixes in 5 endpoints in AIJobAssistant.js:
+   - /job-compatibility → /api/job-compatibility  
+   - /translate-job → /api/translate-job
+   - /generate-cover-letter → /api/generate-cover-letter
+   - /ai-job-recommendations → /api/ai-job-recommendations
+   - /telegram-notifications/send → /api/telegram-notifications/send
 
 ЗАДАЧИ ДЛЯ ТЕСТИРОВАНИЯ:
 
-1. **AI-рекрутер endpoints (КРИТИЧЕСКИЙ ТЕСТ):**
-   - GET /api/ai-recruiter/profile - должен возвращать профиль пользователя или сообщение о том, что профиль не найден
-   - POST /api/ai-recruiter/start - должен запускать разговор с AI-рекрутером с параметром user_language: 'ru'
-   - POST /api/ai-recruiter/continue - должен продолжать разговор с AI-рекрутером
+1. **AI Recruiter Endpoints (КРИТИЧЕСКИЙ ТЕСТ):**
+   - GET /api/ai-recruiter/profile - должен работать с аутентификацией
+   - POST /api/ai-recruiter/start - должен работать с аутентификацией
+   - POST /api/ai-recruiter/continue - должен работать с аутентификацией
 
-2. **Telegram Authentication:**
-   - POST /api/auth/telegram/verify - авторизация через Telegram (ОБЯЗАТЕЛЬНО для AI-рекрутера)
+2. **Job Assistant Endpoints (КРИТИЧЕСКИЙ ТЕСТ):**
+   - POST /api/job-compatibility - должен работать с аутентификацией
+   - POST /api/translate-job - должен работать с аутентификацией
+   - POST /api/generate-cover-letter - должен работать с аутентификацией
+   - POST /api/ai-job-recommendations - должен работать с аутентификацией
 
-СЦЕНАРИЙ ТЕСТИРОВАНИЯ:
-1. Сначала авторизуйся как пользователь через Telegram с данными:
-   {"telegram_user": {"id": 123456789, "first_name": "Test", "last_name": "User", "username": "testuser", "language_code": "ru"}}
-2. Получи Bearer token для аутентификации
-3. Протестируй GET /api/ai-recruiter/profile с Bearer token
-4. Протестируй POST /api/ai-recruiter/start с user_language: 'ru' и Bearer token
-5. Протестируй POST /api/ai-recruiter/continue с Bearer token
-6. Проверь что все endpoints требуют аутентификацию (возвращают 401/403 без токена)
+3. **Telegram Notifications Endpoint:**
+   - POST /api/telegram-notifications/send - должен работать с аутентификацией
 
-ВАЖНО:
-- Все endpoints требуют аутентификацию через Bearer token
-- Backend URL: https://miniapp-wvsxfa.fly.dev
-- Используй реальные данные пользователя для тестирования
-- Проверь обработку ошибок и корректность JSON ответов
+4. **Deployment Testing:**
+   - Verify requirements.txt can be installed without emergentintegrations error
+   - Verify emergentintegrations is available (should be installed via Dockerfile)
 
-ЦЕЛЬ: Выяснить, в чем проблема с "Ошибка запуска AI рекрутера" и убедиться что AI-рекрутер работает корректно.
+ЦЕЛЬ: Подтвердить что deployment и AI recruiter функции теперь работают корректно.
 """
 
 import asyncio
