@@ -5,7 +5,8 @@ import {
     BarChart3, PieChart, Award, Trophy, ChevronRight,
     CheckCircle, Clock, AlertTriangle, Sparkles,
     FileText, MessageSquare, BookOpen, Settings,
-    ArrowLeft, Plus, RotateCcw, Eye, X, Download
+    ArrowLeft, Plus, RotateCcw, Eye, X, Download,
+    Cpu, Search, Loader
 } from 'lucide-react';
 import { 
     isTelegramWebApp, 
