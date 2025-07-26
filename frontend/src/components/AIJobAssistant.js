@@ -341,7 +341,7 @@ const AIJobAssistant = ({ onBack, initialJob = null }) => {
         setError(null);
         
         try {
-            const response = await fetch(`${backendUrl}/ai-job-recommendations`, {
+            const response = await fetch(`${backendUrl}/api/ai-job-recommendations`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
