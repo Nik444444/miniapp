@@ -291,14 +291,6 @@ const EnhancedTelegramJobSearch = ({ onBack }) => {
         return () => clearTimeout(delayDebounce);
     }, [citySearchInput, backendUrl]);
 
-    const handleBackClick = () => {
-        if (currentView === 'main') {
-            onBack();
-        } else {
-            setCurrentView('main');
-        }
-    };
-
     const loadPopularCities = async () => {
         try {
             const url = `${backendUrl}/api/cities/popular`;
