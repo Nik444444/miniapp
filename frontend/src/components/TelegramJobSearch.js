@@ -1605,4 +1605,4 @@ Button Enabled: ${!(!searchFilters.location || !searchFilters.language_level)}`)
     );
 };
 
-export default TelegramJobSearch;
+export default EnhancedTelegramJobSearch;
