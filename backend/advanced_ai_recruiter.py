@@ -652,20 +652,91 @@ Your response (in English):"""
         return data
     
     def _extract_preferences_data(self, message: str) -> Dict[str, Any]:
-        """Извлечение данных о предпочтениях"""
+        """Улучшенное извлечение данных о предпочтениях"""
         data = {}
         
         message_lower = message.lower()
         
-        # Поиск зарплатных ожиданий
-        if 'евро' in message_lower or '€' in message_lower:
-            data['salary_mentioned'] = True
+        # Поиск зарплатных ожиданий (более точно)
+        import re
+        
+        salary_patterns = [
+            r'(\d+)\s*(?:000)?\s*(?:-|до|to)\s*(\d+)\s*(?:000)?\s*(?:евро|euro|eur|€)',
+            r'от\s*(\d+)\s*(?:000)?\s*до\s*(\d+)\s*(?:000)?\s*(?:евро|euro|eur|€)',
+            r'(\d+)\s*(?:к|k|тысяч)\s*(?:-|до|to)\s*(\d+)\s*(?:к|k|тысяч)',
+            r'зарплата\s*(\d+)',
+            r'salary\s*(\d+)'
+        ]
+        
+        for pattern in salary_patterns:
+            match = re.search(pattern, message_lower)
+            if match:
+                if len(match.groups()) >= 2:
+                    # Диапазон зарплаты
+                    min_salary = int(match.group(1))
+                    max_salary = int(match.group(2))
+                    # Если числа меньше 1000, вероятно это в тысячах
+                    if min_salary < 1000:
+                        min_salary *= 1000
+                    if max_salary < 1000:
+                        max_salary *= 1000
+                    data['salary_min'] = min_salary
+                    data['salary_max'] = max_salary
+                    data['salary_expectations'] = f"{min_salary}-{max_salary} EUR"
+                else:
+                    # Одно число
+                    salary = int(match.group(1))
+                    if salary < 1000:
+                        salary *= 1000
+                    data['salary_expectations'] = f"{salary} EUR"
+                break
         
         # Поиск формата работы
-        if 'remote' in message_lower or 'удаленно' in message_lower:
-            data['work_format'] = 'remote'
-        elif 'office' in message_lower or 'офис' in message_lower:
-            data['work_format'] = 'office'
+        work_format_keywords = {
+            'remote': ['remote', 'удаленно', 'удаленная', 'дистанционно', 'из дома', 'home office'],
+            'office': ['office', 'офис', 'офисе', 'на месте', 'очно'],
+            'hybrid': ['hybrid', 'гибрид', 'смешанный', 'частично удаленно']
+        }
+        
+        for format_type, keywords in work_format_keywords.items():
+            for keyword in keywords:
+                if keyword in message_lower:
+                    data['work_format'] = format_type
+                    break
+            if 'work_format' in data:
+                break
+        
+        # Поиск типа занятости
+        employment_keywords = {
+            'full_time': ['полный день', 'full time', 'fulltime', 'полная занятость', 'фулл тайм'],
+            'part_time': ['частичная занятость', 'part time', 'parttime', 'неполный день'],
+            'contract': ['контракт', 'contract', 'подряд', 'фриланс', 'freelance'],
+            'internship': ['стажировка', 'internship', 'intern', 'практика']
+        }
+        
+        for employment_type, keywords in employment_keywords.items():
+            for keyword in keywords:
+                if keyword in message_lower:
+                    data['employment_type'] = employment_type
+                    break
+            if 'employment_type' in data:
+                break
+        
+        # Поиск размера компании
+        company_size_keywords = {
+            'startup': ['стартап', 'startup', 'молодая компания', 'небольшая компания'],
+            'small': ['малая', 'маленькая', 'small company', 'до 50'],
+            'medium': ['средняя', 'medium', 'средний размер', '50-500'],
+            'large': ['большая', 'крупная', 'large', 'корпорация', 'более 500']
+        }
+        
+        for size_type, keywords in company_size_keywords.items():
+            for keyword in keywords:
+                if keyword in message_lower:
+                    data['company_size_preference'] = size_type
+                    break
+            if 'company_size_preference' in data:
+                break
         
         return data
     
