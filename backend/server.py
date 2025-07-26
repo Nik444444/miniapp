@@ -33,7 +33,7 @@ from llm_manager import llm_manager
 from modern_llm_manager import modern_llm_manager
 
 # Initialize Perfect AI Recruiter
-from perfect_ai_recruiter import AdvancedAIRecruiter
+from perfect_ai_recruiter import get_perfect_ai_recruiter
 perfect_ai_recruiter = get_perfect_ai_recruiter(db)
 from telegram_service import telegram_service
 from telegram_auth_service import telegram_auth_service
