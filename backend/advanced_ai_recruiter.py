@@ -575,24 +575,79 @@ Your response (in English):"""
         return data
     
     def _extract_skills_data(self, message: str) -> Dict[str, Any]:
-        """Извлечение данных о навыках"""
+        """Улучшенное извлечение данных о навыках"""
         data = {}
         
-        # Поиск технических навыков
-        tech_skills = ['python', 'java', 'javascript', 'react', 'angular', 'node.js', 'docker']
-        found_skills = []
-        
         message_lower = message.lower()
-        for skill in tech_skills:
-            if skill in message_lower:
-                found_skills.append(skill.title())
+        
+        # Расширенный поиск технических навыков
+        tech_skills = {
+            'python': ['python', 'пайтон', 'питон'],
+            'javascript': ['javascript', 'js', 'джаваскрипт'],
+            'java': ['java', 'джава'],
+            'react': ['react', 'реакт'],
+            'vue': ['vue', 'vue.js'],
+            'angular': ['angular', 'ангуляр'],
+            'node.js': ['node', 'node.js', 'nodejs'],
+            'django': ['django', 'джанго'],
+            'flask': ['flask', 'фласк'],
+            'docker': ['docker', 'докер'],
+            'kubernetes': ['kubernetes', 'k8s', 'кубернетес'],
+            'postgresql': ['postgresql', 'postgres', 'постгрес'],
+            'mysql': ['mysql', 'майсквл'],
+            'mongodb': ['mongodb', 'mongo'],
+            'redis': ['redis', 'редис'],
+            'git': ['git', 'гит'],
+            'aws': ['aws', 'amazon'],
+            'linux': ['linux', 'линукс'],
+            'sql': ['sql', 'эсквл'],
+            'html': ['html'],
+            'css': ['css'],
+            'typescript': ['typescript', 'ts'],
+            'c++': ['c++', 'cpp'],
+            'c#': ['c#', 'csharp'],
+            'php': ['php', 'пхп'],
+            'go': ['golang', 'go'],
+            'rust': ['rust', 'раст'],
+            'kotlin': ['kotlin', 'котлин'],
+            'swift': ['swift', 'свифт']
+        }
+        
+        found_skills = []
+        for skill_name, patterns in tech_skills.items():
+            for pattern in patterns:
+                if pattern in message_lower:
+                    found_skills.append(skill_name)
+                    break
         
         if found_skills:
-            data['technical_skills'] = found_skills
+            data['technical_skills'] = list(set(found_skills))  # убираем дубликаты
         
-        # Поиск опыта работы
-        if 'год' in message_lower or 'лет' in message_lower:
-            data['experience_mentioned'] = True
+        # Поиск опыта работы (более точно)
+        import re
+        
+        # Паттерны для поиска лет опыта
+        experience_patterns = [
+            r'(\d+)\s*(?:год|лет|года)',
+            r'(\d+)\s*years?',
+            r'(\d+)\s*лет\s*опыта',
+            r'опыт\s*(\d+)',
+            r'(\d+)\+?\s*years?\s*(?:of\s*)?experience'
+        ]
+        
+        for pattern in experience_patterns:
+            match = re.search(pattern, message_lower)
+            if match:
+                years = int(match.group(1))
+                data['experience_years'] = years
+                break
+        
+        # Поиск образования
+        education_keywords = ['университет', 'институт', 'university', 'degree', 'диплом', 'образование', 'магистр', 'бакалавр']
+        for keyword in education_keywords:
+            if keyword in message_lower:
+                data['has_education'] = True
+                break
         
         return data
     
