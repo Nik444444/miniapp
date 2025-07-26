@@ -242,91 +242,136 @@ const RevolutionaryAIRecruiter = ({ onBack, aiProfile = null }) => {
 
     const renderOverview = () => (
         <div className="max-w-4xl mx-auto p-4 space-y-6">
-            {/* Header */}
-            <div className="text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-2xl">
-                <div className="flex items-center justify-center mb-4">
-                    <Rocket className="h-12 w-12 mr-3" />
-                    <h1 className="text-2xl font-bold">Революционный AI Рекрутер</h1>
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white p-8 rounded-3xl shadow-2xl">
+                <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                        <h1 className="text-3xl font-bold mb-3 flex items-center">
+                            <Zap className="h-10 w-10 mr-3 text-yellow-300" />
+                            🚀 Революционный AI Рекрутер
+                        </h1>
+                        <p className="text-lg text-purple-100 mb-6">
+                            Новое поколение AI для мгновенного анализа вакансий и создания идеальных сопроводительных писем
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                ⚡ Мгновенный анализ
+                            </span>
+                            <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                🧠 AI совместимость
+                            </span>
+                            <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                💌 Идеальные письма
+                            </span>
+                        </div>
+                    </div>
+                    <div className="ml-6">
+                        <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center">
+                            <Brain className="h-10 w-10 text-white" />
+                        </div>
+                    </div>
                 </div>
-                <p className="text-purple-100 text-sm">
-                    Супер-умный AI помощник для поиска работы нового поколения
-                </p>
             </div>
 
             {/* Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Revolutionary Analysis Status */}
-                <div className="bg-white border-2 border-purple-200 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
-                            <Brain className="h-6 w-6 text-purple-600 mr-2" />
-                            <h3 className="font-semibold text-gray-800">Революционный анализ</h3>
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4">
+                            <Rocket className="h-6 w-6 text-white" />
                         </div>
-                        {revolutionaryStatus?.revolutionary_analysis?.completed ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                            <Clock className="h-5 w-5 text-orange-500" />
-                        )}
+                        <div>
+                            <h3 className="font-semibold text-gray-800">Революционный анализ</h3>
+                            <p className="text-sm text-gray-600">
+                                {revolutionaryStatus?.system_status === 'revolutionary' ? 
+                                    'Активен и готов к работе' : 
+                                    'Требуется настройка AI ключей'
+                                }
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                        {revolutionaryStatus?.revolutionary_analysis?.completed 
-                            ? 'Анализ завершен! У вас есть революционная стратегия.'
-                            : 'Глубокий анализ профиля и создание стратегии поиска работы.'}
-                    </p>
-                    {!revolutionaryStatus?.revolutionary_analysis?.completed ? (
+                    
+                    {!revolutionaryAnalysis ? (
                         <button
                             onClick={conductRevolutionaryAnalysis}
-                            disabled={loading || !revolutionaryStatus?.features_available?.revolutionary_analysis}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? (
-                                <div className="flex items-center">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Анализирую... {Math.round(analysisProgress)}%
-                                </div>
+                                <>
+                                    <Loader className="h-5 w-5 animate-spin" />
+                                    Анализ... {Math.round(analysisProgress)}%
+                                </>
                             ) : (
                                 <>
-                                    <Sparkles className="h-4 w-4 mr-2" />
-                                    Начать революционный анализ
+                                    <Zap className="h-5 w-5" />
+                                    Запустить анализ
                                 </>
                             )}
                         </button>
                     ) : (
-                        <button
-                            onClick={() => setCurrentView('analysis')}
-                            className="w-full bg-purple-100 text-purple-700 py-2 px-4 rounded-lg flex items-center justify-center"
-                        >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Посмотреть анализ
-                        </button>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">Статус анализа</span>
+                                <span className="text-sm font-semibold text-green-600 flex items-center gap-1">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Завершен
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setCurrentView('analysis')}
+                                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                                <Trophy className="h-5 w-5" />
+                                Посмотреть результаты
+                            </button>
+                        </div>
                     )}
                 </div>
 
                 {/* AI Features Status */}
-                <div className="bg-white border-2 border-blue-200 rounded-xl p-4">
-                    <div className="flex items-center mb-3">
-                        <Zap className="h-6 w-6 text-blue-600 mr-2" />
-                        <h3 className="font-semibold text-gray-800">AI Возможности</h3>
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                    <div className="flex items-center mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-4">
+                            <Settings className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-gray-800">AI Возможности</h3>
+                            <p className="text-sm text-gray-600">Доступные функции</p>
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Мгновенный анализ вакансий</span>
+                    
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${revolutionaryStatus?.features_available?.instant_job_analysis ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span className="text-sm font-medium text-gray-700">Мгновенный анализ вакансий</span>
+                            </div>
                             {revolutionaryStatus?.features_available?.instant_job_analysis ? (
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                             ) : (
                                 <X className="h-4 w-4 text-red-500" />
                             )}
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Идеальные письма</span>
+                        
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${revolutionaryStatus?.features_available?.perfect_cover_letters ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span className="text-sm font-medium text-gray-700">Идеальные письма</span>
+                            </div>
                             {revolutionaryStatus?.features_available?.perfect_cover_letters ? (
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                             ) : (
                                 <X className="h-4 w-4 text-red-500" />
                             )}
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Пакетный анализ</span>
+                        
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${revolutionaryStatus?.features_available?.batch_analysis ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span className="text-sm font-medium text-gray-700">Пакетный анализ</span>
+                            </div>
                             {revolutionaryStatus?.features_available?.batch_analysis ? (
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                             ) : (
@@ -336,8 +381,9 @@ const RevolutionaryAIRecruiter = ({ onBack, aiProfile = null }) => {
                     </div>
                     
                     {revolutionaryStatus?.system_status !== 'revolutionary' && (
-                        <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-xs text-yellow-700">
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-700 flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" />
                                 🔑 Добавьте AI ключи в настройках для доступа ко всем возможностям
                             </p>
                         </div>
@@ -347,67 +393,93 @@ const RevolutionaryAIRecruiter = ({ onBack, aiProfile = null }) => {
 
             {/* AI Providers */}
             {revolutionaryStatus?.ai_providers && (
-                <div className="bg-white border border-gray-200 rounded-xl p-4">
-                    <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
-                        <Settings className="h-5 w-5 mr-2" />
-                        Подключенные AI провайдеры
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
+                    <div className="flex items-center mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+                            <Cpu className="h-5 w-5 text-white" />
+                        </div>
+                        <h3 className="font-semibold text-gray-800">Подключенные AI провайдеры</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {revolutionaryStatus.ai_providers.map((provider, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
                                 <div>
-                                    <p className="font-medium text-sm capitalize">{provider.name}</p>
-                                    <p className="text-xs text-gray-500">{provider.model}</p>
+                                    <p className="font-medium text-gray-800 capitalize">{provider.name}</p>
+                                    <p className="text-sm text-gray-500">{provider.model}</p>
                                 </div>
-                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="h-4 w-4 text-white" />
+                                </div>
                             </div>
                         ))}
                     </div>
+                    
                     {revolutionaryStatus.ai_providers.length === 0 && (
-                        <p className="text-sm text-gray-500 text-center py-4">
-                            Нет подключенных AI провайдеров. Добавьте ключи в настройках.
-                        </p>
+                        <div className="text-center py-8">
+                            <Cpu className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-500 mb-4">Нет подключенных AI провайдеров</p>
+                            <p className="text-sm text-gray-400">Добавьте ключи в настройках для активации возможностей</p>
+                        </div>
                     )}
                 </div>
             )}
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                    onClick={() => setCurrentView('job-test')}
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded-xl flex items-center justify-between"
-                >
-                    <div className="text-left">
-                        <h4 className="font-semibold">Протестировать анализ</h4>
-                        <p className="text-sm text-blue-100">Попробуйте мгновенный анализ вакансии</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                            <Search className="h-6 w-6" />
+                        </div>
+                        <ChevronRight className="h-6 w-6" />
                     </div>
-                    <ChevronRight className="h-6 w-6" />
-                </button>
+                    <h4 className="font-semibold text-lg mb-2">Протестировать анализ</h4>
+                    <p className="text-blue-100 text-sm mb-4">Попробуйте мгновенный анализ совместимости с любой вакансией</p>
+                    <button
+                        onClick={() => setCurrentView('job-test')}
+                        className="w-full bg-white/20 text-white py-2 px-4 rounded-lg font-medium hover:bg-white/30 transition-colors"
+                    >
+                        Начать тестирование
+                    </button>
+                </div>
 
-                <button
-                    onClick={() => setCurrentView('cover-letter-test')}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-xl flex items-center justify-between"
-                >
-                    <div className="text-left">
-                        <h4 className="font-semibold">Создать письмо</h4>
-                        <p className="text-sm text-green-100">Сгенерируйте идеальное сопроводительное</p>
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                            <FileText className="h-6 w-6" />
+                        </div>
+                        <ChevronRight className="h-6 w-6" />
                     </div>
-                    <ChevronRight className="h-6 w-6" />
-                </button>
+                    <h4 className="font-semibold text-lg mb-2">Создать письмо</h4>
+                    <p className="text-green-100 text-sm mb-4">Сгенерируйте идеальное сопроводительное письмо с AI</p>
+                    <button
+                        onClick={() => setCurrentView('cover-letter-test')}
+                        className="w-full bg-white/20 text-white py-2 px-4 rounded-lg font-medium hover:bg-white/30 transition-colors"
+                    >
+                        Создать письмо
+                    </button>
+                </div>
             </div>
 
             {/* Error/Success Messages */}
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start">
-                    <AlertTriangle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{error}</span>
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-start shadow-lg">
+                    <AlertTriangle className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                        <p className="font-medium">Ошибка</p>
+                        <p className="text-sm">{error}</p>
+                    </div>
                 </div>
             )}
 
             {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-start">
-                    <CheckCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{success}</span>
+                <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl flex items-start shadow-lg">
+                    <CheckCircle className="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" />
+                    <div>
+                        <p className="font-medium">Успех</p>
+                        <p className="text-sm">{success}</p>
+                    </div>
                 </div>
             )}
         </div>
